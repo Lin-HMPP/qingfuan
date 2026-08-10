@@ -3,6 +3,7 @@
   <div class="mask" @click="$emit('close')">
     <div class="modal" @click.stop>
       <span class="title">确认退出当前账号？</span>
+      <div class="title-deco" />
       <span class="hint">退出后需重新登录才能使用预付管理功能</span>
       <div class="divider" />
       <div class="btn-row">
@@ -21,9 +22,13 @@ defineEmits(['confirm', 'close'])
 .mask { position: fixed; inset: 0; z-index: 1000; background: rgba(36,89,87,.45); display: flex; align-items: center; justify-content: center; }
 .modal { width: 343px; background: #fff; border: 1px solid #48A9A6; border-radius: 16px; padding: 32px 24px 24px; box-shadow: 0 4px 20px rgba(0,0,0,.12); }
 .title { display: block; text-align: center; font-size: 18px; font-weight: bold; color: #245957; }
+.title-deco { width: 20px; height: 2px; background: #FFD133; border-radius: 1px; margin: 6px auto 0; }
 .hint { display: block; text-align: center; font-size: 12px; color: #638F8D; margin-top: 8px; }
 .divider { height: 0.5px; background: #48A9A6; margin: 16px 0; }
 .btn-row { display: flex; gap: 12px; }
 .flex-1 { flex: 1; }
-.btn-danger { height: 44px; background: #E8686A; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; }
+.btn-secondary { background: #fff; color: #48A9A6; border: 1.5px solid #48A9A6; border-radius: 6px; }
+.btn-secondary:active { background: #B8E6E1; transform: scale(0.96); }
+.btn-danger { height: 44px; background: #E8686A; color: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; cursor: pointer; transition: transform 0.12s ease; }
+.btn-danger:active { transform: scale(0.96); }
 </style>

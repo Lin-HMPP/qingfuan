@@ -55,29 +55,126 @@ function onUnlocked() { doUnlock(); showPinLock.value = false }
 </script>
 
 <style lang="scss">
+/* ═══════════════════════════════════════════
+   青付安 — 简笔卡通线条 UI 全局样式 V2
+   薄荷绿主体 + 明黄装饰线 + 按压反馈
+   ═══════════════════════════════════════════ */
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { background: #F5FAFA; color: #245957; font-size: 14px; -webkit-tap-highlight-color: transparent; }
-#app { min-height: 100vh; background: #F5FAFA; }
+html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-highlight-color: transparent; }
+#app { min-height: 100vh; background: #FFFFFF; }
 .safe-top { height: env(safe-area-inset-top, 0px); background: #fff; }
 .app-root { position: relative; min-height: 100vh; }
-.page-fade-enter-active, .page-fade-leave-active { transition: opacity 0.2s ease; }
-.page-fade-enter-from, .page-fade-leave-to { opacity: 0; }
-.card-blue { background: #fff; border: 1.5px solid #48A9A6; border-radius: 16px; transition: transform 0.15s ease, background 0.15s ease; }
+
+/* ——— 页面过渡 ——— */
+.page-fade-enter-active, .page-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.page-fade-enter-from { opacity: 0; transform: translateX(8px); }
+.page-fade-leave-to { opacity: 0; transform: translateX(-8px); }
+
+/* ——— 卡片：薄荷绿轮廓 + 明黄角装饰 ——— */
+.card-blue {
+  background: #fff; border: 1.5px solid #48A9A6; border-radius: 16px;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+/* 左上角明黄短折线装饰 */
+.card-blue::before {
+  content: ''; position: absolute; top: -1px; left: 12px;
+  width: 14px; height: 2px; background: #FFD133; border-radius: 1px;
+}
+/* 右下角明黄短折线装饰（仅大卡片） */
+.card-blue.card-decor::after {
+  content: ''; position: absolute; bottom: -1px; right: 12px;
+  width: 14px; height: 2px; background: #FFD133; border-radius: 1px;
+}
 .card-blue:active { transform: scale(0.97); }
-.card-light { background: #B8E6E1; border-radius: 8px; }
-.btn-primary { display: flex; align-items: center; justify-content: center; height: 44px; background: #48A9A6; color: #fff; border-radius: 6px; font-size: 15px; font-weight: bold; border: none; cursor: pointer; transition: transform 0.1s ease, background 0.1s ease; }
+
+.card-light {
+  background: #B8E6E1; border-radius: 8px;
+  position: relative;
+}
+
+/* ——— 主按钮：薄荷绿填充 + 按压加深 ——— */
+.btn-primary {
+  display: flex; align-items: center; justify-content: center;
+  height: 44px; background: #48A9A6; color: #fff;
+  border-radius: 6px; font-size: 15px; font-weight: bold;
+  border: none; cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
 .btn-primary:active { transform: scale(0.96); background: #9FD8D2; }
-.btn-secondary { display: flex; align-items: center; justify-content: center; height: 44px; background: #fff; color: #48A9A6; border: 1.5px solid #48A9A6; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; transition: transform 0.1s ease, background 0.1s ease, border-width 0.1s ease; }
-.btn-secondary:active { transform: scale(0.96); background: #B8E6E1; border-width: 2px; }
-.input-blue { width: 100%; height: 44px; background: #fff; border: 1.5px solid #48A9A6; border-radius: 12px; padding: 0 12px; font-size: 15px; color: #245957; outline: none; }
+
+/* ——— 次按钮：白底薄荷绿边框 ——— */
+.btn-secondary {
+  display: flex; align-items: center; justify-content: center;
+  height: 44px; background: #fff; color: #48A9A6;
+  border: 1.5px solid #48A9A6; border-radius: 6px;
+  font-size: 15px; font-weight: bold; cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.btn-secondary:active { transform: scale(0.96); background: #B8E6E1; }
+
+/* ——— 输入框 ——— */
+.input-blue {
+  width: 100%; height: 44px; background: #fff;
+  border: 1.5px solid #48A9A6; border-radius: 12px;
+  padding: 0 12px; font-size: 15px; color: #245957; outline: none;
+}
 .input-blue::placeholder { color: #4A7A77; }
-.input-blue:focus { border-color: #48A9A6; box-shadow: 0 0 0 2px rgba(72,169,166,.2); }
-.textarea-blue { width: 100%; min-height: 100px; background: #fff; border: 1.5px solid #48A9A6; border-radius: 12px; padding: 12px; font-size: 15px; color: #245957; outline: none; resize: vertical; }
+.input-blue:focus { border-color: #48A9A6; box-shadow: 0 0 0 2px rgba(72,169,166,.15); }
+
+.textarea-blue {
+  width: 100%; min-height: 100px; background: #fff;
+  border: 1.5px solid #48A9A6; border-radius: 12px;
+  padding: 12px; font-size: 15px; color: #245957; outline: none; resize: vertical;
+}
 .textarea-blue::placeholder { color: #4A7A77; }
-.divider-blue { height: 0.5px; background: #48A9A6; opacity: 0.4; }
-.nav-bar { display: flex; align-items: center; height: 44px; background: #fff; padding: 0 16px; position: relative; border-bottom: 1px solid #48A9A6; }
+
+/* ——— 分割线：薄荷绿 + 明黄双线装饰 ——— */
+.divider-blue {
+  height: 0.5px; background: #48A9A6; opacity: 0.4;
+  position: relative;
+}
+
+/* ——— 导航栏：薄荷绿底线 + 明黄平行装饰线 ——— */
+.nav-bar {
+  display: flex; align-items: center; height: 44px;
+  background: #fff; padding: 0 16px; position: relative;
+  border-bottom: 1.5px solid #48A9A6;
+}
+.nav-bar::after {
+  content: ''; position: absolute; bottom: -4px; left: 16px; right: 16px;
+  height: 1px; background: #FFD133; border-radius: 0.5px;
+}
 .nav-bar .back { font-size: 15px; color: #48A9A6; cursor: pointer; z-index: 1; }
-.nav-bar .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; color: #245957; white-space: nowrap; }
+.nav-bar .back:active { transform: scale(0.96); color: #9FD8D2; }
+.nav-bar .title {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  font-size: 18px; font-weight: bold; color: #245957; white-space: nowrap;
+}
+/* 标题底部短明黄装饰线 */
+.nav-bar .title::after {
+  content: ''; display: block; width: 20px; height: 2px;
+  background: #FFD133; border-radius: 1px; margin: 1px auto 0;
+}
+
+/* ——— 全局免责声明 ——— */
 .disclaimer { display: block; text-align: center; font-size: 11px; color: #4A7A77; padding: 8px 16px; }
+
+/* ——— 全局可点击元素按压反馈 ——— */
+a, button, [role="button"], .clickable,
+.tag, .menu-item, .folder-card, .record-item, .asset-card,
+.btn-writeoff, .btn-voucher, .btn-add, .btn-manage,
+.option, .type-item, .num-key, .tab, .lock-btn {
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+}
+.tag:active, .menu-item:active, .folder-card:active, .record-item:active,
+.asset-card:active, .btn-writeoff:active, .btn-voucher:active, .btn-add:active,
+.option:active, .type-item:active, .num-key:active, .tab:active {
+  transform: scale(0.96); background: #9FD8D2;
+}
+
+/* ——— 通用工具类 ——— */
 .flex-1 { flex: 1; }
 </style>

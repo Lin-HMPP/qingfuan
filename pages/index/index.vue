@@ -137,7 +137,7 @@ function onCustomScene(name) {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #fff; padding-bottom: 70px; }
+.page { min-height: 100vh; background: #FFFFFF; padding-bottom: 70px; }
 
 .nav-bar { display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 16px; border-bottom: 1px solid #48A9A6; background: #fff; }
 .logo { font-size: 18px; font-weight: bold; color: #245957; }
