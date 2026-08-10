@@ -9,7 +9,7 @@
     <tab-bar v-if="showTabBar" />
     <toast-global ref="toastRef" />
   </div>
-  <pin-lock v-else @unlocked="onUnlocked" @done="showPinLock = false" />
+  <pin-lock v-else @unlocked="onUnlocked" @done="onPinDone" />
 </template>
 
 <script setup>
@@ -51,7 +51,8 @@ onMounted(() => {
   }
 })
 
-function onUnlocked() { doUnlock(); showPinLock.value = false }
+function onUnlocked() { doUnlock(); showPinLock.value = false; window.__pinMode = undefined }
+function onPinDone() { showPinLock.value = false; window.__pinMode = undefined }
 </script>
 
 <style lang="scss">
