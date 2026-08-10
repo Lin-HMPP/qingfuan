@@ -6,10 +6,10 @@
       <div class="close-btn" @click="$emit('close')">✕</div>
       <div class="divider" />
       <div class="info-box">
-        <div class="info-row"><span class="info-label">消费场景</span><span class="info-value">{{ data.scene }}</span></div>
-        <div class="info-row"><span class="info-label">套餐名称</span><span class="info-value">{{ data.storeName }}年卡</span></div>
-        <div class="info-row"><span class="info-label">总价金额</span><span class="info-value">¥{{ Number(data.totalPrice).toLocaleString() }}</span></div>
-        <div class="info-row"><span class="info-label">预估有效期</span><span class="info-value">{{ data.validityMonths }} 个月</span></div>
+        <div class="info-row"><span class="info-label">消费场景</span><span class="info-value">{{ data?.scene || '--' }}</span></div>
+        <div class="info-row"><span class="info-label">套餐名称</span><span class="info-value">{{ data?.storeName || '--' }}年卡</span></div>
+        <div class="info-row"><span class="info-label">总价金额</span><span class="info-value">¥{{ (Number(data?.totalPrice) || 0).toLocaleString() }}</span></div>
+        <div class="info-row"><span class="info-label">预估有效期</span><span class="info-value">{{ data?.validityMonths || '--' }} 个月</span></div>
       </div>
       <span class="note">资产创建后将永久保存在本地资产列表</span>
       <div class="divider" />

@@ -10,9 +10,9 @@
       </div>
       <input
         class="input-blue"
+        ref="inputRef"
         v-model="name"
         placeholder="输入自定义消费场景名称"
-        :focus="true"
         maxlength="20"
       />
       <div class="btn-row">
@@ -24,12 +24,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { isValidSceneName } from '@/common/validator.js'
 
 const $toast = (msg) => window.__toast?.(msg)
 const emit = defineEmits(['confirm', 'close'])
 const name = ref('')
+const inputRef = ref(null)
+
+onMounted(() => {
+  setTimeout(() => inputRef.value?.focus(), 100)
+})
 
 function onConfirm() {
   if (!isValidSceneName(name.value)) {
@@ -37,6 +42,7 @@ function onConfirm() {
     return
   }
   emit('confirm', name.value.trim())
+  name.value = ''
 }
 </script>
 

@@ -7,7 +7,7 @@
 
     <div class="section-header">
       <span class="section-title">全部资产文件夹</span>
-      <span class="btn-add-folder" @click="router.push('/folder-create')">+ 新建资料夹</span>
+      <span class="btn-add-folder" @click="goNewFolder">+ 新建资料夹</span>
     </div>
 
     <div v-if="!folders.length" class="empty-card">
@@ -142,35 +142,52 @@ function navigateBack() {
     router.back()
   }
 }
+function goNewFolder() { if (!guard()) return; router.push('/folder-create') }
 function selectFolder(f) { if (!guard()) return; currentFolder.value=f }
 
 // 导出
 function onExport(f) { track('证据夹', '导出单个'); currentFolder.value=f; doExport(f) }
 function onExportAll() { track('证据夹', '一键打包'); doExport(currentFolder.value) }
 
+function escapeHtml(str) {
+  const div = document.createElement('div')
+  div.textContent = str
+  return div.innerHTML
+}
+
 function doExport(folder) {
   if (!folder) return
   showLoading.value=true
-  const files=getFiles(folder.id)
-  const asset=getAssets().find(a=>a.id===folder.assetId)
-  const aname=asset?`${asset.storeName}·${asset.scene||''}`:'未知资产'
-  const groups={}
-  files.forEach(f=>{ const g=f.materialType||'other'; if(!groups[g])groups[g]=[]; groups[g].push(f) })
+  // 延迟执行打包，让 loading 动画先渲染
+  setTimeout(() => {
+    try {
+      const files=getFiles(folder.id)
+      const asset=getAssets().find(a=>a.id===folder.assetId)
+      const aname=escapeHtml(asset?`${asset.storeName}·${asset.scene||''}`:'未知资产')
+      const groups={}
+      files.forEach(f=>{ const g=f.materialType||'other'; if(!groups[g])groups[g]=[]; groups[g].push(f) })
 
-  let report=`<html><head><meta charset="utf-8"><title>青付安·${aname}·维权凭证</title><style>body{font-family:sans-serif;max-width:720px;margin:0 auto;padding:20px;color:#245957}h1{font-size:20px;color:#48A9A6}h2{font-size:16px;margin-top:24px}.meta{color:#888;font-size:12px}.item{padding:8px;margin:4px 0;background:#B8E6E1;border-radius:6px}img{max-width:100%;border-radius:4px}</style></head><body><h1>青付安 · 维权凭证报告</h1><p class="meta">资产: ${aname} | ${new Date().toLocaleString()}</p>`
-  for(const [k,items] of Object.entries(groups)) {
-    report+=`<h2>${getMaterialLabel(k)}</h2>`
-    items.forEach(f=>{ report+=`<div class="item"><strong>${f.name}</strong> · ${f.size||'--'}`; if(f.dataUrl)report+=`<br><img src="${f.dataUrl}">`; report+='</div>' })
-  }
-  report+=`<p class="meta" style="margin-top:32px">本报告由青付安App生成，仅供维权参考</p></body></html>`
+      let report=`<html><head><meta charset="utf-8"><title>青付安·${aname}·维权凭证</title><style>body{font-family:sans-serif;max-width:720px;margin:0 auto;padding:20px;color:#245957}h1{font-size:20px;color:#48A9A6}h2{font-size:16px;margin-top:24px}.meta{color:#888;font-size:12px}.item{padding:8px;margin:4px 0;background:#B8E6E1;border-radius:6px}img{max-width:100%;border-radius:4px}</style></head><body><h1>青付安 · 维权凭证报告</h1><p class="meta">资产: ${aname} | ${new Date().toLocaleString()}</p>`
+      for(const [k,items] of Object.entries(groups)) {
+        report+=`<h2>${escapeHtml(getMaterialLabel(k))}</h2>`
+        items.forEach(f=>{ report+=`<div class="item"><strong>${escapeHtml(f.name)}</strong> · ${escapeHtml(f.size||'--')}`; if(f.dataUrl)report+=`<br><img src="${f.dataUrl}">`; report+='</div>' })
+      }
+      report+=`<p class="meta" style="margin-top:32px">本报告由青付安App生成，仅供维权参考</p></body></html>`
 
-  const blob=new Blob([report],{type:'text/html;charset=utf-8'})
-  const url=URL.createObjectURL(blob)
-  const a=document.createElement('a'); a.href=url; a.download=`青付安_${aname}_维权凭证_${new Date().toISOString().slice(0,10)}.html`
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+      const blob=new Blob([report],{type:'text/html;charset=utf-8'})
+      const url=URL.createObjectURL(blob)
+      const a=document.createElement('a'); a.href=url; a.download=`青付安_${aname}_维权凭证_${new Date().toISOString().slice(0,10)}.html`
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
 
-  showLoading.value=false
-  window.__toast?.('凭证报告已下载，可在浏览器下载中查看')
+      showLoading.value=false
+      window.__toast?.('凭证报告已下载，可在浏览器下载中查看')
+    } catch (e) {
+      showLoading.value=false
+      window.__toast?.('导出失败，请重试')
+      console.error('证据导出失败:', e)
+    }
+  }, 200)
 }
 
 // 上传
@@ -183,18 +200,40 @@ function uploadFile()   { showMethodPicker.value=false; pickAndSave('*/*',null) 
 function pickAndSave(accept,capture) {
   const inp=document.createElement('input'); inp.type='file'; inp.accept=accept
   if(capture)inp.setAttribute('capture','environment'); inp.multiple=true
+
+  let cleaned = false
+  const cleanup = () => {
+    if (cleaned) return
+    cleaned = true
+    window.removeEventListener('focus', onFocusCancel)
+    if (inp.parentNode) document.body.removeChild(inp)
+  }
+
+  let pendingCount = 0
   inp.onchange=(e)=>{
-    const files=e.target.files; if(!files||!files.length)return
+    const files=e.target.files; if(!files||!files.length){ cleanup(); return }
+    pendingCount = files.length
     Array.from(files).forEach(f=>{
       const entry={folderId:currentFolder.value?.id||'',name:f.name,type:f.type||'file',size:f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(1)+'KB',materialType:pickedType.value?.key||'',dataUrl:''}
-      if(f.type.startsWith('image/')){ const r=new FileReader(); r.onload=ev=>{ entry.dataUrl=ev.target.result; addFile(entry) }; r.readAsDataURL(f) }
-      else addFile(entry)
+      if(f.type.startsWith('image/')){
+        const r=new FileReader()
+        r.onload=ev=>{ entry.dataUrl=ev.target.result; addFile(entry); pendingCount--; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
+        r.onerror=()=>{ addFile(entry); pendingCount-- }
+        r.readAsDataURL(f)
+      }
+      else { addFile(entry); pendingCount--; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
     })
-    setTimeout(()=>{ currentFolder.value={...currentFolder.value} },300)
+    cleanup()
   }
+  inp.addEventListener('cancel', cleanup)
+  const onFocusCancel = () => {
+    setTimeout(() => {
+      if (!cleaned && inp.parentNode) document.body.removeChild(inp)
+      window.removeEventListener('focus', onFocusCancel)
+    }, 500)
+  }
+  window.addEventListener('focus', onFocusCancel)
   document.body.appendChild(inp); inp.click()
-  inp.addEventListener('change', () => { setTimeout(() => document.body.removeChild(inp), 100) }, { once: true })
-  inp.addEventListener('cancel', () => { document.body.removeChild(inp) }, { once: true })
 }
 
 function removeFile(id) { delFile(id); currentFolder.value={...currentFolder.value} }

@@ -31,7 +31,7 @@ const tabs = [
   { path: '/mine', label: '我的' },
 ]
 
-function switchTab(path) { router.replace(path) }
+function switchTab(path) { if (route.path !== path) router.push(path) }
 </script>
 
 <style scoped>

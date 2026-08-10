@@ -74,23 +74,34 @@ export function runAllRules(data) {
   }
 }
 
-/** 成本测算：基础/理想/保守三种情景 */
+/** 成本测算 */
 function calculateCosts(data) {
   const totalPrice = parseFloat(data.totalPrice) || 0
-  const totalTimes = parseInt(data.totalTimes) || 1
+  const totalTimes = parseInt(data.totalTimes) || 0
+  if (!totalPrice || totalTimes <= 0) {
+    return {
+      base: { label: '票面基础单次成本', value: 0, unit: '元/次' },
+      ideal: { label: '理想周频单次成本', value: 0, unit: '元/次', freq: 0, months: 0 },
+      conservative: { label: '保守低频单次成本', value: 0, unit: '元/次', freq: 0, months: 0 },
+      expiry: { usageRatio: 0, months: 0, suggestion: '数据不足，无法测算' }
+    }
+  }
+
   const baseUnitCost = totalPrice / totalTimes
 
   // 理想情景：按用户预计频率
-  const idealPerWeek = parseInt(data.weeklyFreq) || 3
+  const idealPerWeek = Math.max(1, parseInt(data.weeklyFreq) || 3)
   const idealMonths = totalTimes / (idealPerWeek * 4.33)
-  const idealUnitCost = idealPerWeek > 0 ? baseUnitCost : totalPrice / (totalTimes * 0.5)
+  const idealUnitCost = baseUnitCost
 
   // 保守情景：频率减半
   const conservativePerWeek = Math.max(1, Math.floor(idealPerWeek / 2))
   const conservativeMonths = totalTimes / (conservativePerWeek * 4.33)
-  const conservativeUnitCost = totalPrice / (totalTimes * (conservativePerWeek / idealPerWeek))
+  const conservativeUnitCost = idealPerWeek > 0
+    ? totalPrice / (totalTimes * Math.max(0.1, conservativePerWeek / idealPerWeek))
+    : baseUnitCost * 2
 
-  const validityMonths = parseInt(data.validityMonths) || 12
+  const validityMonths = Math.max(1, parseInt(data.validityMonths) || 12)
   const usageRatio = Math.min(100, Math.round((idealMonths / validityMonths) * 100))
 
   return {
@@ -164,6 +175,19 @@ function ruleR1(d) {
 }
 
 function ruleR2(d) {
+  // 无限次模式：不评估频率匹配
+  if (d.unlimited) {
+    const weeklyFreq = parseInt(d.weeklyFreq) || 0
+    const validityMonths = parseInt(d.validityMonths) || 12
+    return riskResult(
+      'low', 'R2', '有效期-频率匹配度',
+      `无限次模式，按每周到店${weeklyFreq || '?'}次估算，有效期${validityMonths}月`,
+      '评估近6个月实际消费频率',
+      '充卡模式适合高频消费场景',
+      weeklyFreq > 0 ? '建议持续记录实际到店频率，判断是否物有所值' : '建议评估每周预计到店次数'
+    )
+  }
+
   const totalTimes = parseInt(d.totalTimes) || 1
   const weeklyFreq = parseInt(d.weeklyFreq) || 2
   const validityMonths = parseInt(d.validityMonths) || 12

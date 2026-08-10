@@ -28,7 +28,7 @@ onMounted(() => {
     if (progress.value >= 100) {
       clearInterval(timer)
       setTimeout(() => {
-        window.__toast({ title: '文件已保存至本机文件夹', icon: 'none' })
+        window.__toast?.('文件已保存至本机文件夹')
         emit('done')
       }, 400)
     }

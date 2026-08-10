@@ -407,9 +407,18 @@ function pickAndSave(accept, capture) {
   inp.type = 'file'; inp.accept = accept
   if (capture) inp.setAttribute('capture', 'environment')
   inp.multiple = true
+
+  let cleaned = false
+  const cleanup = () => {
+    if (cleaned) return
+    cleaned = true
+    window.removeEventListener('focus', onFocusCancel)
+    if (inp.parentNode) document.body.removeChild(inp)
+  }
+
   inp.onchange = (e) => {
     const files = e.target.files
-    if (!files || !files.length) return
+    if (!files || !files.length) { cleanup(); return }
     Array.from(files).forEach(f => {
       const entry = {
         name: f.name,
@@ -417,7 +426,6 @@ function pickAndSave(accept, capture) {
         materialLabel: pickedType.value?.label || '',
         dataUrl: null
       }
-      // 图片转 base64 预览
       if (f.type.startsWith('image/')) {
         const reader = new FileReader()
         reader.onload = () => { entry.dataUrl = reader.result }
@@ -426,8 +434,17 @@ function pickAndSave(accept, capture) {
       images.value.push(entry)
     })
     $toast(`已保存 ${files.length} 份材料`)
-    document.body.removeChild(inp)
+    cleanup()
   }
+  // 用户取消选择时清理
+  inp.addEventListener('cancel', cleanup)
+  const onFocusCancel = () => {
+    setTimeout(() => {
+      if (!cleaned && inp.parentNode) document.body.removeChild(inp)
+      window.removeEventListener('focus', onFocusCancel)
+    }, 500)
+  }
+  window.addEventListener('focus', onFocusCancel)
   document.body.appendChild(inp)
   inp.click()
 }

@@ -1,7 +1,7 @@
 <!-- 核销记录详情弹窗 -->
 <template>
   <div class="mask" @click="$emit('close')">
-    <div class="modal" @click.stop>
+    <div class="modal" @click.stop v-if="record">
       <span class="title">{{ editing ? '编辑核销记录' : '核销记录详情' }}</span>
       <div class="close-btn" @click="$emit('close')">✕</div>
       <div class="divider" />
@@ -64,20 +64,27 @@ function onSave() {
   if (!h || !isPositiveInt(form.hours)) { $toast('请输入有效的消耗次数'); return }
   if (!form.date) { $toast('请选择日期'); return }
 
-  const oldHours = props.record.hours || 0
-  const asset = getAssetById(props.record.assetId)
+  const oldHours = props.record?.hours || 0
+  const asset = getAssetById(props.record?.assetId)
 
-  // 更新资产：先减去旧课时，再加上新课时
-  if (asset) {
-    updateAsset(asset.id, { usedTimes: Math.max(0, (asset.usedTimes || 0) - oldHours + h) })
+  if (!asset) { $toast('关联资产不存在'); return }
+
+  // 检查修改后是否超过总次数
+  const newUsed = (asset.usedTimes || 0) - oldHours + h
+  if (newUsed > (asset.totalTimes || 0)) {
+    $toast(`消耗次数超出总次数（${asset.totalTimes}次），剩余可用 ${(asset.totalTimes || 0) - (asset.usedTimes || 0) + oldHours} 次`)
+    return
   }
+
+  // 更新资产
+  updateAsset(asset.id, { usedTimes: Math.max(0, newUsed) })
 
   // 更新核销记录
   updateWriteOff(props.record.id, {
     date: form.date,
     hours: h,
     note: form.note,
-    remainingAfter: (asset ? (asset.totalTimes || 0) - Math.max(0, (asset.usedTimes || 0) - oldHours + h) : 0)
+    remainingAfter: Math.max(0, (asset.totalTimes || 0) - Math.max(0, newUsed))
   })
 
   $toast('核销记录已更新')

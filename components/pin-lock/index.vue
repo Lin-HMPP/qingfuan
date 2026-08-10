@@ -25,7 +25,7 @@
       </div>
 
       <span class="error-msg" v-if="error">{{ error }}</span>
-      <span class="reset-link" @click="resetAll">重置 PIN 码</span>
+      <span class="reset-link" v-if="step !== 0" @click="resetAll">重置 PIN 码</span>
     </div>
   </div>
 </template>

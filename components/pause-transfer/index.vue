@@ -42,23 +42,32 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { addPause } from '@/common/storage.js'
+import { isValidPhone } from '@/common/validator.js'
 
 const $toast = (msg) => window.__toast?.(msg)
 const props = defineProps({ asset: Object })
 const emit = defineEmits(['close'])
 const tab = ref('pause')
+const submitting = ref(false)
 const pause = reactive({ start: '', end: '', reason: '' })
 const transfer = reactive({ phone: '', reason: '' })
 
 function onSubmit() {
+  if (submitting.value) return
+  if (!props.asset?.id) { $toast('关联资产不存在'); return }
+
   if (tab.value === 'pause') {
-    if (!pause.start) { $toast?.('请选择起始日期'); return }
+    if (!pause.start) { $toast('请选择起始日期'); return }
+    if (pause.end && pause.end < pause.start) { $toast('结束日期不能早于起始日期'); return }
+    submitting.value = true
     addPause({ assetId: props.asset.id, type: 'pause', start: pause.start, end: pause.end, reason: pause.reason })
   } else {
-    if (!transfer.phone) { $toast?.('请输入转入人手机号'); return }
+    if (!transfer.phone) { $toast('请输入转入人手机号'); return }
+    if (!isValidPhone(transfer.phone)) { $toast('请输入正确的11位手机号'); return }
+    submitting.value = true
     addPause({ assetId: props.asset.id, type: 'transfer', phone: transfer.phone, reason: transfer.reason })
   }
-  $toast?.('申请已提交')
+  $toast('申请已提交')
   emit('close')
 }
 </script>

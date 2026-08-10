@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getAssets } from '@/common/storage.js'
 import { locked, doLock } from '@/store/lock.js'
 
@@ -87,8 +87,7 @@ function toggleLock() {
   if (locked.value) {
     window.__showPin?.('verify')
   } else {
-    localStorage.removeItem('qf_pin_hash')
-    localStorage.removeItem('qf_unlocked')
+    // 先锁定，再触发 PIN 设置；设置成功后 pin-lock 会 emit 'done'
     doLock()
     window.__showPin?.('setup')
   }
@@ -109,16 +108,27 @@ function onMenu(m) {
   }
 }
 
-const statsData = ref({ totalAmount: 0, count: 0, pending: 0 })
+const statsData = ref({ totalAmount: 0, count: 0, expiring: 0 })
 function refresh() {
   const a = getAssets()
-  statsData.value = { totalAmount: a.reduce((s,x)=>s+(x.totalPrice||0),0), count: a.length, pending: a.filter(x=>x.status==='dispute').length }
+  const now = Date.now()
+  statsData.value = {
+    totalAmount: a.reduce((s, x) => s + (Number(x.totalPrice) || 0), 0),
+    count: a.length,
+    expiring: a.filter(x => {
+      if (!x.createdAt) return false
+      const end = new Date(x.createdAt)
+      end.setMonth(end.getMonth() + (x.validityMonths || 12))
+      return Math.ceil((end - now) / 86400000) <= 30 && Math.ceil((end - now) / 86400000) > 0
+    }).length
+  }
 }
 onMounted(() => { refresh(); window.addEventListener('app-unlocked', refresh) })
+onUnmounted(() => { window.removeEventListener('app-unlocked', refresh) })
 const stats = computed(() => [
-  { label: '总资产金额', value: '¥'+statsData.value.totalAmount.toLocaleString() },
-  { label: '卡项总数', value: statsData.value.count+' 张' },
-  { label: '待维权', value: statsData.value.pending+' 件' }
+  { label: '总资产金额', value: '¥' + statsData.value.totalAmount.toLocaleString() },
+  { label: '卡项总数', value: statsData.value.count + ' 张' },
+  { label: '即将到期', value: statsData.value.expiring + ' 张' }
 ])
 </script>
 

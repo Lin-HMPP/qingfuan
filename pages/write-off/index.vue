@@ -56,6 +56,7 @@ onMounted(() => {
   const id = route.query.id
   if (id) {
     asset.value = getAssetById(id)
+    if (!asset.value) return
     records.value = getWriteOffs(id)
     const end = new Date(asset.value.createdAt)
     end.setMonth(end.getMonth() + (asset.value.validityMonths || 12))
@@ -65,6 +66,7 @@ onMounted(() => {
 })
 
 function onSave() {
+  if (!form.date) { $toast?.('请选择核销日期'); return }
   if (!form.hours || !isPositiveInt(form.hours)) { $toast?.('请输入有效的消耗次数'); return }
   const h = parseInt(form.hours)
   if (h > scoped.remainingTimes) { $toast?.('消耗次数不可超过剩余课时'); return }

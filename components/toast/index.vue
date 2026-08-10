@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 
 const visible = ref(false)
 const message = ref('')
@@ -18,10 +18,14 @@ let timer = null
 
 function show(msg, duration = 3000) {
   if (timer) { clearTimeout(timer); visible.value = false }
-  message.value = msg
+  message.value = typeof msg === 'string' ? msg : String(msg || '')
   visible.value = true
   timer = setTimeout(() => { visible.value = false; timer = null }, duration)
 }
+
+onBeforeUnmount(() => {
+  if (timer) { clearTimeout(timer); timer = null }
+})
 
 defineExpose({ show })
 </script>

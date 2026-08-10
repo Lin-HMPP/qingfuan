@@ -4,11 +4,13 @@
   权益动态测算、核销/暂停/退款/凭证四大功能
 -->
 <template>
-  <div class="page" v-if="asset">
+  <div class="page">
     <div class="nav-bar">
       <span class="back" @click="navigateBack">‹ 资产列表</span>
       <span class="title">预付资产持仓卡</span>
     </div>
+    <div v-if="!asset" class="empty-state">资产不存在或已被删除</div>
+    <template v-else>
 
     <!-- 名称+状态标签 -->
     <div class="card-blue header-card">
@@ -65,7 +67,7 @@
 
     <!-- 四大功能按钮 -->
     <div class="btn-group">
-      <div class="btn-primary" @click="goWriteOff" :class="{ disabled: asset.status === 'expired' }">◯ 核销记录</div>
+      <div class="btn-primary" @click="asset.status !== 'expired' && goWriteOff()" :class="{ disabled: asset.status === 'expired' }">◯ 核销记录</div>
       <div class="btn-primary" @click="showPause = true">◯ 暂停 / 转卡</div>
       <div class="btn-secondary" @click="showRefund = true">◯ 申请退款</div>
       <div class="btn-secondary" @click="goEvidence">◯ 查看证据资料</div>
@@ -76,6 +78,7 @@
     <!-- 子组件 -->
     <pause-transfer v-if="showPause" :asset="asset" @close="showPause = false" />
     <refund-checklist v-if="showRefund" :asset="asset" @close="showRefund = false" />
+    </template>
   </div>
 </template>
 
@@ -170,4 +173,5 @@ function goEvidence() { router.push(`/evidence-folder?assetId=${asset.value.id}`
 .btn-group .btn-primary.disabled { background: #B8E6E1; color: #638F8D; }
 
 .disclaimer { text-align: center; font-size: 11px; color: #888; padding: 16px; }
+.empty-state { text-align: center; padding: 60px 16px; font-size: 14px; color: #638F8D; }
 </style>

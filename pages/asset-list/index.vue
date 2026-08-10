@@ -13,11 +13,11 @@
     <div class="card-blue stats-bar">
       <span class="stats-amount">{{ locked ? '•••' : totalAmount.toLocaleString() }} 元</span>
       <span class="stats-label">预付总资产</span>
-      <span class="stats-info">在库储值卡 {{ locked ? '•••' : assets.length }} 张 ｜ 即将到期 {{ expiringCount }} 张</span>
+      <span class="stats-info">在库储值卡 {{ locked ? '•••' : assets.length }} 张 ｜ 即将到期 {{ locked ? '•••' : expiringCount }} 张</span>
     </div>
 
     <!-- 管理资产切换 -->
-    <div class="manage-bar" v-if="assets.length">
+    <div class="manage-bar" v-if="assets.length && !locked">
       <div class="btn-manage" :class="{ active: manageMode }" @click="manageMode = !manageMode">
         {{ manageMode ? '完成' : '⚙ 管理资产' }}
       </div>
@@ -81,12 +81,15 @@
 import { useRouter } from 'vue-router'
 import { ref, reactive, computed } from 'vue'
 import { locked } from '@/store/lock.js'
-import { getAssets, updateAsset, deleteAsset } from '@/common/storage.js'
+import { getAssets, updateAsset, deleteAsset, getWriteOffs, getFolders, getFiles } from '@/common/storage.js'
+import { deleteWriteOff, deleteFolder, deleteFile } from '@/common/storage.js'
 
 const router = useRouter()
 const $toast = (msg) => window.__toast?.(msg)
 function guard() { if (locked.value) { $toast('信息已锁定，请先解锁'); return false } return true }
-const assets = computed(() => getAssets())
+// 使用 refreshKey 强制 computed 重新读取 localStorage
+const refreshKey = ref(0)
+const assets = computed(() => { void refreshKey.value; return getAssets() })
 
 // 管理模式
 const manageMode = ref(false)
@@ -111,6 +114,7 @@ function goAdd() { if (!guard()) return; router.push('/package-input') }
 
 // 管理：编辑资产
 function startEdit(asset) {
+  if (!guard()) return
   editForm.storeName = asset.storeName || ''
   editForm.scene = asset.scene || ''
   editForm.totalPrice = asset.totalPrice || ''
@@ -139,13 +143,27 @@ function saveEdit() {
   })
   $toast('资产已更新')
   editing.value = null
+  refreshKey.value++
 }
 
 // 管理：删除资产
 function confirmDelete(asset) {
-  if (window.confirm(`确认删除「${asset.storeName} · ${asset.scene}」？\n\n删除后无法恢复，核销记录和证据资料夹也会一并清除。`)) {
+  if (!guard()) return
+  if (window.confirm(`确认删除「${asset.storeName} · ${asset.scene}」？\n\n删除后无法恢复，关联的核销记录和证据资料夹也会一并清除。`)) {
+    // 清理关联的核销记录
+    const writeoffs = getWriteOffs(asset.id)
+    writeoffs.forEach(w => deleteWriteOff(w.id))
+    // 清理关联的资料夹及其文件
+    const folders = getFolders().filter(f => f.assetId === asset.id)
+    folders.forEach(f => {
+      const files = getFiles(f.id)
+      files.forEach(file => deleteFile(file.id))
+      deleteFolder(f.id)
+    })
+    // 删除资产本身
     deleteAsset(asset.id)
-    $toast('资产已删除')
+    $toast('资产及相关记录已删除')
+    refreshKey.value++
   }
 }
 </script>

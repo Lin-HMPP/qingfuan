@@ -31,6 +31,8 @@
 import { useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
 import { getAssets, addFolder } from '@/common/storage.js'
+import { isValidFolderName } from '@/common/validator.js'
+import { locked } from '@/store/lock.js'
 
 const router = useRouter()
 
@@ -40,10 +42,11 @@ const folderNote = ref('')
 
 const assetOptions = computed(() => {
   try {
+    if (locked.value) return []
     const assets = getAssets()
     return assets.map(a => {
       const price = Number(a.totalPrice) || 0
-      return { label: `${a.storeName} · ${a.scene || ''} (¥${price.toLocaleString()})`, value: a.id }
+      return { label: locked.value ? '信息已锁定' : `${a.storeName} · ${a.scene || ''} (¥${price.toLocaleString()})`, value: a.id }
     })
   } catch (e) { return [] }
 })
@@ -55,7 +58,7 @@ const $toast = (msg) => window.__toast?.(msg)
 function doCreate() {
   if (!assetId.value) { $toast('请选择绑定的预付资产'); return }
   const name = folderName.value.trim()
-  if (name.length < 2 || name.length > 30) { $toast('文件夹名称需2—30字符'); return }
+  if (!isValidFolderName(name)) { $toast('文件夹名称需2—30字符，不含特殊符号'); return }
   try {
     addFolder({ assetId: assetId.value, name, note: folderNote.value.trim() })
     $toast('文件夹创建成功')

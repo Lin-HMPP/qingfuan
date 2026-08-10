@@ -40,30 +40,41 @@ function createInput(attrs) {
   const inp = document.createElement('input')
   inp.type = 'file'
   inp.accept = 'image/*'
-  Object.assign(inp, attrs)
+  // 用 setAttribute 处理 capture 属性
+  if (attrs.capture) inp.setAttribute('capture', attrs.capture)
+  if (attrs.multiple) inp.multiple = true
   inp.style.position = 'fixed'
   inp.style.top = '-100px'
   inp.style.left = '-100px'
   inp.style.opacity = '0'
   inp.style.pointerEvents = 'none'
   document.body.appendChild(inp)
+
+  let cleaned = false
+  const cleanup = () => {
+    if (cleaned) return
+    cleaned = true
+    window.removeEventListener('focus', onFocus)
+    if (inp.parentNode) document.body.removeChild(inp)
+  }
+
   inp.addEventListener('change', async () => {
     const files = inp.files
     if (files && files.length) {
       const results = []
       for (let i = 0; i < files.length; i++) {
-        results.push(await fileToBase64(files[i]))
+        const result = await fileToBase64(files[i])
+        if (result) results.push(result)
       }
-      emit('confirm', results)
+      if (results.length) emit('confirm', results)
     }
-    document.body.removeChild(inp)
+    cleanup()
   })
-  // 用户取消选择时也清理
-  inp.addEventListener('cancel', () => document.body.removeChild(inp))
-  // 兼容：监听 focus 回到 window 时清理
+  inp.addEventListener('cancel', cleanup)
+  // 兼容：监听 focus 回到 window 时清理（用户取消选择）
   const onFocus = () => {
     setTimeout(() => {
-      if (inp.parentNode) document.body.removeChild(inp)
+      if (!cleaned && inp.parentNode) document.body.removeChild(inp)
       window.removeEventListener('focus', onFocus)
     }, 500)
   }
@@ -75,6 +86,7 @@ function fileToBase64(file) {
   return new Promise((resolve) => {
     const reader = new FileReader()
     reader.onload = () => resolve({ dataUrl: reader.result, name: file.name, size: file.size })
+    reader.onerror = () => resolve(null)
     reader.readAsDataURL(file)
   })
 }

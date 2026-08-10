@@ -9,8 +9,8 @@
       <span class="section-label">理论剩余权益参考值</span>
       <div class="info-box">
         <div class="info-row"><span>已用次数 / 总次数</span><span class="info-val">{{ asset?.usedTimes || 0 }} / {{ asset?.totalTimes || 0 }} 次</span></div>
-        <div class="info-row"><span>剩余次数</span><span class="info-val">{{ (asset?.totalTimes || 0) - (asset?.usedTimes || 0) }} 次</span></div>
-        <div class="info-row"><span>理论应退金额</span><span class="info-val">¥{{ refundAmount.toLocaleString() }}</span></div>
+        <div class="info-row"><span>剩余次数</span><span class="info-val">{{ Math.max(0, (asset?.totalTimes || 0) - (asset?.usedTimes || 0)) }} 次</span></div>
+        <div class="info-row"><span>理论应退金额</span><span class="info-val">¥{{ Math.max(0, refundAmount).toLocaleString() }}</span></div>
       </div>
 
       <span class="section-label">退款协商待确认条款</span>
@@ -41,7 +41,7 @@ const router = useRouter()
 const refundAmount = computed(() => {
   const a = props.asset
   if (!a) return 0
-  const remaining = (a.totalTimes || 0) - (a.usedTimes || 0)
+  const remaining = Math.max(0, (a.totalTimes || 0) - (a.usedTimes || 0))
   return Math.round(remaining * (a.totalPrice || 0) / (a.totalTimes || 1))
 })
 

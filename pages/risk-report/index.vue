@@ -111,11 +111,16 @@ function confirmAsset() {
       scene: data.value.scene,
       name: (data.value.storeName || '') + '·' + (data.value.packageName || '套餐'),
       totalPrice: parseFloat(data.value.totalPrice),
-      totalTimes: parseInt(data.value.totalTimes),
-      validityMonths: parseFloat(data.value.validityMonths) || parseInt(data.value.validityMonths) || 12,
-      weeklyFreq: parseFloat(data.value.weeklyFreq),
-      monthlyBudget: parseFloat(data.value.monthlyBudget),
-      storeName: data.value.storeName, contractName: data.value.contractName, payeeName: data.value.payeeName,
+      totalTimes: data.value.unlimited ? 999 : (parseInt(data.value.totalTimes) || 0),
+      validityMonths: parseFloat(data.value.validityMonths) || 12,
+      weeklyFreq: parseFloat(data.value.weeklyFreq) || 0,
+      monthlyBudget: parseFloat(data.value.monthlyBudget) || 0,
+      storeName: data.value.storeName || '',
+      contractName: data.value.contractName || '',
+      payeeName: data.value.payeeName || '',
+      unlimited: !!data.value.unlimited,
+      noExpiry: !!data.value.noExpiry,
+      giftTimes: parseInt(data.value.giftTimes) || 0,
       usedTimes: 0, status: 'active'
     })
   }
