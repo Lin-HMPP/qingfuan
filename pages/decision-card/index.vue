@@ -68,18 +68,66 @@
       </div>
 
       <!-- 预付成本测算 -->
-      <div class="card-blue cost-card">
+      <div class="card-blue cost-card" v-if="costInfo">
         <div class="module-header">
           <div class="module-bar" />
-          <span class="module-title">预付成本测算</span>
-          <div class="cost-tag">静态参考</div>
+          <span class="module-title">我的成本一览</span>
         </div>
-        <div class="cost-row" v-for="c in ['base','ideal','conservative']" :key="c">
-          <span class="cost-label">{{ result.costs[c].label }}</span>
-          <span class="cost-value" :class="{ highlight: c === 'ideal' }">¥{{ result.costs[c].value.toFixed(1) }}/次</span>
-          <span class="cost-note" v-if="c !== 'base'">{{ c === 'ideal' ? `每周${result.costs[c].freq}次·回本${result.costs[c].months.toFixed(1)}个月` : `每周${result.costs[c].freq}次·回本${result.costs[c].months.toFixed(1)}个月` }}</span>
+
+        <!-- 单次 / 日均成本 -->
+        <div class="cost-item">
+          <span class="cost-emoji">{{ costInfo.mode === 'unlimited' ? '📅' : '💰' }}</span>
+          <span class="cost-label">
+            {{ costInfo.mode === 'unlimited' ? '日均成本' : '单次成本' }}
+          </span>
+          <span class="cost-value">
+            {{ costInfo.mode === 'unlimited' ? costInfo.daily + '元/天' : costInfo.unit + '元/次' }}
+          </span>
+          <span class="cost-sub">
+            {{ costInfo.mode === 'unlimited'
+              ? '总价 ¥' + costInfo.price.toLocaleString() + ' ÷ ' + costInfo.months + '个月'
+              : '总价 ¥' + costInfo.price.toLocaleString() + ' ÷ ' + costInfo.times + '次'
+            }}
+          </span>
         </div>
-        <span class="expiry-note">按保守频率到期前预计消耗约{{ result.costs.expiry.usageRatio }}%总次数，建议提升使用频次或选择小额套餐</span>
+
+        <!-- 需要频率 -->
+        <div class="cost-item" v-if="costInfo.mode !== 'unlimited'">
+          <span class="cost-emoji">⏱️</span>
+          <span class="cost-label">需要频率</span>
+          <span class="cost-value">每周 {{ costInfo.neededPerWeek }} 次</span>
+          <span class="cost-sub">才能在 {{ costInfo.months }} 个月内用完 {{ costInfo.times }} 次</span>
+        </div>
+        <div class="cost-item" v-else>
+          <span class="cost-emoji">⏱️</span>
+          <span class="cost-label">预估到店</span>
+          <span class="cost-value">{{ costInfo.estVisits || '--' }} 次</span>
+          <span class="cost-sub">按每周 {{ costInfo.freq || '?' }} 次 × {{ costInfo.months }}个月估算</span>
+        </div>
+
+        <!-- 浪费风险 -->
+        <div class="cost-item" v-if="costInfo.wasteInfo">
+          <span class="cost-emoji">⚠️</span>
+          <span class="cost-label">浪费风险</span>
+          <span class="cost-value" style="color:#E8686A">
+            约 {{ costInfo.wasteInfo.times }} 次用不完
+          </span>
+          <span class="cost-sub">
+            按当前频率，到期可能浪费约 ¥{{ costInfo.wasteInfo.money.toLocaleString() }}
+          </span>
+        </div>
+        <div class="cost-item" v-else-if="costInfo.mode !== 'unlimited' && costInfo.freq > 0">
+          <span class="cost-emoji">✅</span>
+          <span class="cost-label">频率合理</span>
+          <span class="cost-value" style="color:#28A745">可以按时用完</span>
+          <span class="cost-sub">按照当前每周 {{ costInfo.freq }} 次的计划，期限内能消耗完毕</span>
+        </div>
+        <div class="cost-item" v-else-if="costInfo.mode === 'unlimited'">
+          <span class="cost-emoji">💡</span>
+          <span class="cost-label">月均成本</span>
+          <span class="cost-value">约 ¥{{ costInfo.monthly }} / 月</span>
+          <span class="cost-sub">参考值，实际花费取决于到店频率</span>
+        </div>
       </div>
 
       <!-- 综合建议 -->
@@ -124,6 +172,55 @@ function getDimHint(dim) {
   if (high.length) return high[0].layers.fact + '。' + high[0].layers.action
   return medium[0].layers.fact + '。' + medium[0].layers.action
 }
+
+const costInfo = computed(() => {
+  if (!data.value || !data.value.totalPrice) return null
+  const price = parseFloat(data.value.totalPrice) || 0
+  const times = parseInt(data.value.totalTimes) || 0
+  const months = parseFloat(data.value.validityMonths) || 12
+  const freq = parseFloat(data.value.weeklyFreq) || 0
+  const unlimited = data.value.unlimited
+
+  if (unlimited) {
+    const daily = (price / (months * 30)).toFixed(1)
+    const monthly = (price / months).toFixed(0)
+    const estVisits = freq > 0 ? Math.round(freq * 4.33 * months) : 0
+    return {
+      mode: 'unlimited',
+      daily,
+      monthly,
+      price,
+      months,
+      freq,
+      estVisits
+    }
+  }
+
+  if (!times) return null
+  const unit = (price / times).toFixed(1)
+  const neededPerWeek = (times / (months * 4.33)).toFixed(1)
+
+  let wasteInfo = null
+  if (freq > 0 && parseFloat(neededPerWeek) > freq) {
+    const canUse = Math.round(freq * 4.33 * months)
+    const wasteTimes = Math.max(0, times - canUse)
+    const wasteMoney = Math.round(wasteTimes * (price / times))
+    if (wasteTimes > 0) {
+      wasteInfo = { times: wasteTimes, money: wasteMoney }
+    }
+  }
+
+  return {
+    mode: 'normal',
+    unit,
+    price,
+    times,
+    neededPerWeek,
+    months,
+    freq,
+    wasteInfo
+  }
+})
 
 const advice = computed(() => {
   if (!result.value) return ''
@@ -236,14 +333,18 @@ function onAssetConfirm() {
 .rule-code.level-low { color: #638F8D; }
 .rule-fact, .rule-confirm, .rule-explain, .rule-action { display: block; font-size: 10px; color: #245957; margin-top: 2px; }
 
-.cost-card { position: relative; }
-.cost-tag { position: absolute; top: 14px; right: 14px; padding: 2px 8px; background: #B8E6E1; border-radius: 6px; font-size: 10px; color: #48A9A6; }
-.cost-row { display: flex; flex-wrap: wrap; align-items: baseline; margin: 6px 0; }
-.cost-label { font-size: 13px; color: #638F8D; width: 120px; }
-.cost-value { font-size: 15px; color: #245957; font-weight: bold; }
-.cost-value.highlight { color: #48A9A6; }
-.cost-note { font-size: 10px; color: #638F8D; width: 100%; }
-.expiry-note { display: block; font-size: 10px; color: #638F8D; margin-top: 6px; line-height: 1.5; }
+.cost-card { }
+.cost-item {
+  display: grid; grid-template-columns: 28px 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: baseline; gap: 2px 8px;
+  padding: 10px 0; border-bottom: 1px solid #E8F5F4;
+}
+.cost-item:last-child { border-bottom: none; }
+.cost-emoji { font-size: 18px; text-align: center; }
+.cost-label { font-size: 13px; color: #638F8D; grid-column: 2; }
+.cost-value { font-size: 16px; color: #245957; font-weight: bold; grid-column: 3; grid-row: 1 / 3; text-align: right; }
+.cost-sub { font-size: 11px; color: #638F8D; grid-column: 2; }
 
 .advice-box { margin: 8px 16px 0; padding: 14px; }
 .advice-text { font-size: 11px; color: #48A9A6; line-height: 1.6; }
