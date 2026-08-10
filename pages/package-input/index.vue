@@ -195,6 +195,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
 import { getDraft, saveDraft, clearDraft } from '@/common/storage.js'
 import { isPositiveNumber, isPositiveInt } from '@/common/validator.js'
+import { track } from '@/common/analytics.js'
 import ScenePicker from '@/components/scene-picker/index.vue'
 import SceneCustom from '@/components/scene-picker/custom.vue'
 const router = useRouter()
@@ -401,6 +402,7 @@ function saveDraftBtn() {
     return
   }
   saveDraft({ form: form.value, scene: scene.value, images: images.value })
+  track('套餐录入', '保存草稿', scene.value)
   $toast?.('草稿已保存')
 }
 
@@ -449,6 +451,7 @@ function onSubmit() {
     refundKnown: !!(form.value.refundRule && form.value.refundRule.trim())
   }
   sessionStorage.setItem('qf_package_data', JSON.stringify(pkg))
+  track('套餐录入', '确认录入', scene.value, Math.round(totalPrice.value))
   router.push('/decision-card')
 }
 </script>

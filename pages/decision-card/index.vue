@@ -107,6 +107,7 @@ import { useRouter } from 'vue-router'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { runAllRules } from '@/common/rules-engine.js'
 import { addAsset, addFolder } from '@/common/storage.js'
+import { track } from '@/common/analytics.js'
 import AssetConfirm from '@/components/asset-confirm/index.vue'
 
 const router = useRouter()
@@ -172,6 +173,7 @@ function goRiskReport() {
 function confirmAsset() { showConfirm.value = true }
 
 function onAssetConfirm() {
+  track('决策卡', '确认生成资产', data.value.scene, data.value.totalPrice)
   addAsset({
     scene: data.value.scene,
     name: data.value.storeName + '·' + (data.value.packageName || '套餐'),

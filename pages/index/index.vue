@@ -86,6 +86,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAssets } from '@/common/storage.js'
 import { locked } from '@/store/lock.js'
+import { track } from '@/common/analytics.js'
 import SceneCustom from '@/components/scene-picker/custom.vue'
 
 const router = useRouter()
@@ -112,11 +113,11 @@ const expiringList = computed(() =>
 const totalAmount = computed(() => assets.value.reduce((s, a) => s + (a.totalPrice || 0), 0))
 const assetCount = computed(() => assets.value.length)
 
-function goCheck() { if (locked.value) return; router.push('/package-input') }
-function goAssets() { if (locked.value) return; router.push('/asset-list') }
-function goEvidenceFolder() { if (locked.value) return; router.push('/evidence-folder') }
-function goNewFolder() { if (locked.value) return; router.push('/folder-create') }
-function goInput(scene) { if (locked.value) return; router.push(`/package-input?scene=${encodeURIComponent(scene)}`) }
+function goCheck() { if (locked.value) return; track('首页', '点击测算'); router.push('/package-input') }
+function goAssets() { if (locked.value) return; track('首页', '查看资产'); router.push('/asset-list') }
+function goEvidenceFolder() { if (locked.value) return; track('首页', '打开证据夹'); router.push('/evidence-folder') }
+function goNewFolder() { if (locked.value) return; track('首页', '新建资料夹'); router.push('/folder-create') }
+function goInput(scene) { if (locked.value) return; track('首页', '场景点击', scene); router.push(`/package-input?scene=${encodeURIComponent(scene)}`) }
 function goWriteOff(asset) { if (locked.value) return; router.push(`/write-off?id=${asset.id}`) }
 function goEvidence(asset) { if (locked.value) return; router.push(`/evidence-folder?assetId=${asset.id}`) }
 function onCustomScene(name) {

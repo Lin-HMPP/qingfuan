@@ -39,6 +39,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ref, reactive, onMounted } from 'vue'
 import { getAssetById, getWriteOffs, addWriteOff, updateAsset, deleteWriteOff } from '@/common/storage.js'
 import { isPositiveInt } from '@/common/validator.js'
+import { track } from '@/common/analytics.js'
 import WriteOffDetail from '@/components/write-off-detail/index.vue'
 
 const router = useRouter()
@@ -72,6 +73,7 @@ function onSave() {
   scoped.remainingTimes -= h
   records.value = getWriteOffs(asset.value.id)
   form.hours = ''; form.note = ''
+  track('核销', '保存记录', asset.value.storeName, h)
   $toast?.('核销记录已保存')
 }
 

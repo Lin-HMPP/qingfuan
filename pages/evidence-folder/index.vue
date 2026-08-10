@@ -104,6 +104,7 @@ import { useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
 import { locked } from '@/store/lock.js'
 import { getFolders, getFiles, getAssets, addFile, deleteFile as delFile } from '@/common/storage.js'
+import { track } from '@/common/analytics.js'
 import PackageLoading from '@/components/package-loading/index.vue'
 
 const router = useRouter()
@@ -142,8 +143,8 @@ function navigateBack() {
 function selectFolder(f) { if (locked.value) return; currentFolder.value=f }
 
 // 导出
-function onExport(f) { currentFolder.value=f; doExport(f) }
-function onExportAll() { doExport(currentFolder.value) }
+function onExport(f) { track('证据夹', '导出单个'); currentFolder.value=f; doExport(f) }
+function onExportAll() { track('证据夹', '一键打包'); doExport(currentFolder.value) }
 
 function doExport(folder) {
   if (!folder) return
@@ -171,7 +172,7 @@ function doExport(folder) {
 }
 
 // 上传
-function startUpload() { showTypePicker.value=true }
+function startUpload() { track('证据夹', '上传凭证'); showTypePicker.value=true }
 function onTypePicked(mt) { pickedType.value=mt; showTypePicker.value=false; showMethodPicker.value=true }
 function uploadCamera() { showMethodPicker.value=false; pickAndSave('image/*','camera') }
 function uploadAlbum()  { showMethodPicker.value=false; pickAndSave('image/*',null) }
