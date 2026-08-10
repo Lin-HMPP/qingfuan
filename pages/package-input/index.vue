@@ -745,13 +745,12 @@ onMounted(() => {
 
 const platformPayeeMap = { meituan: '美团商家平台', dianping: '大众点评商家平台', douyin: '抖音团购商家平台' }
 function selectPlatform(key) {
-  form.groupBuyPlatform = key
+  form.value.groupBuyPlatform = key
   if (key && key !== 'other') {
-    form.payeeName = platformPayeeMap[key] || ''
+    form.value.payeeName = platformPayeeMap[key] || ''
   } else if (key === '') {
-    form.payeeName = ''  // 直接付商家，清空让用户自己填
+    form.value.payeeName = ''
   }
-  // 'other' 不清空，让用户自己填
 }
 function goQuickMode() {
   const hasContent = Object.values(form.value).some(v => v)
