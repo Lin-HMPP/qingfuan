@@ -1,0 +1,56 @@
+{
+  "globalStyle": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F5F5F5",
+    "backgroundColorTop": "#FFFFFF",
+    "backgroundColorBottom": "#F5F5F5"
+  },
+  "pages": [
+    { "path": "pages/index/index",      "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/package-input/index", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/decision-card/index", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/risk-report/index",   "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/asset-list/index",    "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/asset-detail/index",  "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/write-off/index",     "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/evidence-folder/index", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/folder-create/index", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/mine/index",          "style": { "navigationBarTitleText": "" } }
+  ],
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1677FF",
+    "borderStyle": "black",
+    "backgroundColor": "#FFFFFF",
+    "height": "56px",
+    "fontSize": "10px",
+    "iconWidth": "24px",
+    "spacing": "3px",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/icons/tab-home.svg",
+        "selectedIconPath": "static/icons/tab-home-active.svg"
+      },
+      {
+        "pagePath": "pages/asset-list/index",
+        "text": "资产",
+        "iconPath": "static/icons/tab-asset.svg",
+        "selectedIconPath": "static/icons/tab-asset-active.svg"
+      },
+      {
+        "pagePath": "pages/evidence-folder/index",
+        "text": "证据夹",
+        "iconPath": "static/icons/tab-folder.svg",
+        "selectedIconPath": "static/icons/tab-folder-active.svg"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/icons/tab-mine.svg",
+        "selectedIconPath": "static/icons/tab-mine-active.svg"
+      }
+    ]
+  }
+}
