@@ -748,9 +748,8 @@ function selectPlatform(key) {
   form.value.groupBuyPlatform = key
   if (key && key !== 'other') {
     form.value.payeeName = platformPayeeMap[key] || ''
-  } else if (key === '') {
-    form.value.payeeName = ''
   }
+  // key === ''（直接付给商家）或 key === 'other'（其他团购）时，保留用户已输入的内容
 }
 function goQuickMode() {
   const hasContent = Object.values(form.value).some(v => v)
