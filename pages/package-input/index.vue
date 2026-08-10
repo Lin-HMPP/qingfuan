@@ -116,14 +116,57 @@
         <span class="fold-arrow">{{ showModule4 ? '▼' : '›' }}</span>
       </div>
       <div v-if="showModule4" @click.stop>
+
+        <!-- 退款规则 -->
         <span class="label"><span class="label-text">退款规则</span></span>
-        <input class="input-blue" v-model="form.refundRule" placeholder="如：未开卡全额退，已开卡按比例退" />
+        <div class="rule-field" @click="refundOpen = !refundOpen">
+          <span class="rule-text" :class="{ placeholder: !form.refundRule }">{{ form.refundRule || '点击选择退款规则' }}</span>
+          <span class="rule-arrow" :class="{ open: refundOpen }">▼</span>
+        </div>
+        <div class="rule-options" v-if="refundOpen">
+          <div class="rule-option" :class="{ active: refundPreset === 'full' }" @click.stop="selectRefund('full')">未开卡全额退，开卡按比例退</div>
+          <div class="rule-option" :class="{ active: refundPreset === 'custom' }" @click.stop="selectRefund('custom')">其他</div>
+          <div class="rule-custom" v-if="refundPreset === 'custom'" @click.stop>
+            <input class="input-blue" v-model="refundCustomText" placeholder="请输入退款规则" @input="onRefundCustomInput" />
+          </div>
+        </div>
 
+        <!-- 转卡规则 -->
         <span class="label"><span class="label-text">转卡规则</span></span>
-        <input class="input-blue" v-model="form.transferRule" placeholder="如：可转卡，手续费30%" />
+        <div class="rule-field" @click="transferOpen = !transferOpen">
+          <span class="rule-text" :class="{ placeholder: !form.transferRule }">{{ form.transferRule || '点击选择转卡规则' }}</span>
+          <span class="rule-arrow" :class="{ open: transferOpen }">▼</span>
+        </div>
+        <div class="rule-options" v-if="transferOpen">
+          <div class="rule-option" :class="{ active: transferPreset === 'no' }" @click.stop="selectTransfer('no')">不可转卡</div>
+          <div class="rule-option" :class="{ active: transferPreset === 'free' }" @click.stop="selectTransfer('free')">可转卡，无手续费</div>
+          <div class="rule-option" :class="{ active: transferPreset === 'fee' }" @click.stop="selectTransfer('fee')">可转卡，手续费 __%</div>
+          <div class="rule-custom" v-if="transferPreset === 'fee'" @click.stop>
+            <span class="inline-label">手续费</span>
+            <input class="input-blue fee-input" v-model.number="transferFee" type="number" placeholder="%" min="0" max="100" @input="onTransferFeeInput" />
+            <span class="inline-suffix">%</span>
+          </div>
+        </div>
 
+        <!-- 暂停规则 -->
         <span class="label"><span class="label-text">暂停规则</span></span>
-        <input class="input-blue" v-model="form.pauseRule" placeholder="如：可停卡2次，每次最长30天" />
+        <div class="rule-field" @click="pauseOpen = !pauseOpen">
+          <span class="rule-text" :class="{ placeholder: !form.pauseRule }">{{ form.pauseRule || '点击选择暂停规则' }}</span>
+          <span class="rule-arrow" :class="{ open: pauseOpen }">▼</span>
+        </div>
+        <div class="rule-options" v-if="pauseOpen">
+          <div class="rule-option" :class="{ active: pausePreset === 'no' }" @click.stop="selectPause('no')">不可暂停</div>
+          <div class="rule-option" :class="{ active: pausePreset === 'free' }" @click.stop="selectPause('free')">可暂停，无附加条件</div>
+          <div class="rule-option" :class="{ active: pausePreset === 'custom' }" @click.stop="selectPause('custom')">可暂停 __ 次，每次最长 __ 天</div>
+          <div class="rule-custom" v-if="pausePreset === 'custom'" @click.stop>
+            <span class="inline-label">可暂停</span>
+            <input class="input-blue pause-num" v-model.number="pauseCount" type="number" placeholder="次" min="0" @input="onPauseCustomInput" />
+            <span class="inline-label">次，每次最长</span>
+            <input class="input-blue pause-num" v-model.number="pauseDays" type="number" placeholder="天" min="0" @input="onPauseCustomInput" />
+            <span class="inline-label">天</span>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -245,6 +288,113 @@ const materialTypes = [
 ]
 const showModule4 = ref(false)
 const showModule5 = ref(false)
+
+// ── 模块四：规则选择器状态 ──
+// 退款规则
+const refundOpen = ref(false)
+const refundPreset = ref('')        // 'full' | 'custom' | ''
+const refundCustomText = ref('')
+function selectRefund(preset) {
+  refundPreset.value = preset
+  if (preset === 'full') {
+    form.value.refundRule = '未开卡全额退，开卡按比例退'
+    refundOpen.value = false
+  } else if (preset === 'custom') {
+    form.value.refundRule = refundCustomText.value
+    // 不关闭，让用户输入
+  }
+}
+function onRefundCustomInput() {
+  form.value.refundRule = refundCustomText.value
+}
+
+// 转卡规则
+const transferOpen = ref(false)
+const transferPreset = ref('')      // 'no' | 'free' | 'fee' | ''
+const transferFee = ref(null)
+function selectTransfer(preset) {
+  transferPreset.value = preset
+  if (preset === 'no') {
+    form.value.transferRule = '不可转卡'
+    transferOpen.value = false
+  } else if (preset === 'free') {
+    form.value.transferRule = '可转卡，无手续费'
+    transferOpen.value = false
+  } else if (preset === 'fee') {
+    transferFee.value = null
+    form.value.transferRule = ''
+  }
+}
+function onTransferFeeInput() {
+  const fee = transferFee.value
+  form.value.transferRule = (fee || fee === 0) ? `可转卡，手续费${fee}%` : ''
+}
+
+// 暂停规则
+const pauseOpen = ref(false)
+const pausePreset = ref('')         // 'no' | 'free' | 'custom' | ''
+const pauseCount = ref(null)
+const pauseDays = ref(null)
+function selectPause(preset) {
+  pausePreset.value = preset
+  if (preset === 'no') {
+    form.value.pauseRule = '不可暂停'
+    pauseOpen.value = false
+  } else if (preset === 'free') {
+    form.value.pauseRule = '可暂停，无附加条件'
+    pauseOpen.value = false
+  } else if (preset === 'custom') {
+    pauseCount.value = null
+    pauseDays.value = null
+    form.value.pauseRule = ''
+  }
+}
+function onPauseCustomInput() {
+  const c = pauseCount.value
+  const d = pauseDays.value
+  form.value.pauseRule = (c && d) ? `可暂停${c}次，每次最长${d}天` : (c ? `可暂停${c}次` : '')
+}
+
+// 外部点击关闭规则选项
+function closeAllRulePickers() {
+  refundOpen.value = false
+  transferOpen.value = false
+  pauseOpen.value = false
+}
+
+// 从 form 值反向同步规则选择器 UI 状态（草稿恢复/决策卡返回时调用）
+function syncRulePickers() {
+  // 退款规则
+  if (form.value.refundRule === '未开卡全额退，开卡按比例退') {
+    refundPreset.value = 'full'
+  } else if (form.value.refundRule) {
+    refundPreset.value = 'custom'
+    refundCustomText.value = form.value.refundRule
+  }
+  // 转卡规则
+  if (form.value.transferRule === '不可转卡') {
+    transferPreset.value = 'no'
+  } else if (form.value.transferRule === '可转卡，无手续费') {
+    transferPreset.value = 'free'
+  } else if (form.value.transferRule && form.value.transferRule.startsWith('可转卡，手续费')) {
+    transferPreset.value = 'fee'
+    const m = form.value.transferRule.match(/手续费(\d+)%/)
+    if (m) transferFee.value = parseInt(m[1])
+  }
+  // 暂停规则
+  if (form.value.pauseRule === '不可暂停') {
+    pausePreset.value = 'no'
+  } else if (form.value.pauseRule === '可暂停，无附加条件') {
+    pausePreset.value = 'free'
+  } else if (form.value.pauseRule && form.value.pauseRule.startsWith('可暂停')) {
+    pausePreset.value = 'custom'
+    const mc = form.value.pauseRule.match(/可暂停(\d+)次/)
+    const md = form.value.pauseRule.match(/最长(\d+)天/)
+    if (mc) pauseCount.value = parseInt(mc[1])
+    if (md) pauseDays.value = parseInt(md[1])
+  }
+}
+
 const images = ref([])
 
 const form = ref({
@@ -353,6 +503,7 @@ onMounted(() => {
         pauseRule: d.pauseRule || '', promoNote: d.promoNote || ''
       })
       scene.value = d.scene || '健身/舞蹈'
+      syncRulePickers()
       sessionStorage.removeItem('qf_draft_back')
     } catch (e) { /* ignore */ }
     return
@@ -365,6 +516,7 @@ onMounted(() => {
       Object.assign(form.value, draft.form || {})
       scene.value = draft.scene || '健身/舞蹈'
       images.value = draft.images || []
+      syncRulePickers()
     } else {
       clearDraft()
     }
@@ -654,4 +806,41 @@ function onSubmit() {
 .opt-arrow { font-size: 18px; color: #48A9A6; margin-left: auto; }
 .btn-cancel { margin-top: 8px; height: 44px; background: #fff; border: 1px solid #999; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #245957; cursor: pointer; }
 .file-icon { display: flex; align-items: center; justify-content: center; background: #B8E6E1; font-size: 32px; }
+
+/* ── 规则选择器 ── */
+.rule-field {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 44px; padding: 0 14px; margin-bottom: 6px;
+  background: #fff; border: 1px solid #48A9A6; border-radius: 8px;
+  cursor: pointer; user-select: none; transition: border-color .2s;
+}
+.rule-field:active { background: #F5FAFA; }
+.rule-text { font-size: 14px; color: #245957; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rule-text.placeholder { color: #AAA; }
+.rule-arrow { font-size: 11px; color: #638F8D; margin-left: 8px; transition: transform .2s; }
+.rule-arrow.open { transform: rotate(180deg); }
+
+.rule-options {
+  margin: -2px 0 8px; padding: 6px;
+  background: #F5FAFA; border: 1px solid #48A9A6; border-radius: 8px;
+  animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+.rule-option {
+  padding: 10px 12px; margin: 2px 0;
+  border-radius: 6px; font-size: 13px; color: #245957;
+  cursor: pointer; transition: background .15s;
+}
+.rule-option:active { background: #B8E6E1; }
+.rule-option.active { background: #48A9A6; color: #fff; font-weight: bold; }
+
+.rule-custom {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 4px; padding: 8px 12px;
+  background: #fff; border: 1px dashed #48A9A6; border-radius: 6px;
+}
+.inline-label { font-size: 12px; color: #4A7A77; white-space: nowrap; }
+.inline-suffix { font-size: 14px; font-weight: bold; color: #245957; }
+.fee-input, .pause-num { width: 64px; height: 34px; text-align: center; margin: 0; }
 </style>
