@@ -866,6 +866,8 @@ function tip(msg) {
 }
 
 function onSubmit() {
+  console.log('[DEBUG] onSubmit called, images count:', images.value.length)
+  try {
   const errors = []
   if (!totalPrice.value || !isPositiveNumber(form.value.totalPrice)) {
     errors.push('套餐总价')
@@ -892,16 +894,12 @@ function onSubmit() {
   }
 
   clearDraft()
-  // 从实际上传材料统计各类型留存情况
   const materialKeys = images.value.map(img => MATERIAL_LABEL_MAP[img.materialLabel]).filter(Boolean)
-  // 将套餐数据存入 sessionStorage，决策卡页面读取
   const pkg = {
     ...form.value,
     scene: scene.value,
     validityMonths: validityMonths.value,
-    // 携带已上传的材料图片
     images: images.value,
-    // 基于实际上传材料计算留存状态
     hasContract: materialKeys.includes('contract'),
     hasPayment: materialKeys.includes('payment'),
     hasPromo: materialKeys.some(k => ['poster', 'chat'].includes(k)),
@@ -913,17 +911,20 @@ function onSubmit() {
     giftClear: !!(form.value.giftTimes && parseInt(form.value.giftTimes) > 0),
     refundKnown: !!(form.value.refundRule && form.value.refundRule.trim())
   }
-  // 图片 base64 太大塞不进 sessionStorage，单独存 localStorage
   const imagesData = images.value.length ? JSON.stringify(images.value) : null
-  const pkgLight = { ...pkg, images: undefined }  // 去掉图片数据
+  const pkgLight = { ...pkg, images: undefined }
   try {
     sessionStorage.setItem('qf_package_data', JSON.stringify(pkgLight))
     if (imagesData) localStorage.setItem('qf_package_images', imagesData)
     track('套餐录入', '确认录入', scene.value, Math.round(totalPrice.value))
     router.push('/decision-card')
   } catch (e) {
-    tip('保存失败，请检查浏览器存储空间')
     console.error('套餐录入提交失败:', e)
+    tip('保存失败：' + (e.message || '请检查浏览器存储空间'))
+  }
+  } catch (e) {
+    console.error('onSubmit 异常:', e)
+    tip('操作失败：' + (e.message || '未知错误'))
   }
 }
 </script>
