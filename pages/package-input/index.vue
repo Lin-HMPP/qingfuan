@@ -406,38 +406,44 @@ function formatSize(bytes) {
 function saveDraftBtn() {
   const hasContent = Object.values(form.value).some(v => v)
   if (!hasContent) {
-    $toast?.('暂无可保存的内容')
+    tip('暂无可保存的内容')
     return
   }
   saveDraft({ form: form.value, scene: scene.value, images: images.value })
   track('套餐录入', '保存草稿', scene.value)
-  $toast?.('草稿已保存')
+  tip('草稿已保存')
+}
+
+function tip(msg) {
+  // 兜底：Toast 不可用时用 alert
+  if (window.__toast) { window.__toast(msg) } else { alert(msg) }
 }
 
 function onSubmit() {
+  const errors = []
   if (!totalPrice.value || !isPositiveNumber(form.value.totalPrice)) {
-    $toast?.('请输入有效的套餐总价')
-    return
+    errors.push('套餐总价')
   }
   if (!totalTimes.value || !isPositiveInt(form.value.totalTimes)) {
-    $toast?.('请输入有效的总服务次数')
-    return
+    errors.push('总服务次数')
   }
   if (!form.value.noExpiry && (!form.value.validityValue || !isPositiveInt(form.value.validityValue))) {
-    $toast?.('请输入有效的服务期限，或选择「没有固定期限」')
-    return
+    errors.push('服务有效期限')
   }
   if (!form.value.monthlyBudget || !isPositiveNumber(form.value.monthlyBudget)) {
-    $toast?.('请输入每月预付预算')
-    return
+    errors.push('每月预付预算')
   }
   if (!form.value.weeklyFreq || !isPositiveNumber(form.value.weeklyFreq)) {
-    $toast?.('请输入预计每周使用次数')
+    errors.push('每周使用次数')
+  }
+  if (!form.value.storeName) { errors.push('门店名称') }
+  if (!form.value.contractName) { errors.push('签约主体') }
+  if (!form.value.payeeName) { errors.push('收款账户') }
+
+  if (errors.length) {
+    tip('请完善以下信息：' + errors.join('、'))
     return
   }
-  if (!form.value.storeName) { $toast?.('请输入门店名称'); return }
-  if (!form.value.contractName) { $toast?.('请输入签约主体'); return }
-  if (!form.value.payeeName) { $toast?.('请输入收款账户'); return }
 
   clearDraft()
   // 将套餐数据存入 sessionStorage，决策卡页面读取
@@ -458,9 +464,14 @@ function onSubmit() {
     hasRecord: false,
     refundKnown: !!(form.value.refundRule && form.value.refundRule.trim())
   }
-  sessionStorage.setItem('qf_package_data', JSON.stringify(pkg))
-  track('套餐录入', '确认录入', scene.value, Math.round(totalPrice.value))
-  router.push('/decision-card')
+  try {
+    sessionStorage.setItem('qf_package_data', JSON.stringify(pkg))
+    track('套餐录入', '确认录入', scene.value, Math.round(totalPrice.value))
+    router.push('/decision-card')
+  } catch (e) {
+    tip('保存失败，请检查浏览器存储空间')
+    console.error('套餐录入提交失败:', e)
+  }
 }
 </script>
 
