@@ -50,7 +50,12 @@
       <div class="term-tag" :class="{ active: termPreset === 12 }" @click="setTerm(12)">12 个月</div>
       <div class="term-tag" :class="{ active: termPreset === 24 }" @click="setTerm(24)">24 个月</div>
       <div class="term-tag term-custom" :class="{ active: termPreset === 0 }" @click="termPreset = 0">
-        <input v-if="termPreset === 0" class="term-input" v-model="form.validityMonths" type="number" placeholder="月" ref="termRef" />
+        <input v-if="termPreset === 0" class="term-input" v-model="form.validityValue" type="number" placeholder="数字" ref="termRef" />
+        <select v-if="termPreset === 0" class="term-unit" v-model="form.validityUnit" @click.stop>
+          <option value="day">天</option>
+          <option value="month">月</option>
+          <option value="year">年</option>
+        </select>
         <span v-else>自定义</span>
       </div>
     </div>
@@ -79,7 +84,8 @@ const form = reactive({
   totalPrice: '',
   unlimited: false,
   totalTimes: '',
-  validityMonths: '12'
+  validityValue: '12',
+  validityUnit: 'month'
 })
 const termPreset = ref(12)
 const isCustomScene = ref(false)
@@ -89,7 +95,8 @@ const termRef = ref(null)
 
 function setTerm(v) {
   termPreset.value = v
-  form.validityMonths = String(v)
+  form.validityValue = String(v)
+  form.validityUnit = 'month'
 }
 
 function startCustom() {
@@ -113,7 +120,9 @@ function doCreate() {
   if (!form.unlimited && !parseInt(form.totalTimes)) errs.push('总次数')
   if (errs.length) { $toast('请完善：' + errs.join('、')); return }
 
-  const validityMonths = parseInt(form.validityMonths) || 12
+  const raw = parseInt(form.validityValue) || 12
+  const unit = form.validityUnit || 'month'
+  const validityMonths = unit === 'day' ? Math.max(1, raw / 30) : unit === 'year' ? raw * 12 : raw
   try {
     const asset = addAsset({
       scene: form.scene,
@@ -176,7 +185,8 @@ function doCreate() {
 .term-tag { height: 32px; padding: 0 14px; border: 1px solid #48A9A6; border-radius: 16px; font-size: 13px; color: #245957; display: flex; align-items: center; cursor: pointer; }
 .term-tag.active { background: #48A9A6; color: #fff; font-weight: bold; }
 .term-custom { min-width: 60px; }
-.term-input { width: 50px; height: 100%; border: none; outline: none; background: transparent; font-size: 13px; color: #fff; text-align: center; }
+.term-input { width: 44px; height: 100%; border: none; outline: none; background: transparent; font-size: 13px; color: #fff; text-align: center; }
+.term-unit { height: 24px; margin-left: 2px; border: none; outline: none; background: rgba(255,255,255,.2); border-radius: 4px; font-size: 11px; color: #fff; cursor: pointer; }
 .term-tag.active .term-input::placeholder { color: rgba(255,255,255,.6); }
 
 .btn-create { margin: 24px 16px 0; height: 50px; background: #48A9A6; color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: bold; cursor: pointer; }

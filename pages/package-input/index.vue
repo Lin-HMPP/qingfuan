@@ -111,6 +111,13 @@
 
         <span class="label"><span class="star">*</span><span class="label-text">收款账户/商家收款名</span></span>
         <input class="input-blue" v-model="form.payeeName" :placeholder="sceneCopy.payeeHint" />
+        <!-- 团购平台模式 -->
+        <span class="label"><span class="label-text">支付渠道</span></span>
+        <div class="groupbuy-tags">
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === '' }" @click="form.groupBuyPlatform = ''">直接付给商家</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'meituan' }" @click="form.groupBuyPlatform = 'meituan'">美团团购</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'dianping' }" @click="form.groupBuyPlatform = 'dianping'">大众点评</div>
+        </div>
       </div>
     </div>
 
@@ -606,7 +613,7 @@ const form = ref({
   totalPrice: '', totalTimes: '', giftTimes: '0',
   validityValue: '', validityUnit: 'month', noExpiry: false, unlimited: false,
   monthlyBudget: '', weeklyFreq: '',
-  storeName: '', contractName: '', payeeName: '',
+  storeName: '', contractName: '', payeeName: '', groupBuyPlatform: '',
   refundRule: '', transferRule: '', pauseRule: '',
   promoNote: ''
 })
@@ -703,7 +710,7 @@ onMounted(() => {
         giftTimes: d.giftTimes || '0', validityValue: d.validityValue || '',
         validityUnit: d.validityUnit || 'month', noExpiry: d.noExpiry || false, unlimited: d.unlimited || false, monthlyBudget: d.monthlyBudget || '',
         weeklyFreq: d.weeklyFreq || '', storeName: d.storeName || '',
-        contractName: d.contractName || '', payeeName: d.payeeName || '',
+        contractName: d.contractName || '', payeeName: d.payeeName || '', groupBuyPlatform: d.groupBuyPlatform || '',
         refundRule: d.refundRule || '', transferRule: d.transferRule || '',
         pauseRule: d.pauseRule || '', promoNote: d.promoNote || ''
       })
@@ -919,6 +926,11 @@ function onSubmit() {
 .back { font-size: 15px; color: #48A9A6; }
 .quick-link { font-size: 12px; color: #48A9A6; font-weight: bold; cursor: pointer; padding: 4px 10px; border: 1px solid #48A9A6; border-radius: 12px; z-index: 1; }
 .quick-link:active { background: #B8E6E1; }
+
+/* 团购平台选择 */
+.groupbuy-tags { display: flex; gap: 8px; margin-bottom: 4px; }
+.gb-tag { height: 30px; padding: 0 14px; border: 1px solid #48A9A6; border-radius: 15px; font-size: 12px; color: #245957; display: flex; align-items: center; cursor: pointer; }
+.gb-tag.active { background: #48A9A6; color: #fff; font-weight: bold; }
 .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; color: #245957; }
 
 .scene-switch {

@@ -33,6 +33,25 @@
       </div>
     </div>
 
+    <!-- 规则说明弹窗 -->
+    <div v-if="showRules" class="help-mask" @click="showRules = false">
+      <div class="help-modal" @click.stop>
+        <span class="help-title">风险评估规则说明</span>
+        <span class="rules-sub">青付安内置 17 项风险评估规则，分三个阶段覆盖消费全周期</span>
+        <div class="stage-section" v-for="stage in ['购前决策', '购后管理', '商户履约']" :key="stage">
+          <span class="stage-title">{{ stage === '购前决策' ? '一、' : stage === '购后管理' ? '二、' : '三、' }}{{ stage }}</span>
+          <div class="rule-line" v-for="r in ruleList.filter(x => x.stage === stage)" :key="r.code">
+            <span class="rule-code">{{ r.code }}</span>
+            <div class="rule-info">
+              <span class="rule-name">{{ r.title }}</span>
+              <span class="rule-desc">{{ r.desc }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="btn-primary" @click="showRules = false">知道了</div>
+      </div>
+    </div>
+
     <!-- 使用帮助弹窗 -->
     <div v-if="showHelp" class="help-mask" @click="showHelp = false">
       <div class="help-modal" @click.stop>
@@ -70,19 +89,33 @@ function toggleLock() {
   }
 }
 
-const menus = ['使用帮助', '隐私设置', '本地凭证管理', '重置所有数据']
+const menus = ['使用帮助', '规则说明', '隐私设置', '本地凭证管理', '重置所有数据']
 const showHelp = ref(false)
+const showRules = ref(false)
 
-const helpSteps = [
-  { title: '录入套餐信息', desc: '填写商家名称、预付金额、服务次数和使用期限' },
-  { title: '查看决策评估', desc: '系统自动分析 16 项风险指标，帮你判断值不值得办卡' },
-  { title: '确认生成资产', desc: '确认后预付卡会加入资产列表，可随时查看剩余次数和到期时间' },
-  { title: '日常核销打卡', desc: '每次到店消费后打卡扣次，系统自动更新剩余权益' },
-  { title: '管理证据材料', desc: '上传合同、付款截图、聊天记录，纠纷时一键打包导出维权材料' },
+const ruleList = [
+  { code: 'R1',  title: '单次实际成本核算', desc: '根据总价和次数计算单次均价，与你的月度预算对比，判断是否超支', stage: '购前决策' },
+  { code: 'R2',  title: '有效期-频率匹配度', desc: '分析总次数和有效期的关系，评估每周需要多少次才能用完', stage: '购前决策' },
+  { code: 'R3',  title: '合同/凭证可得性核验', desc: '检查是否已收到书面合同或电子协议，合同是维权最重要的凭证', stage: '购前决策' },
+  { code: 'R4',  title: '退款条款清晰度', desc: '验证合同是否写明了退款计算方式，口头承诺无法作为有效依据', stage: '购前决策' },
+  { code: 'R5',  title: '转卡/暂停/延期条款', desc: '检查合同是否包含转卡、暂停、延期等灵活性条款', stage: '购前决策' },
+  { code: 'R6',  title: '迁址/停业应对条款', desc: '评估合同是否有因商家原因停业的补偿或自动顺延条款', stage: '购前决策' },
+  { code: 'R7',  title: '合同主体一致性核验', desc: '比对门店名称、合同签约方、收款方三者是否一致', stage: '购前决策' },
+  { code: 'R8',  title: '高金额预付规则', desc: '总价是否在你月度预算的3倍以内，超出意味长期资金占用风险较高', stage: '购前决策' },
+  { code: 'R9',  title: '赠品/限时优惠限制说明', desc: '检查赠送部分的使用规则和有效期是否明确', stage: '购前决策' },
+  { code: 'R10', title: '到期预警', desc: '距到期不足30天时提醒，避免权益过期浪费', stage: '购后管理' },
+  { code: 'R11', title: '使用频率异常预警', desc: '对比实际使用频率与计划频率，偏差过大时提示调整', stage: '购后管理' },
+  { code: 'R12', title: '材料留存完整性检查', desc: '检查四类关键证据是否留存：合同、付款截图、宣传材料、核销记录', stage: '购后管理' },
+  { code: 'R13', title: '退款前置检查', desc: '确认退款条款和流程是否已知，为可能的维权做准备', stage: '购后管理' },
+  { code: 'R14', title: '服务变更/价格调整', desc: '追踪商家是否曾调整服务内容或价格，记录变更时间线', stage: '商户履约' },
+  { code: 'R15', title: '场景专属子规则', desc: '根据消费场景（健身/培训/摄影/美发）识别专属风险点', stage: '商户履约' },
+  { code: 'R16', title: '退款渠道核验', desc: '确认商家是否告知线下退款渠道和受理流程', stage: '商户履约' },
+  { code: 'R17', title: '平台团购支付风险', desc: '通过美团/大众点评等平台代收时，维权需先与平台交涉', stage: '商户履约' },
 ]
 
 function onMenu(m) {
   if (m === '使用帮助') { showHelp.value = true }
+  else if (m === '规则说明') { showRules.value = true }
   else if (m === '隐私设置') alert('所有数据仅本地存储，不上传服务器。\n\n支持 PIN 码锁定保护敏感信息。')
   else if (m === '本地凭证管理') alert('所有凭证文件仅保存在本机。\n换设备不会自动同步。')
   else if (m === '重置所有数据') {
@@ -92,6 +125,15 @@ function onMenu(m) {
     }
   }
 }
+
+const helpSteps = [
+  { title: '录入套餐信息', desc: '填写商家名称、预付金额、服务次数和使用期限' },
+  { title: '查看决策评估', desc: '系统自动分析 16 项风险指标，帮你判断值不值得办卡' },
+  { title: '确认生成资产', desc: '确认后预付卡会加入资产列表，可随时查看剩余次数和到期时间' },
+  { title: '日常核销打卡', desc: '每次到店消费后打卡扣次，系统自动更新剩余权益' },
+  { title: '管理证据材料', desc: '上传合同、付款截图、聊天记录，纠纷时一键打包导出维权材料' },
+]
+
 
 const statsData = ref({ totalAmount: 0, count: 0, expiring: 0 })
 function refresh() {
@@ -162,4 +204,14 @@ const stats = computed(() => [
 .step-desc { display: block; font-size: 12px; color: #638F8D; margin-top: 2px; line-height: 1.5; }
 .help-tip { padding: 10px 14px; margin: 12px 0; background: #B8E6E1; border-radius: 8px; font-size: 12px; color: #245957; text-align: center; }
 .help-modal .btn-primary { height: 44px; width: 100%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; }
+
+/* 规则说明弹窗 */
+.rules-sub { display: block; text-align: center; font-size: 12px; color: #638F8D; margin-bottom: 16px; }
+.stage-section { margin-bottom: 14px; }
+.stage-title { display: block; font-size: 14px; font-weight: bold; color: #245957; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #B8E6E1; }
+.rule-line { display: flex; gap: 8px; padding: 6px 0; }
+.rule-code { width: 28px; height: 20px; background: #B8E6E1; color: #245957; font-size: 10px; font-weight: bold; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.rule-info { flex: 1; min-width: 0; }
+.rule-name { display: block; font-size: 13px; font-weight: bold; color: #245957; }
+.rule-desc { display: block; font-size: 11px; color: #638F8D; line-height: 1.4; margin-top: 1px; }
 </style>

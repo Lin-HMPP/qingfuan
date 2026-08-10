@@ -29,10 +29,11 @@ export function runAllRules(data) {
   results.push(ruleR12(data))  // 材料留存完整性检查
   results.push(ruleR13(data))  // 退款前置检查
 
-  // ═══ 阶段三：商户透明履约 (R14-R16) ═══
+  // ═══ 阶段三：商户透明履约 (R14-R17) ═══
   results.push(ruleR14(data))  // 服务变更/价格调整
   results.push(ruleR15(data))  // 场景专属子规则
   results.push(ruleR16(data))  // 退款渠道核验
+  results.push(ruleR17(data))  // 平台团购支付风险
 
   // 按六维度分组
   // results: [0]R1 [1]R2 [2]R8 [3]R9 [4]R3 [5]R4 [6]R5 [7]R6 [8]R10 [9]R11 [10]R7 [11]R12 [12]R13 [13]R14 [14]R15 [15]R16
@@ -42,7 +43,7 @@ export function runAllRules(data) {
     { key: 'rights',     title: '合约权责',   rules: [results[4], results[5], results[6], results[7]], score: 0 }, // R3 R4 R5 R6 合同+退款+转卡+迁址
     { key: 'identity',   title: '主体一致',   rules: [results[10]], score: 0 },                                  // R7 合同主体一致性
     { key: 'evidence',   title: '证据留存',   rules: [results[11], results[12]], score: 0 },                     // R12 R13 材料+退款前置
-    { key: 'promotion',  title: '促销甄别',   rules: [results[13], results[14], results[15]], score: 0 }         // R14 R15 R16 变更+场景+退款渠道
+    { key: 'promotion',  title: '促销甄别',   rules: [results[13], results[14], results[15], results[16]], score: 0 } // R14 R15 R16 R17
   ]
 
   // 计算五维度评分 (1-5 分)
@@ -488,4 +489,16 @@ function ruleR15(d) {
 
 function ruleR16(d) {
   return riskResult('medium', 'R16', '退款渠道核验', '商家未主动告知线下退款渠道和受理流程', '确认退款受理人/联系方式/处理时限', '消法规定经营者不得无理拒绝退款', '记录退款对接人信息，如商家拒绝可通过12315核实')
+}
+
+function ruleR17(d) {
+  const platform = d.groupBuyPlatform
+  if (!platform) return riskResult('none', 'R17', '平台团购支付风险', '直接付给商家，无平台代收风险', '', '', '')
+  const name = platform === 'meituan' ? '美团' : '大众点评'
+  return riskResult('medium', 'R17', '平台团购支付风险',
+    `通过${name}平台团购，资金由平台代收而非直接付给门店`,
+    '确认平台订单信息与门店服务内容一致',
+    '平台代收模式下，退款维权需先与平台交涉，维权链路更长',
+    `保存${name}订单截图、合同和聊天记录，纠纷时优先向${name}平台发起售后`
+  )
 }

@@ -43,7 +43,7 @@
         <span class="checklist-sub">（当前文件夹: {{ assetName(currentFolder.assetId) }}）</span>
         <div class="check-item" v-for="mt in materialTypes" :key="mt.key">
           <span class="check-label">{{ mt.label }}</span>
-          <div class="check-status" :class="{ uploaded: isUploaded(mt.key), missing: !isUploaded(mt.key) }">
+          <div class="check-status" :class="{ uploaded: isUploaded(mt.key), missing: !isUploaded(mt.key) }" @click="!isUploaded(mt.key) && quickUpload(mt)">
             {{ isUploaded(mt.key) ? '已上传' : '缺失' }}
           </div>
         </div>
@@ -295,6 +295,11 @@ function doExport(folder) {
 
 // 上传
 function startUpload() { track('证据夹', '上传凭证'); showTypePicker.value=true }
+function quickUpload(mt) {
+  // 点击缺失标签 → 直接跳过类型选择，进入上传方式弹窗
+  pickedType.value = mt
+  showMethodPicker.value = true
+}
 function onTypePicked(mt) { pickedType.value=mt; showTypePicker.value=false; showMethodPicker.value=true }
 function uploadCamera() { showMethodPicker.value=false; pickAndSave('image/*','camera') }
 function uploadAlbum()  { showMethodPicker.value=false; pickAndSave('image/*',null) }
