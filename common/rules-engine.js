@@ -35,13 +35,14 @@ export function runAllRules(data) {
   results.push(ruleR16(data))  // 退款渠道核验
 
   // 按六维度分组
+  // results: [0]R1 [1]R2 [2]R8 [3]R9 [4]R3 [5]R4 [6]R5 [7]R6 [8]R10 [9]R11 [10]R7 [11]R12 [12]R13 [13]R14 [14]R15 [15]R16
   const dimensions = [
-    { key: 'pressure',   title: '预付压力', rules: [results[0], results[1], results[2], results[3]], score: 0 },
-    { key: 'deadline',   title: '履约时限', rules: [results[4], results[8], results[9]], score: 0 },
-    { key: 'rights',     title: '合约权责', rules: [results[5], results[6], results[7]], score: 0 },
-    { key: 'identity',   title: '主体一致', rules: [results[10]], score: 0 },
-    { key: 'evidence',   title: '证据留存', rules: [results[11], results[12]], score: 0 },
-    { key: 'promotion',  title: '促销甄别', rules: [results[13], results[14], results[15]], score: 0 }
+    { key: 'pressure',   title: '预付压力',   rules: [results[0], results[1], results[2]], score: 0 },          // R1 R2 R8 成本+频率+金额
+    { key: 'deadline',   title: '履约时限',   rules: [results[3], results[8], results[9]], score: 0 },          // R9 R10 R11 赠品期限+到期+频率异常
+    { key: 'rights',     title: '合约权责',   rules: [results[4], results[5], results[6], results[7]], score: 0 }, // R3 R4 R5 R6 合同+退款+转卡+迁址
+    { key: 'identity',   title: '主体一致',   rules: [results[10]], score: 0 },                                  // R7 合同主体一致性
+    { key: 'evidence',   title: '证据留存',   rules: [results[11], results[12]], score: 0 },                     // R12 R13 材料+退款前置
+    { key: 'promotion',  title: '促销甄别',   rules: [results[13], results[14], results[15]], score: 0 }         // R14 R15 R16 变更+场景+退款渠道
   ]
 
   // 计算五维度评分 (1-5 分)
@@ -110,11 +111,37 @@ function riskResult(level, code, title, fact, confirm, explain, action) {
 
 function ruleR1(d) {
   const totalPrice = parseFloat(d.totalPrice) || 0
-  const totalTimes = parseInt(d.totalTimes) || 1
-  const unitCost = totalPrice / totalTimes
-  // 使用用户填入的"每月可支配预付预算"作为个性化阈值
+  const totalTimes = parseInt(d.totalTimes) || 0
+  const unlimited = d.unlimited
   const monthlyBudget = parseFloat(d.monthlyBudget) || 0
-  // 保守估计单次成本的合理阈值：月度预算 ÷ 4（按每周1次计算）
+  const validityMonths = parseFloat(d.validityMonths) || 12
+
+  // 无限次模式：按日均/月均成本评估
+  if (unlimited) {
+    const dailyCost = totalPrice / (validityMonths * 30)
+    const monthlyCost = totalPrice / validityMonths
+    const threshold = monthlyBudget ? monthlyBudget : totalPrice / 3
+    const isHigh = monthlyCost > threshold
+
+    if (!monthlyBudget) {
+      return riskResult('medium', 'R1', '日均/月均成本核算',
+        `日均 ¥${dailyCost.toFixed(1)} · 月均 ¥${monthlyCost.toFixed(0)}（无限次模式，按有效期均摊）`,
+        '填写每月可支配预付预算以获取更精准评估',
+        '充卡模式适合高频消费，建议评估到店频率是否匹配',
+        '建议根据自身消费习惯判断月均成本是否合理')
+    }
+
+    return riskResult(
+      isHigh ? 'high' : 'low',
+      'R1', '日均/月均成本核算',
+      `月均 ¥${monthlyCost.toFixed(0)}，${isHigh ? '超出' : '在'}你月预算 ¥${monthlyBudget.toLocaleString()}（日均 ¥${dailyCost.toFixed(1)}）`,
+      '对比同类型店铺的单次消费价格',
+      '充卡月均成本应明显低于按次消费总价',
+      isHigh ? `月均成本偏高，建议降低预付金额或确认退款条款` : `月均成本在你的预算范围内`
+    )
+  }
+
+  const unitCost = totalPrice / (totalTimes || 1)
   const threshold = monthlyBudget ? monthlyBudget / 4 : 50
   const isHigh = unitCost > threshold
 
@@ -345,13 +372,18 @@ function ruleR12(d) {
   const hasPromo = d.hasPromo === true || d.hasPromo === 'true'
   const hasRecord = d.hasRecord === true || d.hasRecord === 'true'
   const complete = [hasContract, hasPayment, hasPromo, hasRecord].filter(Boolean).length
+  const missing = []
+  if (!hasContract) missing.push('合同协议/付款截图')
+  if (!hasPayment) missing.push('付款凭证')
+  if (!hasPromo) missing.push('宣传材料（海报/聊天记录）')
+  if (!hasRecord) missing.push('核销打卡记录')
   return riskResult(
     complete < 2 ? 'high' : complete < 4 ? 'medium' : 'low',
     'R12', '材料留存完整性检查',
-    `四类材料已完成${complete}/4项`,
-    '补充缺失材料至证据夹',
-    '材料仅本地保存，可随时删除，不上传也可完成检查',
-    complete < 4 ? '建议补充缺失的材料类型' : '材料留存完整'
+    `已留存 ${complete}/4 类材料${missing.length ? '，缺失：' + missing.join('、') : ''}`,
+    '在「证据资料夹」中上传对应材料',
+    '四类材料：①合同付款凭证 ②宣传承诺材料 ③核销打卡记录 ④问题沟通记录',
+    complete < 4 ? `建议尽快补充：${missing.join('、')}` : '四类材料留存完整，维权时可直接导出'
   )
 }
 

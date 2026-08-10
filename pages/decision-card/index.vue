@@ -23,8 +23,8 @@
         <div class="summary-grid">
           <span class="s-label">消费场景</span><span class="s-value">{{ data.scene }}</span>
           <span class="s-label">总价金额</span><span class="s-value">¥{{ Number(data.totalPrice).toLocaleString() }}</span>
-          <span class="s-label">总次数</span><span class="s-value">{{ data.totalTimes }} 次</span>
-          <span class="s-label">有效期</span><span class="s-value">{{ data.validityMonths }} 个月</span>
+          <span class="s-label">总次数</span><span class="s-value">{{ data.unlimited ? '无限次（充卡）' : data.totalTimes + ' 次' }}</span>
+          <span class="s-label">有效期</span><span class="s-value">{{ data.noExpiry ? '无固定期限' : data.validityMonths + ' 个月' }}</span>
         </div>
       </div>
 
@@ -319,7 +319,7 @@ function onAssetConfirm() {
 .dim-score { display: flex; align-items: center; margin-right: 8px; }
 .score-label { font-size: 12px; color: #638F8D; margin-right: 4px; }
 .stars { display: flex; gap: 4px; }
-.star { width: 10px; height: 10px; border-radius: 50%; background: #48A9A6; border: 1px solid #999; }
+.star { width: 10px; height: 10px; border-radius: 50%; background: #E0E0E0; border: 1px solid #CCC; }
 .star.active { background: #48A9A6; border-color: #48A9A6; }
 .dim-arrow { font-size: 9px; color: #48A9A6; }
 .dim-hint { display: block; font-size: 12px; color: #638F8D; margin: 4px 0 8px; }

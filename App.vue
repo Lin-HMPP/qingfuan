@@ -28,7 +28,18 @@ const tabRoutes = ['/home', '/asset-list', '/evidence-folder', '/mine']
 const showTabBar = computed(() => tabRoutes.includes(route.path))
 
 onMounted(() => {
-  window.__toast = (msg, duration) => { toastRef.value?.show(msg, duration) }
+  window.__toast = (msg, duration) => {
+    // 优先用 Vue Toast 组件
+    if (toastRef.value) {
+      try { toastRef.value.show(msg, duration); return } catch(e) {}
+    }
+    // 兜底：DOM 弹层，确保任何情况下都能看到提示
+    const el = document.createElement('div')
+    el.textContent = msg
+    el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(0,0,0,.82);color:#fff;padding:10px 24px;border-radius:8px;font-size:14px;max-width:300px;text-align:center;pointer-events:none;'
+    document.body.appendChild(el)
+    setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(() => el.remove(), 300) }, (duration || 3000))
+  }
   window.__showPin = (mode) => { window.__pinMode = mode; showPinLock.value = true }
   checkLock()
   if (locked.value) showPinLock.value = true
