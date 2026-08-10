@@ -110,15 +110,15 @@
         <input class="input-blue" v-model="form.contractName" :placeholder="sceneCopy.contractHint" />
 
         <span class="label"><span class="star">*</span><span class="label-text">收款账户/商家收款名</span></span>
-        <input class="input-blue" v-model="form.payeeName" :placeholder="sceneCopy.payeeHint" />
+        <input class="input-blue" v-model="form.payeeName" :placeholder="sceneCopy.payeeHint" :readonly="form.groupBuyPlatform && form.groupBuyPlatform !== 'other' && form.groupBuyPlatform !== ''" :class="{ readonly: form.groupBuyPlatform && form.groupBuyPlatform !== 'other' && form.groupBuyPlatform !== '' }" />
         <!-- 团购平台模式 -->
         <span class="label"><span class="label-text">支付渠道</span></span>
         <div class="groupbuy-tags">
-          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === '' }" @click="form.groupBuyPlatform = ''">直接付给商家</div>
-          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'meituan' }" @click="form.groupBuyPlatform = 'meituan'">美团团购</div>
-          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'dianping' }" @click="form.groupBuyPlatform = 'dianping'">大众点评</div>
-          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'douyin' }" @click="form.groupBuyPlatform = 'douyin'">抖音团购</div>
-          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'other' }" @click="form.groupBuyPlatform = 'other'">其他团购</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === '' }" @click="selectPlatform('')">直接付给商家</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'meituan' }" @click="selectPlatform('meituan')">美团团购</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'dianping' }" @click="selectPlatform('dianping')">大众点评</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'douyin' }" @click="selectPlatform('douyin')">抖音团购</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'other' }" @click="selectPlatform('other')">其他团购</div>
         </div>
       </div>
     </div>
@@ -743,6 +743,16 @@ onMounted(() => {
   onBeforeUnmount(() => clearInterval(autoSaveTimer))
 })
 
+const platformPayeeMap = { meituan: '美团商家平台', dianping: '大众点评商家平台', douyin: '抖音团购商家平台' }
+function selectPlatform(key) {
+  form.groupBuyPlatform = key
+  if (key && key !== 'other') {
+    form.payeeName = platformPayeeMap[key] || ''
+  } else if (key === '') {
+    form.payeeName = ''  // 直接付商家，清空让用户自己填
+  }
+  // 'other' 不清空，让用户自己填
+}
 function goQuickMode() {
   const hasContent = Object.values(form.value).some(v => v)
   if (hasContent) saveDraft({ form: form.value, scene: scene.value, images: images.value })
@@ -937,6 +947,7 @@ function onSubmit() {
 .groupbuy-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
 .gb-tag { height: 28px; padding: 0 10px; border: 1px solid #48A9A6; border-radius: 14px; font-size: 11px; color: #245957; display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
 .gb-tag.active { background: #48A9A6; color: #fff; font-weight: bold; }
+.input-blue.readonly { background: #F5F5F5; color: #888; cursor: not-allowed; }
 .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; color: #245957; }
 
 .scene-switch {
