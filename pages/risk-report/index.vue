@@ -74,7 +74,7 @@
 import { useRouter } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
 import { runAllRules } from '@/common/rules-engine.js'
-import { addAsset } from '@/common/storage.js'
+import { addAsset, addFolder } from '@/common/storage.js'
 
 const router = useRouter()
 const data = ref({})
@@ -107,9 +107,9 @@ onMounted(() => {
 function navigateBack() { router.back() }
 function confirmAsset() {
   if (data.value && data.value.totalPrice) {
-    addAsset({
+    const asset = addAsset({
       scene: data.value.scene,
-      name: (data.value.storeName || '') + '·' + (data.value.packageName || '套餐'),
+      name: (data.value.storeName || '') + '·套餐',
       totalPrice: parseFloat(data.value.totalPrice),
       totalTimes: data.value.unlimited ? 999 : (parseInt(data.value.totalTimes) || 0),
       validityMonths: parseFloat(data.value.validityMonths) || 12,
@@ -118,11 +118,16 @@ function confirmAsset() {
       storeName: data.value.storeName || '',
       contractName: data.value.contractName || '',
       payeeName: data.value.payeeName || '',
+      refundRule: data.value.refundRule || '',
+      transferRule: data.value.transferRule || '',
+      pauseRule: data.value.pauseRule || '',
       unlimited: !!data.value.unlimited,
       noExpiry: !!data.value.noExpiry,
       giftTimes: parseInt(data.value.giftTimes) || 0,
       usedTimes: 0, status: 'active'
     })
+    // 自动创建同名证据资料夹
+    addFolder({ assetId: asset.id, name: (data.value.storeName || '资产') + '·凭证', note: '自动创建' })
   }
   sessionStorage.removeItem('qf_package_data')
   router.replace('/asset-list')

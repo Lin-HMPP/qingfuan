@@ -83,8 +83,8 @@
 import { useRouter } from 'vue-router'
 import { ref, reactive, computed } from 'vue'
 import { locked } from '@/store/lock.js'
-import { getAssets, updateAsset, deleteAsset, getWriteOffs, getFolders, getFiles } from '@/common/storage.js'
-import { deleteWriteOff, deleteFolder, deleteFile } from '@/common/storage.js'
+import { getAssets, updateAsset, deleteAsset, getWriteOffs, getFolders, getFiles, getPauses } from '@/common/storage.js'
+import { deleteWriteOff, deleteFolder, deleteFile, KEYS, set } from '@/common/storage.js'
 
 const router = useRouter()
 const $toast = (msg) => window.__toast?.(msg)
@@ -105,7 +105,7 @@ function remainingDays(a) {
   end.setMonth(end.getMonth() + (a.validityMonths || 12))
   return Math.max(0, Math.ceil((end - Date.now()) / 86400000))
 }
-function isExpiring(a) { return remainingDays(a) <= 30 }
+function isExpiring(a) { const d = remainingDays(a); return d <= 30 && d > 0 }
 function unitCost(a) { return a.totalTimes ? Math.round(a.totalPrice / a.totalTimes) : 0 }
 
 function navigateBack() { router.push('/') }
@@ -155,6 +155,9 @@ function confirmDelete(asset) {
     // 清理关联的核销记录
     const writeoffs = getWriteOffs(asset.id)
     writeoffs.forEach(w => deleteWriteOff(w.id))
+    // 清理关联的暂停/转卡记录
+    const pauses = getPauses(asset.id)
+    if (pauses.length) set(KEYS.PAUSES, getPauses().filter(p => p.assetId !== asset.id))
     // 清理关联的资料夹及其文件
     const folders = getFolders().filter(f => f.assetId === asset.id)
     folders.forEach(f => {

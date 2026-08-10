@@ -154,7 +154,7 @@
 import { useRouter } from 'vue-router'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { runAllRules } from '@/common/rules-engine.js'
-import { addAsset, addFolder } from '@/common/storage.js'
+import { addAsset, addFolder, addFile } from '@/common/storage.js'
 import { track } from '@/common/analytics.js'
 import AssetConfirm from '@/components/asset-confirm/index.vue'
 
@@ -271,9 +271,9 @@ function confirmAsset() { showConfirm.value = true }
 
 function onAssetConfirm() {
   track('决策卡', '确认生成资产', data.value.scene, data.value.totalPrice)
-  addAsset({
+  const asset = addAsset({
     scene: data.value.scene,
-    name: (data.value.storeName || '') + '·' + (data.value.packageName || '套餐'),
+    name: (data.value.storeName || '') + '·套餐',
     totalPrice: parseFloat(data.value.totalPrice),
     totalTimes: data.value.unlimited ? 999 : (parseInt(data.value.totalTimes) || 0),
     validityMonths: parseFloat(data.value.validityMonths) || 12,
@@ -290,6 +290,24 @@ function onAssetConfirm() {
     giftTimes: parseInt(data.value.giftTimes) || 0,
     usedTimes: 0,
     status: 'active'
+  })
+  // 自动创建同名证据资料夹
+  const folder = addFolder({
+    assetId: asset.id,
+    name: (data.value.storeName || '资产') + '·凭证',
+    note: '自动创建'
+  })
+  // 将套餐录入时上传的图片保存到资料夹
+  const imgs = data.value.images || []
+  imgs.forEach(img => {
+    addFile({
+      folderId: folder.id,
+      name: img.name,
+      type: img.dataUrl ? 'image' : 'file',
+      size: img.size ? (img.size > 1048576 ? (img.size / 1048576).toFixed(1) + 'MB' : (img.size / 1024).toFixed(1) + 'KB') : '--',
+      materialType: img.materialLabel || '',
+      dataUrl: img.dataUrl || ''
+    })
   })
   sessionStorage.removeItem('qf_package_data')
   showConfirm.value = false

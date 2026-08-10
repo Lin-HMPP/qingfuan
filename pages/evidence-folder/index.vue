@@ -100,14 +100,15 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-import { ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 import { locked } from '@/store/lock.js'
 import { getFolders, getFiles, getAssets, addFile, deleteFile as delFile } from '@/common/storage.js'
 import { track } from '@/common/analytics.js'
 import PackageLoading from '@/components/package-loading/index.vue'
 
 const router = useRouter()
+const route = useRoute()
 const $toast = (msg) => window.__toast?.(msg)
 function guard() { if (locked.value) { $toast('信息已锁定，请先解锁'); return false } return true }
 const showLoading = ref(false)
@@ -116,6 +117,16 @@ const showMethodPicker = ref(false)
 const showManage = ref(false)
 const currentFolder = ref(null)
 const pickedType = ref(null)
+
+// 如果 URL 带了 assetId，自动选中该资产的文件夹
+onMounted(() => {
+  const assetId = route.query.assetId
+  if (assetId) {
+    const folders = getFolders()
+    const match = folders.find(f => f.assetId === assetId)
+    if (match) currentFolder.value = match
+  }
+})
 
 const materialTypes = [
   { key: 'contract',     label: '① 交易依据 - 合同协议' },

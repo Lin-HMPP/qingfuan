@@ -36,7 +36,9 @@ import { ref, computed, onMounted } from 'vue'
 const emit = defineEmits(['unlocked', 'done'])
 
 const hasPin = !!localStorage.getItem('qf_pin_hash')
-const step = ref(hasPin ? 0 : 1)  // 0=验证, 1=首次输入, 2=二次确认
+// 根据调用方意图决定初始模式：setup=强制重设PIN, verify=验证现有PIN
+const mode = window.__pinMode || (hasPin ? 'verify' : 'setup')
+const step = ref(mode === 'setup' ? 1 : 0)  // 0=验证, 1=首次输入, 2=二次确认
 const pin = ref('')
 const saved = ref('')
 const error = ref('')

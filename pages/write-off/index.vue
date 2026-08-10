@@ -139,10 +139,12 @@ function onSave() {
   // 无限次模式：自动计1次打卡
   if (isUnlimited.value) {
     const latest = getAssetById(asset.value.id)
-    const newUsed = (latest?.usedTimes || 0) + 1
+    if (!latest) { $toast?.('关联资产不存在'); return }
+    const newUsed = (latest.usedTimes || 0) + 1
     updateAsset(asset.value.id, { usedTimes: newUsed })
     addWriteOff({ assetId: asset.value.id, date: form.date, hours: 1, note: form.note, remainingAfter: newUsed })
     asset.value = getAssetById(asset.value.id)
+    if (!asset.value) { $toast?.('打卡已记录'); return }
     records.value = getWriteOffs(asset.value.id)
     form.note = ''
     track('打卡', '到店记录', asset.value.storeName)
@@ -156,9 +158,11 @@ function onSave() {
   if (h > scoped.remainingTimes) { $toast?.('消耗次数不可超过剩余课时'); return }
   addWriteOff({ assetId: asset.value.id, date: form.date, hours: h, note: form.note, remainingAfter: scoped.remainingTimes - h })
   const latest = getAssetById(asset.value.id)
-  const newUsed = (latest?.usedTimes || 0) + h
+  if (!latest) { $toast?.('关联资产不存在'); return }
+  const newUsed = (latest.usedTimes || 0) + h
   updateAsset(asset.value.id, { usedTimes: newUsed })
   asset.value = getAssetById(asset.value.id)
+  if (!asset.value) { $toast?.('核销记录已保存'); return }
   scoped.remainingTimes = (asset.value.totalTimes || 0) - (asset.value.usedTimes || 0)
   records.value = getWriteOffs(asset.value.id)
   form.hours = ''; form.note = ''

@@ -500,11 +500,12 @@ function onSubmit() {
 
   clearDraft()
   // 将套餐数据存入 sessionStorage，决策卡页面读取
-  // 从表单数据推断规则引擎所需的布尔字段
   const pkg = {
     ...form.value,
     scene: scene.value,
     validityMonths: validityMonths.value,
+    // 携带已上传的材料图片
+    images: images.value,
     // 从表单字段推断规则引擎需要的布尔标志
     hasContract: !!(form.value.contractName && form.value.contractName.trim()),
     refundClear: !!(form.value.refundRule && form.value.refundRule.trim()),
@@ -512,7 +513,7 @@ function onSubmit() {
     moveClear: false,
     hasGift: !!(form.value.giftTimes && parseInt(form.value.giftTimes) > 0),
     giftClear: !!(form.value.giftTimes && parseInt(form.value.giftTimes) > 0),
-    hasPayment: true,
+    hasPayment: images.value.length > 0 || !!(form.value.contractName && form.value.contractName.trim()),
     hasPromo: !!(form.value.promoNote && form.value.promoNote.trim()),
     hasRecord: false,
     refundKnown: !!(form.value.refundRule && form.value.refundRule.trim())

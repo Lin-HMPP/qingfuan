@@ -90,7 +90,7 @@
 
     <!-- 四大功能按钮 -->
     <div class="btn-group">
-      <div class="btn-primary" @click="asset.status !== 'expired' && goWriteOff()" :class="{ disabled: asset.status === 'expired' }">◯ 核销记录</div>
+      <div class="btn-primary" @click="!isExpired && goWriteOff()" :class="{ disabled: isExpired }">◯ 核销记录</div>
       <div class="btn-primary" @click="showPause = true">◯ 暂停 / 转卡</div>
       <div class="btn-secondary" @click="showRefund = true">◯ 申请退款</div>
       <div class="btn-secondary" @click="goEvidence">◯ 查看证据资料</div>
@@ -126,13 +126,19 @@ const scoped = reactive({
 
 const isUnlimited = computed(() => !!(asset.value?.unlimited))
 
+const isExpired = computed(() => {
+  if (!asset.value) return false
+  if (asset.value.status === 'expired') return true
+  // 实时计算：如果剩余天数为0，视为已过期
+  return scoped.remainingDays <= 0 && !!asset.value.createdAt
+})
 const statusLabel = computed(() => {
-  if (asset.value?.status === 'expired') return '已过期'
+  if (isExpired.value) return '已过期'
   if (asset.value?.status === 'paused') return '已暂停'
   return isUnlimited.value ? '充卡中' : '使用中'
 })
 const statusClass = computed(() =>
-  asset.value?.status === 'expired' ? 'expired' : asset.value?.status === 'paused' ? 'paused' : 'active'
+  isExpired.value ? 'expired' : asset.value?.status === 'paused' ? 'paused' : 'active'
 )
 
 // 无限次模式专属指标

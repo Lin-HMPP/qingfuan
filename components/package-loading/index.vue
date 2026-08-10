@@ -18,21 +18,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 const emit = defineEmits(['done'])
 const progress = ref(0)
+let timer = null
+let doneTimer = null
 
 onMounted(() => {
-  const timer = setInterval(() => {
+  timer = setInterval(() => {
     progress.value += 15
     if (progress.value >= 100) {
       clearInterval(timer)
-      setTimeout(() => {
-        window.__toast?.('文件已保存至本机文件夹')
+      doneTimer = setTimeout(() => {
         emit('done')
       }, 400)
     }
   }, 400)
+})
+
+onUnmounted(() => {
+  if (timer) { clearInterval(timer); timer = null }
+  if (doneTimer) { clearTimeout(doneTimer); doneTimer = null }
 })
 </script>
 
