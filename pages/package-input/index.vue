@@ -35,10 +35,18 @@
       <input class="input-blue" v-model="form.totalPrice" type="text" inputmode="decimal" placeholder="输入实付总金额" />
 
       <span class="label"><span class="star">*</span><span class="label-text">总服务次数</span><span class="label-hint">（不含赠课次数）</span></span>
-      <input class="input-blue" v-model="form.totalTimes" type="number" placeholder="不含赠课次数" />
-
-      <span class="label"><span class="label-text">赠送次数/赠课</span></span>
-      <input class="input-blue" v-model="form.giftTimes" type="number" placeholder="无赠送填0" />
+      <div class="no-expiry-toggle" @click="form.unlimited = !form.unlimited" :class="{ active: form.unlimited }">
+        <div class="toggle-dot"></div>
+        <span class="toggle-label">无限次（充卡 / 不限次数）</span>
+      </div>
+      <div v-if="!form.unlimited">
+        <input class="input-blue" v-model="form.totalTimes" type="number" placeholder="不含赠课次数" />
+        <span class="label"><span class="label-text">赠送次数/赠课</span></span>
+        <input class="input-blue" v-model="form.giftTimes" type="number" placeholder="无赠送填0" />
+      </div>
+      <span class="validity-display" v-if="form.unlimited">
+        充卡模式 · 不限次数，在有效期内任意到店
+      </span>
 
       <span class="label"><span class="star">*</span><span class="label-text">服务有效期限</span></span>
       <div class="no-expiry-toggle" @click="form.noExpiry = !form.noExpiry" :class="{ active: form.noExpiry }">
@@ -62,7 +70,7 @@
 
       <!-- 实时成本测算 -->
       <div class="cost-preview" v-if="totalPrice && totalTimes">
-        当前基础单次成本 ≈ {{ baseUnitCost }}元/次
+        当前基础单次成本 ≈ {{ baseUnitCost }}
       </div>
     </div>
 
@@ -232,7 +240,7 @@ const images = ref([])
 
 const form = ref({
   totalPrice: '', totalTimes: '', giftTimes: '0',
-  validityValue: '', validityUnit: 'month', noExpiry: false,
+  validityValue: '', validityUnit: 'month', noExpiry: false, unlimited: false,
   monthlyBudget: '', weeklyFreq: '',
   storeName: '', contractName: '', payeeName: '',
   refundRule: '', transferRule: '', pauseRule: '',
@@ -253,14 +261,30 @@ const validityMonths = computed(() => {
 })
 
 const totalPrice = computed(() => parseFloat(form.value.totalPrice) || 0)
-const totalTimes = computed(() => parseInt(form.value.totalTimes) || 0)
+const totalTimes = computed(() => {
+  if (form.value.unlimited) return 999  // 无限次模式
+  return parseInt(form.value.totalTimes) || 0
+})
 const baseUnitCost = computed(() => {
-  if (!totalPrice.value || !totalTimes.value) return 0
+  if (!totalPrice.value) return 0
+  if (form.value.unlimited) return '按实到次数均摊'
+  if (!totalTimes.value) return 0
   const giftTimes = parseInt(form.value.giftTimes) || 0
   const total = totalTimes.value + giftTimes
-  return (totalPrice.value / total).toFixed(1)
+  return (totalPrice.value / total).toFixed(1) + '元/次'
 })
 const freqEstimate = computed(() => {
+  if (form.value.unlimited) {
+    const freq = parseFloat(form.value.weeklyFreq) || 0
+    const months = validityMonths.value || 12
+    if (!freq || freq <= 0) return { show: false }
+    const totalVisits = Math.round(freq * 4.33 * months)
+    return {
+      show: true,
+      risk: false,
+      msg: `✓ 充卡模式 · 按每周 ${freq} 次估算，有效期 ${months} 个月内预计到店约 ${totalVisits} 次`
+    }
+  }
   const total = parseInt(form.value.totalTimes) || 0
   const freq = parseFloat(form.value.weeklyFreq) || 0
   const months = validityMonths.value || 12
@@ -270,14 +294,12 @@ const freqEstimate = computed(() => {
   const neededPerWeek = (total / (months * 4.33)).toFixed(1)
 
   if (freq >= parseFloat(neededPerWeek)) {
-    // 频率够用
     return {
       show: true,
       risk: false,
       msg: `✓ 按每周 ${freq} 次的频率，预计 ${estimatedMonths} 个月用完，在有效期 ${months} 个月内可以完成`
     }
   } else {
-    // 频率不够
     const remaining = Math.round(total - freq * 4.33 * months)
     return {
       show: true,
@@ -288,7 +310,7 @@ const freqEstimate = computed(() => {
 })
 const progress = computed(() => {
   let p = 0
-  if (totalPrice.value && totalTimes.value && (form.value.validityValue || form.value.noExpiry)) p++
+  if (totalPrice.value && (form.value.unlimited || totalTimes.value) && (form.value.validityValue || form.value.noExpiry)) p++
   if (form.value.monthlyBudget && form.value.weeklyFreq) p++
   if (form.value.storeName && form.value.contractName && form.value.payeeName) p++
   if (form.value.refundRule || form.value.transferRule || form.value.pauseRule) p++
@@ -310,7 +332,7 @@ onMounted(() => {
       Object.assign(form.value, {
         totalPrice: d.totalPrice || '', totalTimes: d.totalTimes || '',
         giftTimes: d.giftTimes || '0', validityValue: d.validityValue || '',
-        validityUnit: d.validityUnit || 'month', noExpiry: d.noExpiry || false, monthlyBudget: d.monthlyBudget || '',
+        validityUnit: d.validityUnit || 'month', noExpiry: d.noExpiry || false, unlimited: d.unlimited || false, monthlyBudget: d.monthlyBudget || '',
         weeklyFreq: d.weeklyFreq || '', storeName: d.storeName || '',
         contractName: d.contractName || '', payeeName: d.payeeName || '',
         refundRule: d.refundRule || '', transferRule: d.transferRule || '',
@@ -424,7 +446,7 @@ function onSubmit() {
   if (!totalPrice.value || !isPositiveNumber(form.value.totalPrice)) {
     errors.push('套餐总价')
   }
-  if (!totalTimes.value || !isPositiveInt(form.value.totalTimes)) {
+  if (!form.value.unlimited && (!totalTimes.value || !isPositiveInt(form.value.totalTimes))) {
     errors.push('总服务次数')
   }
   if (!form.value.noExpiry && (!form.value.validityValue || !isPositiveInt(form.value.validityValue))) {
