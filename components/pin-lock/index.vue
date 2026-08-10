@@ -120,19 +120,31 @@ function confirm() {
 </script>
 
 <style scoped>
-.mask { position: fixed; inset: 0; z-index: 5000; background: rgba(36,89,87,.65); display: flex; align-items: center; justify-content: center; }
-.modal { width: 320px; background: #fff; border: 1.5px solid #48A9A6; border-radius: 20px; padding: 28px 24px 24px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 8px 32px rgba(0,0,0,.12); }
+.mask { position: fixed; inset: 0; z-index: 5000; background: rgba(36,89,87,.5); display: flex; align-items: center; justify-content: center; }
+.modal {
+  width: 320px; background: #fff; border: 1.5px solid #48A9A6; border-radius: 16px;
+  padding: 28px 24px 24px; display: flex; flex-direction: column; align-items: center;
+  animation: modal-in 0.25s ease;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
 .lock-icon { margin-bottom: 12px; }
 .title { font-size: 18px; font-weight: bold; color: #245957; }
-.hint { font-size: 12px; color: #4A7A77; margin-top: 6px; text-align: center; }
 
-.pin-dots { display: flex; gap: 12px; margin: 20px 0; }
-.dot { width: 14px; height: 14px; border: 2px solid #48A9A6; border-radius: 50%; transition: background .15s; }
+.pin-dots { display: flex; gap: 12px; margin: 16px 0; }
+.dot { width: 14px; height: 14px; border: 2px solid #48A9A6; border-radius: 4px; transition: background .15s; }
 .dot.filled { background: #48A9A6; }
 
 .num-pad { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; }
-.num-key { height: 48px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #245957; background: #F5FAFA; border: 1.5px solid #48A9A6; border-radius: 12px; cursor: pointer; transition: transform .1s ease, background .1s ease; user-select: none; }
-.num-key:active { transform: scale(.93); background: #B8E6E1; }
+.num-key {
+  height: 48px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #245957; background: #B8E6E1;
+  border: 1.5px solid #48A9A6; border-radius: 12px; cursor: pointer;
+  transition: transform .1s ease, background .1s ease; user-select: none;
+}
+.num-key:active { transform: scale(.93); background: #9FD8D2; }
 .num-key.empty { border: none; background: transparent; pointer-events: none; }
 .num-key.confirm { font-size: 14px; font-weight: bold; background: #48A9A6; color: #fff; border-color: #48A9A6; }
 .num-key.confirm:active { background: #9FD8D2; }
