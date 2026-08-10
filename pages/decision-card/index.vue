@@ -299,7 +299,7 @@ function onAssetConfirm() {
 
 <style lang="scss" scoped>
 .page { min-height: 100vh; background: #FFFFFF; padding-bottom: 24px; }
-.nav-bar { display: flex; align-items: center; height: 44px; background: #fff; padding: 0 16px; border-bottom: 0.5px solid #48A9A6; }
+.nav-bar { display: flex; align-items: center; height: 44px; background: #fff; padding: 0 16px; border-bottom: 1.5px solid #48A9A6; }
 .back { font-size: 15px; color: #48A9A6; }
 .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; color: #245957; }
 .loading-text { text-align: center; font-size: 11px; color: #638F8D; padding: 8px; }

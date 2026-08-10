@@ -616,8 +616,14 @@ function onSubmit() {
 .btn-add-img {
   display: inline-flex; align-items: center; justify-content: center;
   height: 28px; padding: 0 14px; margin-top: 4px;
-  background: #fff; border: 1px solid #48A9A6; border-radius: 6px;
+  background: #fff; border: 1.5px dashed #48A9A6; border-radius: 6px;
   font-size: 11px; color: #48A9A6; cursor: pointer;
+  position: relative;
+}
+/* 上传按钮明黄角装饰 */
+.btn-add-img::before {
+  content: ''; position: absolute; top: -1px; right: 6px;
+  width: 6px; height: 1.5px; background: #FFD133; border-radius: 0.5px;
 }
 .img-previews { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .img-item { position: relative; width: 80px; }

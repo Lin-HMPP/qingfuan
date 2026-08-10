@@ -185,7 +185,9 @@ function confirmDelete(asset) {
 .empty-text { display: block; font-size: 16px; color: #245957; }
 .empty-hint { display: block; font-size: 12px; color: #638F8D; margin-top: 8px; }
 
-.asset-card { margin: 8px 16px; padding: 14px; display: flex; position: relative; }
+.asset-card { margin: 8px 16px; padding: 14px; display: flex; position: relative; overflow: hidden; }
+/* 资产卡片右上角明黄折线装饰 */
+.asset-card::after { content: ''; position: absolute; top: -1px; right: 12px; width: 12px; height: 1.5px; background: #FFD133; border-radius: 0.5px; }
 .asset-bar { width: 3px; height: 16px; background: #48A9A6; border-radius: 1.5px; margin-right: 12px; margin-top: 4px; }
 .asset-info { flex: 1; }
 .asset-name { display: block; font-size: 15px; font-weight: bold; color: #245957; }
