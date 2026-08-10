@@ -166,7 +166,7 @@ function confirmAsset() {
       usedTimes: 0, status: 'active'
     })
     // 自动创建同名证据资料夹
-    const folder = addFolder({ assetId: asset.id, name: (data.value.storeName || '资产') + '·凭证', note: '自动创建' })
+    const folder = addFolder({ assetId: asset.id, name: (data.value.storeName || '资产') + ' · ' + (data.value.scene || '') + ' 凭证', note: '自动创建' })
     // 同步套餐录入页上传的材料到证据夹
     const images = data.value.images || []
     images.forEach(img => {

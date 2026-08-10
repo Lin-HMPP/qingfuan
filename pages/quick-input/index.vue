@@ -119,7 +119,7 @@ function doCreate() {
       scene: form.scene,
       name: form.storeName.trim() + '·套餐',
       totalPrice: price,
-      totalTimes: form.unlimited ? 999 : (parseInt(form.totalTimes) || 0),
+      totalTimes: form.unlimited ? 999 : (parseInt(form.totalTimes) || 1),
       validityMonths,
       weeklyFreq: 0,
       monthlyBudget: 0,
@@ -135,7 +135,7 @@ function doCreate() {
       usedTimes: 0,
       status: 'active'
     })
-    addFolder({ assetId: asset.id, name: form.storeName.trim() + '·凭证', note: '快速录入自动创建' })
+    addFolder({ assetId: asset.id, name: form.storeName.trim() + ' · ' + form.scene + ' 凭证', note: '快速录入自动创建' })
     track('快速录入', '创建资产', form.scene, price)
     router.push('/asset-list')
   } catch (e) {

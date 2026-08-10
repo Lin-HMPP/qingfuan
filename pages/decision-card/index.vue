@@ -418,7 +418,7 @@ function onAssetConfirm() {
   })
   const folder = addFolder({
     assetId: asset.id,
-    name: (data.value.storeName || '资产') + '·凭证',
+    name: (data.value.storeName || '资产') + ' · ' + (data.value.scene || '') + ' 凭证',
     note: '自动创建'
   })
   const imgs = data.value.images || []
@@ -434,6 +434,7 @@ function onAssetConfirm() {
   })
   sessionStorage.removeItem('qf_package_data')
   showConfirm.value = false
+  window.__toast?.('资产卡已创建，可在资产列表中查看')
   router.replace('/asset-list')
 }
 </script>

@@ -37,7 +37,7 @@ defineExpose({ show })
 
 <style scoped>
 .toast-wrap {
-  position: fixed; bottom: calc(env(safe-area-inset-bottom) + 40px);
+  position: fixed; bottom: calc(env(safe-area-inset-bottom) + 80px);
   left: 50%; transform: translateX(-50%); z-index: 9999;
   pointer-events: auto; cursor: pointer;
   transition: transform 0.1s ease;

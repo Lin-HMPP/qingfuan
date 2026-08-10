@@ -17,6 +17,7 @@
       <div class="module-bar" />
       <span class="asset-name">{{ asset.storeName }} · {{ scoped.scene }}</span>
       <div class="status-tag" :class="statusClass">{{ statusLabel }}</div>
+      <span class="status-hint" v-if="isPaused && pauseEndDate">暂停至 {{ pauseEndDate }}</span>
     </div>
 
     <!-- 权益动态测算 -->
@@ -90,9 +91,11 @@
 
     <!-- 四大功能按钮 -->
     <div class="btn-group">
-      <div class="btn-primary" @click="!isExpired && goWriteOff()" :class="{ disabled: isExpired }">
+      <div class="btn-primary" @click="!isExpired && !isPaused && goWriteOff()" :class="{ disabled: isExpired || isPaused }">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:6px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         核销记录
+        <span class="btn-hint" v-if="isExpired">已失效</span>
+        <span class="btn-hint" v-else-if="isPaused">暂停中</span>
       </div>
       <div class="btn-primary" @click="showPause = true">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:6px"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
@@ -137,6 +140,16 @@ const scoped = reactive({
 })
 
 const isUnlimited = computed(() => !!(asset.value?.unlimited))
+const isPaused = computed(() => asset.value?.status === 'paused')
+const pauseEndDate = computed(() => {
+  if (!asset.value) return ''
+  const pauses = getPauses(asset.value.id).filter(p => p.type === 'pause')
+  if (!pauses.length) return ''
+  // 找最近的未到期暂停
+  const now = new Date().toISOString().slice(0, 10)
+  const active = pauses.filter(p => p.end && p.end >= now).sort((a, b) => b.end.localeCompare(a.end))
+  return active.length ? active[0].end : ''
+})
 
 const isExpired = computed(() => {
   if (!asset.value) return false
@@ -264,6 +277,8 @@ function onAssetUpdated() {
 
 .btn-group { margin: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .btn-group .btn-primary.disabled { background: #B8E6E1; color: #638F8D; }
+.btn-hint { display: block; font-size: 10px; margin-top: 2px; opacity: 0.7; text-align: center; }
+.status-hint { display: block; font-size: 10px; color: #4A7A77; margin-top: 2px; }
 
 .disclaimer { text-align: center; font-size: 11px; color: #888; padding: 16px; }
 .empty-state { text-align: center; padding: 60px 16px; font-size: 14px; color: #638F8D; }

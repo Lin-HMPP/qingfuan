@@ -8,6 +8,7 @@
     <div class="nav-bar">
       <span class="back" @click="goBack">‹ 首页</span>
       <span class="title">套餐信息录入</span>
+      <span class="quick-link" @click="goQuickMode">快速录入</span>
     </div>
 
     <!-- 场景切换 -->
@@ -250,7 +251,7 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { getDraft, saveDraft, clearDraft } from '@/common/storage.js'
 import { isPositiveNumber, isPositiveInt } from '@/common/validator.js'
 import { track } from '@/common/analytics.js'
@@ -725,8 +726,19 @@ onMounted(() => {
       clearDraft()
     }
   }
+  // 自动保存草稿：每 10 秒
+  const autoSaveTimer = setInterval(() => {
+    const hasContent = Object.values(form.value).some(v => v)
+    if (hasContent) saveDraft({ form: form.value, scene: scene.value, images: images.value })
+  }, 10000)
+  onBeforeUnmount(() => clearInterval(autoSaveTimer))
 })
 
+function goQuickMode() {
+  const hasContent = Object.values(form.value).some(v => v)
+  if (hasContent) saveDraft({ form: form.value, scene: scene.value, images: images.value })
+  router.push('/quick-input')
+}
 function goBack() {
   const hasContent = Object.values(form.value).some(v => v)
   if (hasContent) {
@@ -740,8 +752,15 @@ function goBack() {
 }
 
 function onSceneConfirm(name) {
+  if (name === scene.value) { showScenePicker.value = false; return }
+  const hasContent = Object.values(form.value).some(v => v)
+  if (hasContent && !window.confirm(`切换到「${name}」场景？\n当前已填写的内容和规则选项将保留，但提示文案会改变。`)) return
   scene.value = name
   showScenePicker.value = false
+  // 重置规则选择器以适配新场景
+  refundPreset.value = ''; refundCustomText.value = ''
+  transferPreset.value = ''; transferFee.value = null
+  pausePreset.value = ''; pauseCount.value = null; pauseDays.value = null
 }
 function onSceneCustom() {
   showScenePicker.value = false
@@ -840,14 +859,14 @@ function onSubmit() {
     errors.push('服务有效期限')
   }
   if (!form.value.monthlyBudget || !isPositiveNumber(form.value.monthlyBudget)) {
-    errors.push('每月预付预算')
+    errors.push('[模块二] 每月预付预算')
   }
   if (!form.value.weeklyFreq || !isPositiveNumber(form.value.weeklyFreq)) {
-    errors.push('每周使用次数')
+    errors.push('[模块二] 每周使用频率')
   }
-  if (!form.value.storeName) { errors.push('门店名称') }
-  if (!form.value.contractName) { errors.push('签约主体') }
-  if (!form.value.payeeName) { errors.push('收款账户') }
+  if (!form.value.storeName) { errors.push('[模块三] 门店名称') }
+  if (!form.value.contractName) { errors.push('[模块三] 签约主体') }
+  if (!form.value.payeeName) { errors.push('[模块三] 收款账户') }
 
   if (errors.length) {
     tip('请完善以下信息：' + errors.join('、'))
@@ -898,6 +917,8 @@ function onSubmit() {
   border-bottom: 0.5px solid #48A9A6;
 }
 .back { font-size: 15px; color: #48A9A6; }
+.quick-link { font-size: 12px; color: #48A9A6; font-weight: bold; cursor: pointer; padding: 4px 10px; border: 1px solid #48A9A6; border-radius: 12px; z-index: 1; }
+.quick-link:active { background: #B8E6E1; }
 .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; color: #245957; }
 
 .scene-switch {

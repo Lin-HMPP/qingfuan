@@ -94,8 +94,11 @@ function calculateCosts(data) {
     const dailyCost = (totalPrice / (validityMonths * 30))
     const monthlyCost = totalPrice / validityMonths
     const weeklyFreq = Math.max(1, parseInt(data.weeklyFreq) || 3)
-    // 回本所需最少每周到店次数：以市场单次均价 ¥50 为参考
-    const marketPerVisit = 50
+    // 回本所需最少每周到店次数：根据场景调整市场单次参考价
+    const sceneMarketPrice = {
+      '健身/舞蹈': 80, '培训课程': 200, '摄影套餐': 800, '美容美发': 100
+    }
+    const marketPerVisit = sceneMarketPrice[data.scene] || 50
     const breakEvenVisitsPerWeek = Math.ceil(totalPrice / marketPerVisit / (validityMonths * 4.33))
     // 按用户计划频率的预估总到店次数
     const estimatedTotalVisits = Math.round(weeklyFreq * 4.33 * validityMonths)

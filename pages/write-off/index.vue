@@ -166,6 +166,11 @@ onMounted(() => {
 
 function onSave() {
   if (!form.date) { $toast?.('请选择日期'); return }
+  // 阻拦未来日期
+  if (form.date > new Date().toISOString().slice(0, 10)) {
+    $toast?.('不能选择未来日期进行核销')
+    return
+  }
 
   // 无限次模式：自动计1次打卡
   if (isUnlimited.value) {

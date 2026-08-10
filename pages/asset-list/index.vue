@@ -38,10 +38,11 @@
       <div class="asset-info">
         <span class="asset-name">{{ asset.storeName }} · {{ asset.scene }}</span>
         <span class="asset-status" v-if="isExpiring(asset)">即将到期</span>
-        <span class="asset-meta" v-if="!asset.unlimited">剩余 {{ asset.totalTimes - asset.usedTimes }}/{{ asset.totalTimes }}次 ｜ 到期 {{ remainingDays(asset) }}天</span>
+        <span class="asset-meta" v-if="!asset.unlimited">已用 {{ asset.usedTimes || 0 }} 次 · 剩余 {{ asset.totalTimes - asset.usedTimes }}/{{ asset.totalTimes }}次 ｜ 到期 {{ remainingDays(asset) }}天</span>
         <span class="asset-meta" v-else>已到店 {{ asset.usedTimes || 0 }} 次 ｜ 到期 {{ remainingDays(asset) }}天</span>
         <span class="asset-unit" v-if="!asset.unlimited">单次 ¥{{ locked ? '•••' : unitCost(asset) }}</span>
         <span class="asset-unit" v-else>{{ locked ? '•••' : '充卡 · 不限次数' }}</span>
+        <span class="asset-new" v-if="isNewCard(asset)">新</span>
       </div>
       <div class="asset-actions" v-if="!manageMode">
         <div class="btn-writeoff" @click.stop="goWriteOff(asset)">核销</div>
@@ -106,6 +107,7 @@ function remainingDays(a) {
   return Math.max(0, Math.ceil((end - Date.now()) / 86400000))
 }
 function isExpiring(a) { const d = remainingDays(a); return d <= 30 && d > 0 }
+function isNewCard(a) { return a.createdAt && (Date.now() - new Date(a.createdAt).getTime() < 300000) }  // 5分钟内为新
 function unitCost(a) { return a.totalTimes ? Math.round(a.totalPrice / a.totalTimes) : 0 }
 
 function navigateBack() { router.push('/home') }
@@ -193,6 +195,7 @@ function confirmDelete(asset) {
 .asset-info { flex: 1; }
 .asset-name { display: block; font-size: 15px; font-weight: bold; color: #245957; }
 .asset-status { display: inline-block; font-size: 10px; font-weight: bold; color: #48A9A6; margin-left: 8px; }
+.asset-new { display: inline-block; padding: 1px 6px; margin-left: 6px; background: #48A9A6; color: #fff; font-size: 10px; font-weight: bold; border-radius: 4px; }
 .asset-meta { display: block; font-size: 12px; color: #888; margin-top: 4px; }
 .asset-unit { display: block; font-size: 12px; color: #888; }
 .asset-actions { display: flex; flex-direction: column; gap: 4px; align-self: flex-end; }

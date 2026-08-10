@@ -26,6 +26,7 @@
 
       <span class="error-msg" v-if="error">{{ error }}</span>
       <span class="reset-link" v-if="step !== 0" @click="resetAll">重置 PIN 码</span>
+      <span class="reset-link" v-if="step === 0" @click="forgotPin">忘记 PIN 码？清除并重置</span>
     </div>
   </div>
 </template>
@@ -70,6 +71,11 @@ function type(n) {
   error.value = ''
 }
 
+function forgotPin() {
+  if (window.confirm('确定要清除已设置的 PIN 码吗？\n\n清除后锁定的信息将直接可见，请确认是本人操作。')) {
+    resetAll()
+  }
+}
 function resetAll() {
   localStorage.removeItem('qf_pin_hash')
   localStorage.removeItem('qf_unlocked')

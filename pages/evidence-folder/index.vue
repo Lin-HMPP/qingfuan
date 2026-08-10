@@ -215,7 +215,8 @@ function saveEdit() {
   const f = editFolder.value
   if (!f) return
   if (!editForm.value.assetId) { window.__toast?.('请选择绑定的资产'); return }
-  updateFolder(f.id, { name: editForm.value.name.trim(), assetId: editForm.value.assetId })
+  const cleanName = stripEmoji(editForm.value.name.trim()) || '凭证资料夹'
+  updateFolder(f.id, { name: cleanName, assetId: editForm.value.assetId })
   window.__toast?.('资料夹已更新')
   editFolder.value = null
   menuFolderId.value = null
@@ -283,7 +284,7 @@ function doExport(folder) {
       setTimeout(() => URL.revokeObjectURL(url), 5000)
 
       showLoading.value=false
-      window.__toast?.('凭证报告已下载，可在浏览器下载中查看')
+      window.__toast?.('凭证报告已下载。如在微信中图片无法显示，请用浏览器打开查看')
     } catch (e) {
       showLoading.value=false
       window.__toast?.('导出失败，请重试')
@@ -336,7 +337,10 @@ function pickAndSave(accept,capture) {
   document.body.appendChild(inp); inp.click()
 }
 
-function removeFile(id) { delFile(id); currentFolder.value={...currentFolder.value} }
+// 过滤 emoji，防止导出乱码
+function stripEmoji(s) { return (s || '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').replace(/\s+/g, ' ').trim() }
+function removeFile(id, silent) { delFile(id); currentFolder.value={...currentFolder.value}; if (!silent) window.__toast?.('已删除') }
+function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value={...currentFolder.value}; window.__toast?.(`已删除 ${ids.length} 个文件`); }
 </script>
 
 <style scoped>
