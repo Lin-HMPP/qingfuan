@@ -934,8 +934,8 @@ function onSubmit() {
 .quick-link:active { background: #B8E6E1; }
 
 /* 团购平台选择 */
-.groupbuy-tags { display: flex; gap: 8px; margin-bottom: 4px; }
-.gb-tag { height: 30px; padding: 0 14px; border: 1px solid #48A9A6; border-radius: 15px; font-size: 12px; color: #245957; display: flex; align-items: center; cursor: pointer; }
+.groupbuy-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.gb-tag { height: 28px; padding: 0 10px; border: 1px solid #48A9A6; border-radius: 14px; font-size: 11px; color: #245957; display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
 .gb-tag.active { background: #48A9A6; color: #fff; font-weight: bold; }
 .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: bold; color: #245957; }
 
