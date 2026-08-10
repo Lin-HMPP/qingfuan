@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { addPause, updateAsset } from '@/common/storage.js'
 
 const $toast = (msg) => window.__toast?.(msg)
@@ -85,7 +85,6 @@ const edit = reactive({
 })
 
 // 初始化编辑表单
-import { onMounted } from 'vue'
 onMounted(() => {
   edit.startDate = assetCreated.value
   edit.validityValue = props.asset?.validityMonths || ''
@@ -123,6 +122,7 @@ function onEdit() {
   if (submitting.value) return
   if (!props.asset?.id) { $toast('关联资产不存在'); return }
   if (!edit.validityValue || parseInt(edit.validityValue) <= 0) { $toast('请输入有效的期限'); return }
+  if (!edit.startDate) { $toast('请选择生效起始日期'); return }
   submitting.value = true
 
   const months = toMonths(edit.validityValue, edit.validityUnit)
