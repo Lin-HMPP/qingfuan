@@ -8,6 +8,11 @@
     </router-view>
     <tab-bar v-if="showTabBar" />
     <toast-global ref="toastRef" />
+    <!-- 运行时锁横幅：locked=true 但未显示 PIN 锁屏时出现 -->
+    <div class="lock-banner" v-if="showLockBanner && !showPinLock" @click="openUnlock">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:6px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      信息已锁定 · 点击解锁
+    </div>
   </div>
   <pin-lock v-else @unlocked="onUnlocked" @done="onPinDone" />
 </template>
@@ -18,7 +23,7 @@ import { useRoute } from 'vue-router'
 import ToastGlobal from './components/toast/index.vue'
 import TabBar from './components/tab-bar/index.vue'
 import PinLock from './components/pin-lock/index.vue'
-import { locked, checkLock, doUnlock } from './store/lock.js'
+import { locked, showLockBanner, checkLock, doUnlock } from './store/lock.js'
 
 const route = useRoute()
 const toastRef = ref(null)
@@ -29,11 +34,9 @@ const showTabBar = computed(() => tabRoutes.includes(route.path))
 
 onMounted(() => {
   window.__toast = (msg, duration) => {
-    // 优先用 Vue Toast 组件
     if (toastRef.value) {
       try { toastRef.value.show(msg, duration); return } catch(e) {}
     }
-    // 兜底：DOM 弹层，确保任何情况下都能看到提示
     const el = document.createElement('div')
     el.textContent = msg
     el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(0,0,0,.82);color:#fff;padding:10px 24px;border-radius:8px;font-size:14px;max-width:300px;text-align:center;pointer-events:none;'
@@ -41,9 +44,13 @@ onMounted(() => {
     setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(() => el.remove(), 300) }, (duration || 3000))
   }
   window.__showPin = (mode) => { window.__pinMode = mode; showPinLock.value = true }
-  checkLock()
-  if (locked.value) showPinLock.value = true
-  // 加载完成，隐藏启动屏
+  const needPinScreen = checkLock()
+  if (needPinScreen) {
+    // 启动时检测到锁状态，显示 PIN 解锁界面
+    showPinLock.value = true
+  } else {
+    showPinLock.value = false
+  }
   const loading = document.getElementById('app-loading')
   if (loading) {
     loading.classList.add('done')
@@ -53,6 +60,10 @@ onMounted(() => {
 
 function onUnlocked() { doUnlock(); showPinLock.value = false; window.__pinMode = undefined }
 function onPinDone() { showPinLock.value = false; window.__pinMode = undefined }
+function openUnlock() {
+  // 从锁横幅点击解锁 → 打开 PIN 验证界面
+  showPinLock.value = true
+}
 </script>
 
 <style lang="scss">
@@ -143,4 +154,16 @@ html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-h
 
 /* ——— 通用工具类 ——— */
 .flex-1 { flex: 1; }
+
+/* 运行时锁横幅 */
+.lock-banner {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 9000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px 20px; background: #245957; color: #fff;
+  border-radius: 20px; font-size: 13px; font-weight: bold;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25); cursor: pointer;
+  animation: bannerIn .3s ease;
+  white-space: nowrap;
+}
+@keyframes bannerIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 </style>
