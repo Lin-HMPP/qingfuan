@@ -2,26 +2,33 @@
 <template>
   <div class="mask" @click="$emit('close')">
     <div class="modal" @click.stop v-if="record">
-      <span class="title">{{ editing ? '编辑核销记录' : '核销记录详情' }}</span>
+      <span class="title">{{ editing ? (isUnlimited ? '编辑打卡记录' : '编辑核销记录') : (isUnlimited ? '打卡记录详情' : '核销记录详情') }}</span>
       <div class="close-btn" @click="$emit('close')">✕</div>
       <div class="divider" />
 
       <!-- 查看模式 -->
       <template v-if="!editing">
-        <span class="label">核销日期</span><span class="value">{{ record.date }}</span>
-        <span class="label">本次消耗课时</span><span class="value bold">{{ record.hours }} 课时</span>
+        <span class="label">{{ isUnlimited ? '打卡日期' : '核销日期' }}</span><span class="value">{{ record.date }}</span>
+        <span class="label" v-if="!isUnlimited">本次消耗课时</span>
+        <span class="label" v-else>打卡记录</span>
+        <span class="value bold">{{ isUnlimited ? '到店 1 次' : record.hours + ' 课时' }}</span>
         <span class="label">备注说明</span>
-        <div class="note-box"><span>{{ record.note || '正常上课，教练确认无误' }}</span></div>
+        <div class="note-box"><span>{{ record.note || (isUnlimited ? '到店打卡' : '正常上课，教练确认无误') }}</span></div>
       </template>
 
       <!-- 编辑模式 -->
       <template v-else>
-        <span class="label"><span class="star">*</span> 核销日期</span>
+        <span class="label"><span class="star">*</span> {{ isUnlimited ? '打卡日期' : '核销日期' }}</span>
         <input class="input-blue" v-model="form.date" type="date" />
-        <span class="label"><span class="star">*</span> 消耗课时</span>
-        <input class="input-blue" v-model="form.hours" type="number" placeholder="输入消耗次数" />
+        <template v-if="!isUnlimited">
+          <span class="label"><span class="star">*</span> 消耗课时</span>
+          <input class="input-blue" v-model="form.hours" type="number" placeholder="输入消耗次数" />
+        </template>
+        <template v-else>
+          <div class="checkin-badge">📍 到店打卡 · 自动计 1 次</div>
+        </template>
         <span class="label">备注说明</span>
-        <input class="input-blue" v-model="form.note" placeholder="训练内容、教练姓名等" />
+        <input class="input-blue" v-model="form.note" :placeholder="isUnlimited ? '训练内容等' : '训练内容、教练姓名等'" />
       </template>
 
       <div class="divider" />
@@ -46,7 +53,7 @@ import { deleteWriteOff, updateWriteOff, updateAsset, getAssetById } from '@/com
 import { isPositiveInt } from '@/common/validator.js'
 
 const $toast = (msg) => window.__toast?.(msg)
-const props = defineProps({ record: Object })
+const props = defineProps({ record: Object, isUnlimited: { type: Boolean, default: false } })
 const emit = defineEmits(['close', 'deleted', 'updated'])
 
 const editing = ref(false)
@@ -60,30 +67,40 @@ function onEdit() {
 }
 
 function onSave() {
+  if (!form.date) { $toast('请选择日期'); return }
+
+  // 无限次模式：始终为1次打卡
+  if (props.isUnlimited) {
+    const asset = getAssetById(props.record?.assetId)
+    if (!asset) { $toast('关联资产不存在'); return }
+    const oldHours = props.record?.hours || 0
+    const newUsed = Math.max(0, (asset.usedTimes || 0) - oldHours + 1)
+    updateAsset(asset.id, { usedTimes: newUsed })
+    updateWriteOff(props.record.id, { date: form.date, hours: 1, note: form.note, remainingAfter: newUsed })
+    $toast('打卡记录已更新')
+    editing.value = false
+    emit('updated')
+    return
+  }
+
+  // 普通模式
   const h = parseInt(form.hours)
   if (!h || !isPositiveInt(form.hours)) { $toast('请输入有效的消耗次数'); return }
-  if (!form.date) { $toast('请选择日期'); return }
 
   const oldHours = props.record?.hours || 0
   const asset = getAssetById(props.record?.assetId)
 
   if (!asset) { $toast('关联资产不存在'); return }
 
-  // 检查修改后是否超过总次数
   const newUsed = (asset.usedTimes || 0) - oldHours + h
   if (newUsed > (asset.totalTimes || 0)) {
     $toast(`消耗次数超出总次数（${asset.totalTimes}次），剩余可用 ${(asset.totalTimes || 0) - (asset.usedTimes || 0) + oldHours} 次`)
     return
   }
 
-  // 更新资产
   updateAsset(asset.id, { usedTimes: Math.max(0, newUsed) })
-
-  // 更新核销记录
   updateWriteOff(props.record.id, {
-    date: form.date,
-    hours: h,
-    note: form.note,
+    date: form.date, hours: h, note: form.note,
     remainingAfter: Math.max(0, (asset.totalTimes || 0) - Math.max(0, newUsed))
   })
 
@@ -93,11 +110,16 @@ function onSave() {
 }
 
 function onDelete() {
-  if (window.confirm('确认删除\n删除后将返还对应课时，确定删除？')) {
+  const msg = props.isUnlimited
+    ? '确认删除\n删除后将撤销本次打卡记录，确定删除？'
+    : '确认删除\n删除后将返还对应课时，确定删除？'
+  const successMsg = props.isUnlimited ? '打卡记录已删除' : '记录已删除，课时已返还'
+
+  if (window.confirm(msg)) {
     const asset = getAssetById(props.record.assetId)
     if (asset) updateAsset(asset.id, { usedTimes: Math.max(0, (asset.usedTimes || 0) - (props.record.hours || 0)) })
     deleteWriteOff(props.record.id)
-    $toast('记录已删除，课时已返还')
+    $toast(successMsg)
     emit('deleted')
   }
 }
@@ -116,4 +138,9 @@ function onDelete() {
 .btn-row { display: flex; gap: 8px; }
 .flex-1 { flex: 1; }
 .btn-cancel { height: 44px; border: 1px solid #999; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; color: #245957; }
+.checkin-badge {
+  padding: 10px 14px; margin: 4px 0;
+  background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 8px;
+  font-size: 13px; color: #245957; font-weight: bold; text-align: center;
+}
 </style>

@@ -35,25 +35,48 @@
         <span class="data-label">剩余有效期</span>
         <span class="data-value">{{ locked ? "•••" : scoped.remainingDays }} 天</span>
       </div>
-      <div class="data-row">
+      <!-- 普通模式：剩余次数 -->
+      <div class="data-row" v-if="!isUnlimited">
         <span class="data-label">课时履约</span>
         <span class="data-value">剩余 {{ locked ? "•••" : scoped.remainingTimes }} 次 / 总 {{ asset.totalTimes }} 次（已用 {{ scoped.usedPercent }}%）</span>
       </div>
-      <div class="data-row">
+      <!-- 无限次模式：累计到店 -->
+      <div class="data-row" v-else>
+        <span class="data-label">累计到店</span>
+        <span class="data-value">{{ locked ? "•••" : (asset.usedTimes || 0) }} 次</span>
+      </div>
+
+      <!-- 普通模式：单次成本 -->
+      <div class="data-row" v-if="!isUnlimited">
         <span class="data-label">当前实际单次成本</span>
         <span class="data-value highlight">{{ locked ? "•••" : scoped.actualUnitCost }} 元/次</span>
       </div>
-      <div class="data-row">
+      <!-- 无限次模式：日均 + 单次成本 -->
+      <template v-else>
+        <div class="data-row">
+          <span class="data-label">日均成本</span>
+          <span class="data-value highlight">{{ locked ? "•••" : '¥' + dailyCost }}</span>
+        </div>
+        <div class="data-row" v-if="asset.usedTimes > 0">
+          <span class="data-label">当前单次到店成本</span>
+          <span class="data-value">{{ locked ? "•••" : '¥' + perVisitCost }}</span>
+        </div>
+      </template>
+
+      <div class="data-row" v-if="!isUnlimited">
         <span class="data-label">剩余权益参考值</span>
         <span class="data-value">{{ locked ? "•••" : scoped.remainingValue?.toLocaleString() }} 元</span>
       </div>
 
-      <!-- 使用进度条 -->
-      <span class="data-label" style="margin-top:12px">使用进度</span>
+      <!-- 使用进度条：普通=已用次数%，无限次=已过时间% -->
+      <span class="data-label" style="margin-top:12px">{{ isUnlimited ? '时间进度' : '使用进度' }}</span>
       <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: scoped.usedPercent + '%' }" />
+        <div class="progress-fill" :style="{ width: (isUnlimited ? timePercent : scoped.usedPercent) + '%' }" />
       </div>
-      <span class="warn-text" v-if="scoped.usedPercent < 30">使用率偏低，资产存在贬值风险</span>
+      <span class="warn-text" v-if="isUnlimited && timePercent > 60 && (asset.usedTimes || 0) < 5">
+        时间过半到店次数偏少，建议增加消费频率
+      </span>
+      <span class="warn-text" v-else-if="!isUnlimited && scoped.usedPercent < 30">使用率偏低，资产存在贬值风险</span>
     </div>
 
     <!-- 预警提示 -->
@@ -101,12 +124,38 @@ const scoped = reactive({
   remainingValue: 0, warning: false, riskNote: ''
 })
 
-const statusLabel = computed(() =>
-  asset.value?.status === 'expired' ? '已过期' : asset.value?.status === 'paused' ? '已暂停' : '使用中'
-)
+const isUnlimited = computed(() => !!(asset.value?.unlimited))
+
+const statusLabel = computed(() => {
+  if (asset.value?.status === 'expired') return '已过期'
+  if (asset.value?.status === 'paused') return '已暂停'
+  return isUnlimited.value ? '充卡中' : '使用中'
+})
 const statusClass = computed(() =>
   asset.value?.status === 'expired' ? 'expired' : asset.value?.status === 'paused' ? 'paused' : 'active'
 )
+
+// 无限次模式专属指标
+const dailyCost = computed(() => {
+  const a = asset.value
+  if (!a) return '--'
+  const months = a.validityMonths || 12
+  return Math.round(a.totalPrice / (months * 30)).toLocaleString()
+})
+const perVisitCost = computed(() => {
+  const a = asset.value
+  if (!a || !a.usedTimes) return '--'
+  return Math.round(a.totalPrice / a.usedTimes).toLocaleString()
+})
+const timePercent = computed(() => {
+  const a = asset.value
+  if (!a || !a.createdAt) return 0
+  const created = new Date(a.createdAt)
+  const months = a.validityMonths || 12
+  const totalDays = months * 30
+  const elapsed = Math.ceil((Date.now() - created) / 86400000)
+  return Math.min(100, Math.round(elapsed / totalDays * 100))
+})
 
 onMounted(() => {
   const route = useRoute()
@@ -125,11 +174,20 @@ function calcScope() {
   scoped.startDate = created.toISOString().slice(0, 10)
   scoped.endDate = end.toISOString().slice(0, 10)
   scoped.remainingDays = Math.max(0, Math.ceil((end - Date.now()) / 86400000))
-  scoped.remainingTimes = (a.totalTimes || 0) - (a.usedTimes || 0)
-  scoped.usedPercent = a.totalTimes ? Math.round((a.usedTimes || 0) / a.totalTimes * 100) : 0
-  scoped.actualUnitCost = a.totalTimes ? Math.round(a.totalPrice / a.totalTimes) : 0
-  scoped.remainingValue = scoped.remainingTimes * (a.totalTimes ? a.totalPrice / a.totalTimes : 0)
-  scoped.warning = scoped.remainingDays <= 30 && scoped.remainingTimes > 0
+  if (!isUnlimited.value) {
+    scoped.remainingTimes = (a.totalTimes || 0) - (a.usedTimes || 0)
+    scoped.usedPercent = a.totalTimes ? Math.round((a.usedTimes || 0) / a.totalTimes * 100) : 0
+    scoped.actualUnitCost = a.totalTimes ? Math.round(a.totalPrice / a.totalTimes) : 0
+    scoped.remainingValue = scoped.remainingTimes * (a.totalTimes ? a.totalPrice / a.totalTimes : 0)
+    scoped.warning = scoped.remainingDays <= 30 && scoped.remainingTimes > 0
+  } else {
+    // 无限次模式：预警基于时间而非次数
+    scoped.remainingTimes = 0
+    scoped.usedPercent = 0
+    scoped.actualUnitCost = 0
+    scoped.remainingValue = 0
+    scoped.warning = scoped.remainingDays <= 30
+  }
 }
 
 function navigateBack() { router.push('/asset-list') }

@@ -38,8 +38,10 @@
       <div class="asset-info">
         <span class="asset-name">{{ asset.storeName }} · {{ asset.scene }}</span>
         <span class="asset-status" v-if="isExpiring(asset)">即将到期</span>
-        <span class="asset-meta">剩余 {{ asset.totalTimes - asset.usedTimes }}/{{ asset.totalTimes }}次 ｜ 到期 {{ remainingDays(asset) }}天</span>
-        <span class="asset-unit">单次 ¥{{ locked ? '•••' : unitCost(asset) }}</span>
+        <span class="asset-meta" v-if="!asset.unlimited">剩余 {{ asset.totalTimes - asset.usedTimes }}/{{ asset.totalTimes }}次 ｜ 到期 {{ remainingDays(asset) }}天</span>
+        <span class="asset-meta" v-else>已到店 {{ asset.usedTimes || 0 }} 次 ｜ 到期 {{ remainingDays(asset) }}天</span>
+        <span class="asset-unit" v-if="!asset.unlimited">单次 ¥{{ locked ? '•••' : unitCost(asset) }}</span>
+        <span class="asset-unit" v-else>{{ locked ? '•••' : '充卡 · 不限次数' }}</span>
       </div>
       <div class="asset-actions" v-if="!manageMode">
         <div class="btn-writeoff" @click.stop="goWriteOff(asset)">核销</div>
