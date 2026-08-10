@@ -69,8 +69,13 @@ function onSave() {
   const h = parseInt(form.hours)
   if (h > scoped.remainingTimes) { $toast?.('消耗次数不可超过剩余课时'); return }
   addWriteOff({ assetId: asset.value.id, date: form.date, hours: h, note: form.note, remainingAfter: scoped.remainingTimes - h })
-  updateAsset(asset.value.id, { usedTimes: (asset.value.usedTimes || 0) + h })
-  scoped.remainingTimes -= h
+  // 从 localStorage 取最新 usedTimes 再累加，避免内存数据过期导致覆盖
+  const latest = getAssetById(asset.value.id)
+  const newUsed = (latest?.usedTimes || 0) + h
+  updateAsset(asset.value.id, { usedTimes: newUsed })
+  // 同步刷新内存中的 asset
+  asset.value = getAssetById(asset.value.id)
+  scoped.remainingTimes = (asset.value.totalTimes || 0) - (asset.value.usedTimes || 0)
   records.value = getWriteOffs(asset.value.id)
   form.hours = ''; form.note = ''
   track('核销', '保存记录', asset.value.storeName, h)
