@@ -189,7 +189,7 @@ function confirmDelete(asset) {
 .asset-bar { width: 3px; height: 16px; background: #48A9A6; border-radius: 1.5px; margin-right: 12px; margin-top: 4px; }
 .asset-info { flex: 1; }
 .asset-name { display: block; font-size: 15px; font-weight: bold; color: #245957; }
-.asset-status { display: inline-block; font-size: 10px; font-weight: bold; color: #48A9A6; margin-left: 8px; }
+.asset-status { display: inline-block; font-size: 10px; font-weight: bold; color: #C79100; background: #FFF8E1; border: 1px solid #FFD133; border-radius: 4px; padding: 1px 6px; margin-left: 8px; }
 .asset-meta { display: block; font-size: 12px; color: #888; margin-top: 4px; }
 .asset-unit { display: block; font-size: 12px; color: #888; }
 .asset-actions { display: flex; flex-direction: column; gap: 4px; align-self: flex-end; }

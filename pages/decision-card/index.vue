@@ -36,7 +36,7 @@
         </div>
         <div class="grade-tags">
           <div class="grade-tag" :style="{ background: '#DC3545' }">高风险项 {{ result.grade.highCount }}</div>
-          <div class="grade-tag" :style="{ background: '#FD7E14' }">中风险项 {{ result.grade.mediumCount }}</div>
+          <div class="grade-tag" style="background:#E8B800;color:#245957">中风险项 {{ result.grade.mediumCount }}</div>
           <div class="grade-tag" :style="{ background: '#28A745' }">低风险项 {{ 16 - result.grade.highCount - result.grade.mediumCount }}</div>
         </div>
         <span class="grade-note">仅作综合参考，五维度独立评分更精准</span>
@@ -330,8 +330,8 @@ function onAssetConfirm() {
 .rule-item { padding: 10px; margin-bottom: 6px; border-radius: 8px; background: #B8E6E1; border: 1px solid #48A9A6; }
 .rule-item.rule-high { background: #FFF0F0; border-color: #DC3545; }
 .rule-high .rule-code { color: #DC3545; }
-.rule-item.rule-medium { background: #FFF5F5; border-color: #E8686A; }
-.rule-medium .rule-code { color: #FD7E14; }
+.rule-item.rule-medium { background: #FFF8E1; border-color: #FFD133; }
+.rule-medium .rule-code { color: #C79100; }
 .rule-code { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; }
 .rule-code.level-low { color: #638F8D; }
 .rule-fact, .rule-confirm, .rule-explain, .rule-action { display: block; font-size: 10px; color: #245957; margin-top: 2px; }

@@ -59,7 +59,7 @@ export function runAllRules(data) {
   const mediumCount = results.filter(r => r.level === 'medium').length
   let gradeColor, gradeLabel
   if (highCount >= 3)       { gradeColor = '#DC3545'; gradeLabel = '高风险' }
-  else if (highCount >= 1 || mediumCount >= 4) { gradeColor = '#FD7E14'; gradeLabel = '中风险' }
+  else if (highCount >= 1 || mediumCount >= 4) { gradeColor = '#E8B800'; gradeLabel = '中风险' }
   else                      { gradeColor = '#28A745'; gradeLabel = '低风险' }
 
   // 成本测算

@@ -219,11 +219,11 @@ function goEvidence() { router.push(`/evidence-folder?assetId=${asset.value.id}`
 
 .progress-bar { height: 6px; background: #EFEFEF; border-radius: 4px; margin: 6px 0; overflow: hidden; }
 .progress-fill { height: 100%; background: #48A9A6; border-radius: 4px; transition: width .3s; }
-.warn-text { font-size: 12px; color: #48A9A6; margin-top: 4px; }
+.warn-text { font-size: 12px; color: #C79100; margin-top: 4px; }
 
-.warn-card { margin: 8px 16px; padding: 14px; background: #B8E6E1; }
+.warn-card { margin: 8px 16px; padding: 14px; background: #FFF8E1; border: 1px solid #FFD133; border-radius: 12px; }
 .warn-title { display: block; font-size: 16px; font-weight: bold; color: #245957; }
-.warn-desc { display: block; font-size: 13px; color: #888; margin-top: 4px; }
+.warn-desc { display: block; font-size: 13px; color: #4A7A77; margin-top: 4px; }
 
 .risk-note { margin: 8px 16px; padding: 10px 14px; background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 12px; font-size: 12px; color: #48A9A6; }
 
