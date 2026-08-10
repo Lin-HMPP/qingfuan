@@ -78,7 +78,56 @@ export function runAllRules(data) {
 function calculateCosts(data) {
   const totalPrice = parseFloat(data.totalPrice) || 0
   const totalTimes = parseInt(data.totalTimes) || 0
-  if (!totalPrice || totalTimes <= 0) {
+  const validityMonths = Math.max(1, parseInt(data.validityMonths) || 12)
+
+  if (!totalPrice) {
+    return {
+      base: { label: '票面基础单次成本', value: 0, unit: '元/次' },
+      ideal: { label: '理想周频单次成本', value: 0, unit: '元/次', freq: 0, months: 0 },
+      conservative: { label: '保守低频单次成本', value: 0, unit: '元/次', freq: 0, months: 0 },
+      expiry: { usageRatio: 0, months: 0, suggestion: '数据不足，无法测算' }
+    }
+  }
+
+  // 无限次模式：使用充卡价值分析替代传统成本核算
+  if (data.unlimited) {
+    const dailyCost = (totalPrice / (validityMonths * 30))
+    const monthlyCost = totalPrice / validityMonths
+    const weeklyFreq = Math.max(1, parseInt(data.weeklyFreq) || 3)
+    // 回本所需最少每周到店次数：以市场单次均价 ¥50 为参考
+    const marketPerVisit = 50
+    const breakEvenVisitsPerWeek = Math.ceil(totalPrice / marketPerVisit / (validityMonths * 4.33))
+    // 按用户计划频率的预估总到店次数
+    const estimatedTotalVisits = Math.round(weeklyFreq * 4.33 * validityMonths)
+    // 理想单次成本（按预估到店次数）
+    const idealPerVisitCost = totalPrice / Math.max(1, estimatedTotalVisits)
+    // 时间进度
+    const usageRatio = Math.min(100, Math.round((weeklyFreq / Math.max(1, breakEvenVisitsPerWeek)) * 100))
+
+    return {
+      unlimited: true,
+      daily: { value: dailyCost, unit: '元/天' },
+      monthly: { value: monthlyCost, unit: '元/月' },
+      breakEven: {
+        visitsPerWeek: breakEvenVisitsPerWeek,
+        weeklyFreq,
+        estimatedTotalVisits,
+        idealPerVisitCost,
+        marketPerVisit
+      },
+      expiry: {
+        usageRatio,
+        months: validityMonths,
+        suggestion: breakEvenVisitsPerWeek <= weeklyFreq
+          ? `每周到店 ${weeklyFreq} 次可以值回票价，继续保持`
+          : breakEvenVisitsPerWeek <= 7
+            ? `需每周到店至少 ${breakEvenVisitsPerWeek} 次才能回本，当前计划 ${weeklyFreq} 次偏少`
+            : `需每周到店 ${breakEvenVisitsPerWeek} 次才能回本（偏高），建议选择更短期的套餐`
+      }
+    }
+  }
+
+  if (totalTimes <= 0) {
     return {
       base: { label: '票面基础单次成本', value: 0, unit: '元/次' },
       ideal: { label: '理想周频单次成本', value: 0, unit: '元/次', freq: 0, months: 0 },
@@ -101,10 +150,10 @@ function calculateCosts(data) {
     ? totalPrice / (totalTimes * Math.max(0.1, conservativePerWeek / idealPerWeek))
     : baseUnitCost * 2
 
-  const validityMonths = Math.max(1, parseInt(data.validityMonths) || 12)
   const usageRatio = Math.min(100, Math.round((idealMonths / validityMonths) * 100))
 
   return {
+    unlimited: false,
     base: { label: '票面基础单次成本', value: baseUnitCost, unit: '元/次' },
     ideal: { label: '理想周频单次成本', value: idealUnitCost, unit: '元/次', freq: idealPerWeek, months: idealMonths },
     conservative: { label: '保守低频单次成本', value: conservativeUnitCost, unit: '元/次', freq: conservativePerWeek, months: conservativeMonths },

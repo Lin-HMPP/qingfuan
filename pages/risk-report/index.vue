@@ -33,8 +33,8 @@
       <span class="block-action">行动建议: {{ dim.rules[0]?.layers.action || '请参考决策卡详情' }}</span>
     </div>
 
-    <!-- 深度成本测算（来自规则引擎） -->
-    <div class="card-blue cost-section" v-if="result">
+    <!-- 深度成本测算（普通模式，来自规则引擎） -->
+    <div class="card-blue cost-section" v-if="result && !data.unlimited">
       <span class="section-title">深度成本测算</span>
       <div class="scenario-row">
         <div class="scenario-box">
@@ -62,6 +62,45 @@
       <span class="progress-note">{{ result.costs.expiry.suggestion }}</span>
     </div>
 
+    <!-- 充卡价值分析（无限次模式） -->
+    <div class="card-blue cost-section" v-if="result && data.unlimited">
+      <span class="section-title">充卡价值分析</span>
+      <div class="value-metrics">
+        <div class="metric-item">
+          <span class="metric-value">¥{{ result.costs.daily.value.toFixed(1) }}</span>
+          <span class="metric-label">日均成本</span>
+        </div>
+        <div class="metric-divider" />
+        <div class="metric-item">
+          <span class="metric-value">¥{{ Math.round(result.costs.monthly.value).toLocaleString() }}</span>
+          <span class="metric-label">月均成本</span>
+        </div>
+        <div class="metric-divider" />
+        <div class="metric-item">
+          <span class="metric-value">{{ result.costs.breakEven.estimatedTotalVisits }} 次</span>
+          <span class="metric-label">预估总到店</span>
+        </div>
+      </div>
+
+      <div class="breakeven-box">
+        <span class="be-title">回本分析</span>
+        <span class="be-detail">以市场单次均价 ¥{{ result.costs.breakEven.marketPerVisit }} 为参考</span>
+        <span class="be-detail">需每周到店 ≥ <b>{{ result.costs.breakEven.visitsPerWeek }}</b> 次才能值回票价</span>
+        <span class="be-detail">你计划每周到店 <b>{{ result.costs.breakEven.weeklyFreq }}</b> 次</span>
+        <span class="be-detail">理想单次成本约 <b>¥{{ result.costs.breakEven.idealPerVisitCost.toFixed(1) }}</b></span>
+        <div class="be-verdict" :class="result.costs.breakEven.visitsPerWeek <= result.costs.breakEven.weeklyFreq ? 'good' : 'warn'">
+          {{ result.costs.breakEven.visitsPerWeek <= result.costs.breakEven.weeklyFreq ? '✅ 频率达标，充卡划算' : '⚠️ 频率不足，可能难以回本' }}
+        </div>
+      </div>
+
+      <span class="progress-label">回本进度评估</span>
+      <div class="progress-bar">
+        <div class="progress-fill" :style="{ width: Math.min(100, result.costs.expiry.usageRatio) + '%' }" />
+      </div>
+      <span class="progress-text">{{ Math.min(100, result.costs.expiry.usageRatio) }}%</span>
+      <span class="progress-note">{{ result.costs.expiry.suggestion }}</span>
+    </div>
+
     <div class="btn-row">
       <div class="btn-secondary-lg" @click="navigateBack">返回决策卡</div>
       <div class="btn-primary-lg" @click="confirmAsset">确认生成资产</div>
@@ -74,7 +113,7 @@
 import { useRouter } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
 import { runAllRules } from '@/common/rules-engine.js'
-import { addAsset, addFolder } from '@/common/storage.js'
+import { addAsset, addFolder, addFile, MATERIAL_LABEL_MAP } from '@/common/storage.js'
 
 const router = useRouter()
 const data = ref({})
@@ -127,7 +166,23 @@ function confirmAsset() {
       usedTimes: 0, status: 'active'
     })
     // 自动创建同名证据资料夹
-    addFolder({ assetId: asset.id, name: (data.value.storeName || '资产') + '·凭证', note: '自动创建' })
+    const folder = addFolder({ assetId: asset.id, name: (data.value.storeName || '资产') + '·凭证', note: '自动创建' })
+    // 同步套餐录入页上传的材料到证据夹
+    const images = data.value.images || []
+    images.forEach(img => {
+      // 判断是否为图片：有 dataUrl 且 dataUrl 以 data:image 开头
+      const isImage = img.dataUrl && img.dataUrl.startsWith('data:image')
+      const fileRecord = {
+        folderId: folder.id,
+        name: img.name,
+        type: isImage ? 'image' : (img.name || '').split('.').pop() || 'file',
+        size: img.size > 1048576 ? (img.size / 1048576).toFixed(1) + 'MB' : (img.size / 1024).toFixed(1) + 'KB',
+        materialType: MATERIAL_LABEL_MAP[img.materialLabel] || '',
+        dataUrl: img.dataUrl || '',
+        mimeType: isImage ? 'image/' + ((img.name || '').split('.').pop() || 'png') : 'application/octet-stream'
+      }
+      addFile(fileRecord)
+    })
   }
   sessionStorage.removeItem('qf_package_data')
   router.replace('/asset-list')
@@ -187,4 +242,18 @@ function confirmAsset() {
 .flex-1 { flex: 1; }
 .disclaimer { text-align: center; font-size: 10px; color: #638F8D; padding: 12px 16px 32px; }
 .page { padding-bottom: 24px; }
+
+/* 充卡价值分析（无限次模式） */
+.value-metrics { display: flex; align-items: center; margin: 12px 0; padding: 12px; background: #B8E6E1; border-radius: 8px; }
+.metric-item { flex: 1; text-align: center; }
+.metric-value { display: block; font-size: 20px; font-weight: bold; color: #245957; }
+.metric-label { display: block; font-size: 11px; color: #638F8D; margin-top: 2px; }
+.metric-divider { width: 1px; height: 36px; background: #48A9A6; opacity: 0.4; }
+.breakeven-box { padding: 12px; margin: 10px 0; background: #F5FAFA; border: 1px dashed #48A9A6; border-radius: 8px; }
+.be-title { display: block; font-size: 14px; font-weight: bold; color: #245957; margin-bottom: 6px; }
+.be-detail { display: block; font-size: 12px; color: #4A7A77; line-height: 1.8; }
+.be-detail b { color: #245957; }
+.be-verdict { margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; text-align: center; }
+.be-verdict.good { background: #B8E6E1; color: #245957; }
+.be-verdict.warn { background: #FFF3CD; color: #856404; }
 </style>

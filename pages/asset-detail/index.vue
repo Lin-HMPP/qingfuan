@@ -99,7 +99,7 @@
     <span class="disclaimer">权益数值为动态测算结果，线下协商以合同原件为准</span>
 
     <!-- 子组件 -->
-    <pause-transfer v-if="showPause" :asset="asset" @close="showPause = false" />
+    <pause-transfer v-if="showPause" :asset="asset" @close="showPause = false" @updated="onAssetUpdated" />
     <refund-checklist v-if="showRefund" :asset="asset" @close="showRefund = false" />
     </template>
   </div>
@@ -110,7 +110,7 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 import { ref, computed, reactive, onMounted } from 'vue'
 import { locked } from '@/store/lock.js'
-import { getAssetById, getWriteOffs } from '@/common/storage.js'
+import { getAssetById, getWriteOffs, getPauses, updateAsset } from '@/common/storage.js'
 import PauseTransfer from '@/components/pause-transfer/index.vue'
 import RefundChecklist from '@/components/refund-checklist/index.vue'
 
@@ -133,8 +133,8 @@ const isExpired = computed(() => {
   return scoped.remainingDays <= 0 && !!asset.value.createdAt
 })
 const statusLabel = computed(() => {
-  if (isExpired.value) return '已过期'
-  if (asset.value?.status === 'paused') return '已暂停'
+  if (isExpired.value) return '已失效'
+  if (asset.value?.status === 'paused') return '锁卡中'
   return isUnlimited.value ? '充卡中' : '使用中'
 })
 const statusClass = computed(() =>
@@ -180,6 +180,18 @@ function calcScope() {
   scoped.startDate = created.toISOString().slice(0, 10)
   scoped.endDate = end.toISOString().slice(0, 10)
   scoped.remainingDays = Math.max(0, Math.ceil((end - Date.now()) / 86400000))
+
+  // 暂停自动恢复：如果状态是 paused，检查所有暂停记录是否已到期
+  if (a.status === 'paused') {
+    const pauses = getPauses(a.id).filter(p => p.type === 'pause')
+    const now = new Date().toISOString().slice(0, 10)
+    const allExpired = pauses.length > 0 && pauses.every(p => p.end && p.end < now)
+    if (allExpired || pauses.length === 0) {
+      updateAsset(a.id, { status: a.noExpiry ? 'active' : (scoped.remainingDays <= 0 ? 'expired' : 'active') })
+      a.status = a.noExpiry ? 'active' : (scoped.remainingDays <= 0 ? 'expired' : 'active')
+    }
+  }
+
   if (!isUnlimited.value) {
     scoped.remainingTimes = (a.totalTimes || 0) - (a.usedTimes || 0)
     scoped.usedPercent = a.totalTimes ? Math.round((a.usedTimes || 0) / a.totalTimes * 100) : 0
@@ -199,6 +211,11 @@ function calcScope() {
 function navigateBack() { router.push('/asset-list') }
 function goWriteOff() { router.push(`/write-off?id=${asset.value.id}`) }
 function goEvidence() { router.push(`/evidence-folder?assetId=${asset.value.id}`) }
+function onAssetUpdated() {
+  // 重新加载资产数据
+  asset.value = getAssetById(asset.value?.id)
+  if (asset.value) calcScope()
+}
 </script>
 
 <style lang="scss" scoped>

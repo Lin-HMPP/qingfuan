@@ -125,11 +125,27 @@ onMounted(() => {
   if (id) {
     asset.value = getAssetById(id)
     if (!asset.value) return
-    records.value = getWriteOffs(id)
+
+    // 检查资产是否已过期
     const end = new Date(asset.value.createdAt)
     end.setMonth(end.getMonth() + (asset.value.validityMonths || 12))
+    const remainingDays = Math.max(0, Math.ceil((end - Date.now()) / 86400000))
+    if (remainingDays <= 0 && !asset.value.noExpiry) {
+      $toast?.('该套餐已失效，无法进行核销')
+      router.replace(`/asset-detail?id=${asset.value.id}`)
+      return
+    }
+
+    // 检查资产是否处于暂停锁卡状态
+    if (asset.value.status === 'paused') {
+      $toast?.('该套餐已暂停锁卡，暂停期内无法核销')
+      router.replace(`/asset-detail?id=${asset.value.id}`)
+      return
+    }
+
+    records.value = getWriteOffs(id)
     scoped.remainingTimes = (asset.value.totalTimes || 0) - (asset.value.usedTimes || 0)
-    scoped.remainingDays = Math.max(0, Math.ceil((end - Date.now()) / 86400000))
+    scoped.remainingDays = remainingDays
   }
 })
 

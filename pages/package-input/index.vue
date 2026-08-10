@@ -424,13 +424,13 @@ function pickAndSave(accept, capture) {
         name: f.name,
         size: f.size,
         materialLabel: pickedType.value?.label || '',
-        dataUrl: null
+        dataUrl: null,
+        mimeType: f.type || 'application/octet-stream'
       }
-      if (f.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = () => { entry.dataUrl = reader.result }
-        reader.readAsDataURL(f)
-      }
+      // 图片和非图片文件都读取 base64，确保后续导出时都能预览/下载
+      const reader = new FileReader()
+      reader.onload = () => { entry.dataUrl = reader.result }
+      reader.readAsDataURL(f)
       images.value.push(entry)
     })
     $toast(`已保存 ${files.length} 份材料`)

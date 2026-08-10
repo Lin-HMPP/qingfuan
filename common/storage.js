@@ -76,7 +76,30 @@ export function addFolder(folder) {
   folder.id = 'fld_' + Date.now(); folder.createdAt = new Date().toISOString()
   folders.unshift(folder); set(KEYS.FOLDERS, folders); return folder
 }
-export function deleteFolder(id) { set(KEYS.FOLDERS, get(KEYS.FOLDERS, []).filter(f => f.id !== id)); return true }
+export function updateFolder(id, patch) {
+  const folders = get(KEYS.FOLDERS, []); const idx = folders.findIndex(f => f.id === id)
+  if (idx === -1) return null
+  folders[idx] = { ...folders[idx], ...patch, updatedAt: new Date().toISOString() }; set(KEYS.FOLDERS, folders)
+  return folders[idx]
+}
+export function deleteFolder(id) {
+  // 同时删除该文件夹下的所有文件
+  const files = get(KEYS.FILES, []).filter(f => f.folderId === id)
+  files.forEach(f => deleteFile(f.id))
+  set(KEYS.FOLDERS, get(KEYS.FOLDERS, []).filter(f => f.id !== id)); return true
+}
+
+// 材料类型映射：materialLabel → materialType key（供套餐录入同步到证据夹使用）
+export const MATERIAL_LABEL_MAP = {
+  '合同协议': 'contract',
+  '付款截图': 'payment',
+  '活动海报': 'poster',
+  '销售聊天记录': 'chat',
+  '核销打卡记录': 'writeoff',
+  '迁店/停业通知': 'notice',
+  '退费沟通记录': 'refund_chat',
+  '退款转卡协商材料': 'negotiation',
+}
 
 export function getFiles(folderId) {
   const all = get(KEYS.FILES, [])

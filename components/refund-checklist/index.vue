@@ -7,11 +7,20 @@
       <div class="disclaimer-box">本工具不代收资金、无线上退款功能，所有数值仅供线下协商参考</div>
 
       <span class="section-label">理论剩余权益参考值</span>
-      <div class="info-box">
+      <!-- 普通模式：按次数计算 -->
+      <div class="info-box" v-if="!asset?.unlimited">
         <div class="info-row"><span>已用次数 / 总次数</span><span class="info-val">{{ asset?.usedTimes || 0 }} / {{ asset?.totalTimes || 0 }} 次</span></div>
         <div class="info-row"><span>剩余次数</span><span class="info-val">{{ Math.max(0, (asset?.totalTimes || 0) - (asset?.usedTimes || 0)) }} 次</span></div>
         <div class="info-row"><span>理论应退金额</span><span class="info-val">¥{{ Math.max(0, refundAmount).toLocaleString() }}</span></div>
       </div>
+      <!-- 无限次模式：按时间比例计算 -->
+      <div class="info-box" v-else>
+        <div class="info-row"><span>已过天数 / 总有效期</span><span class="info-val">{{ elapsedDays }} / {{ totalDays }} 天（{{ timePercent }}%）</span></div>
+        <div class="info-row"><span>剩余有效天数</span><span class="info-val">{{ remainingDays }} 天</span></div>
+        <div class="info-row"><span>已到店次数</span><span class="info-val">{{ asset?.usedTimes || 0 }} 次</span></div>
+        <div class="info-row"><span>理论应退金额（时间比例）</span><span class="info-val">¥{{ timeRefundAmount.toLocaleString() }}</span></div>
+      </div>
+      <span class="refund-note" v-if="asset?.unlimited">无限次充卡模式的退款通常按时间比例折算，以上为时间维度参考值，具体以合同约定为准</span>
 
       <span class="section-label">退款协商待确认条款</span>
       <div class="clause-list">
@@ -43,6 +52,26 @@ const refundAmount = computed(() => {
   if (!a) return 0
   const remaining = Math.max(0, (a.totalTimes || 0) - (a.usedTimes || 0))
   return Math.round(remaining * (a.totalPrice || 0) / (a.totalTimes || 1))
+})
+
+// 无限次模式：时间维度计算
+const totalDays = computed(() => {
+  const a = props.asset
+  if (!a) return 1
+  return (a.validityMonths || 12) * 30
+})
+const elapsedDays = computed(() => {
+  const a = props.asset
+  if (!a || !a.createdAt) return 0
+  return Math.max(0, Math.ceil((Date.now() - new Date(a.createdAt)) / 86400000))
+})
+const remainingDays = computed(() => Math.max(0, totalDays.value - elapsedDays.value))
+const timePercent = computed(() => Math.min(100, Math.round(elapsedDays.value / totalDays.value * 100)))
+const timeRefundAmount = computed(() => {
+  const a = props.asset
+  if (!a) return 0
+  // 按剩余时间比例计算退款，给出一个参考折扣（通常充卡退款会扣减已消费时间的费用）
+  return Math.round((a.totalPrice || 0) * (remainingDays.value / totalDays.value))
 })
 
 const clauses = [
@@ -81,4 +110,5 @@ function goEvidence() {
 .btn-primary:active { transform: scale(0.96); background: #9FD8D2; }
 .btn-cancel { height: 44px; border: 1.5px solid #48A9A6; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #245957; background: #fff; cursor: pointer; }
 .btn-cancel:active { transform: scale(0.96); background: #B8E6E1; }
+.refund-note { display: block; margin-top: 8px; padding: 8px 12px; background: #FFF3CD; border-radius: 6px; font-size: 11px; color: #856404; line-height: 1.5; text-align: center; }
 </style>

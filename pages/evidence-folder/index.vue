@@ -15,12 +15,19 @@
       <span class="empty-hint">点击右上角「+ 新建资料夹」来归集每个资产的合同、付款截图等凭证材料</span>
     </div>
 
-    <div class="folder-card" v-for="f in folders" :key="f.id" @click="selectFolder(f)">
-      <span class="folder-name">{{ assetName(f.assetId) }}</span>
-      <span class="folder-meta">绑定资产 · 凭证 {{ locked ? "•••" : fileCount(f.id) }} 份</span>
+    <div class="folder-card" v-for="f in folders" :key="f.id">
+      <div class="folder-main" @click="selectFolder(f)">
+        <span class="folder-name" :class="{ 'unnamed': !f.name }">{{ f.name || '无名资料夹' }}</span>
+        <span class="folder-meta">绑定资产 · {{ assetName(f.assetId) }} · 凭证 {{ locked ? "•••" : fileCount(f.id) }} 份</span>
+      </div>
       <div class="folder-actions">
         <div class="btn-export" @click.stop="onExport(f)">导出凭证</div>
-        <span class="btn-more" @click.stop="selectFolder(f)">···</span>
+        <span class="btn-more" @click.stop="toggleMenu(f)">···</span>
+      </div>
+      <!-- 滑动操作菜单 -->
+      <div class="action-menu" v-if="menuFolderId === f.id" @click.stop>
+        <div class="action-item" @click="startEdit(f)">✏️ 编辑</div>
+        <div class="action-item danger" @click="confirmDel(f)">🗑️ 删除</div>
       </div>
     </div>
 
@@ -95,6 +102,26 @@
       </div>
     </div>
 
+    <!-- 编辑资料夹弹窗 -->
+    <div v-if="editFolder" class="mask" @click="editFolder=null;menuFolderId=null">
+      <div class="modal" @click.stop>
+        <span class="modal-title">编辑资料夹</span>
+        <span class="label">文件夹名称</span>
+        <input class="input-blue" v-model="editForm.name" placeholder="输入文件夹名称" maxlength="30" />
+        <span class="label">绑定资产</span>
+        <div class="select-wrap">
+          <select v-model="editForm.assetId" class="select-box">
+            <option v-for="a in assetOptions" :key="a.value" :value="a.value">{{ a.label }}</option>
+          </select>
+          <span class="arrow-down">▼</span>
+        </div>
+        <div class="btn-row">
+          <div class="btn-cancel flex-1" @click="editFolder=null;menuFolderId=null">取消</div>
+          <div class="btn-primary flex-1" @click="saveEdit">保存</div>
+        </div>
+      </div>
+    </div>
+
     <package-loading v-if="showLoading" @done="showLoading=false" />
   </div>
 </template>
@@ -103,7 +130,7 @@
 import { useRouter, useRoute } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
 import { locked } from '@/store/lock.js'
-import { getFolders, getFiles, getAssets, addFile, deleteFile as delFile } from '@/common/storage.js'
+import { getFolders, getFiles, getAssets, addFile, deleteFile as delFile, updateFolder, deleteFolder } from '@/common/storage.js'
 import { track } from '@/common/analytics.js'
 import PackageLoading from '@/components/package-loading/index.vue'
 
@@ -117,6 +144,9 @@ const showMethodPicker = ref(false)
 const showManage = ref(false)
 const currentFolder = ref(null)
 const pickedType = ref(null)
+const menuFolderId = ref(null)    // 当前展开操作菜单的文件夹ID
+const editFolder = ref(null)      // 正在编辑的文件夹对象
+const editForm = ref({ name: '', assetId: '' })
 
 // 如果 URL 带了 assetId，自动选中该资产的文件夹
 onMounted(() => {
@@ -154,7 +184,48 @@ function navigateBack() {
   }
 }
 function goNewFolder() { if (!guard()) return; router.push('/folder-create') }
-function selectFolder(f) { if (!guard()) return; currentFolder.value=f }
+function selectFolder(f) { if (!guard()) return; menuFolderId.value=null; currentFolder.value=f }
+
+// 资料夹操作菜单
+function toggleMenu(f) { menuFolderId.value = menuFolderId.value === f.id ? null : f.id }
+
+const assetOptions = computed(() => {
+  try {
+    if (locked.value) return []
+    return getAssets().map(a => ({
+      label: `${a.storeName} · ${a.scene || ''} (¥${(a.totalPrice||0).toLocaleString()})`,
+      value: a.id
+    }))
+  } catch (e) { return [] }
+})
+
+function startEdit(f) {
+  menuFolderId.value = null
+  editForm.value = { name: f.name || '', assetId: f.assetId || '' }
+  editFolder.value = f
+}
+function saveEdit() {
+  const f = editFolder.value
+  if (!f) return
+  if (!editForm.value.assetId) { window.__toast?.('请选择绑定的资产'); return }
+  updateFolder(f.id, { name: editForm.value.name.trim(), assetId: editForm.value.assetId })
+  window.__toast?.('资料夹已更新')
+  editFolder.value = null
+  menuFolderId.value = null
+  // 如果当前选中的文件夹被编辑，刷新引用
+  if (currentFolder.value?.id === f.id) {
+    currentFolder.value = { ...currentFolder.value, name: editForm.value.name.trim(), assetId: editForm.value.assetId }
+  }
+}
+function confirmDel(f) {
+  menuFolderId.value = null
+  if (window.confirm(`确定删除「${f.name || '无名资料夹'}」？\n\n删除后，该资料夹内的所有凭证文件也将一并清除，不可恢复。`)) {
+    // 取消选中（如果当前选中的是要删除的文件夹）
+    if (currentFolder.value?.id === f.id) currentFolder.value = null
+    deleteFolder(f.id)
+    window.__toast?.('资料夹已删除')
+  }
+}
 
 // 导出
 function onExport(f) { track('证据夹', '导出单个'); currentFolder.value=f; doExport(f) }
@@ -181,7 +252,18 @@ function doExport(folder) {
       let report=`<html><head><meta charset="utf-8"><title>青付安·${aname}·维权凭证</title><style>body{font-family:sans-serif;max-width:720px;margin:0 auto;padding:20px;color:#245957}h1{font-size:20px;color:#48A9A6}h2{font-size:16px;margin-top:24px}.meta{color:#888;font-size:12px}.item{padding:8px;margin:4px 0;background:#B8E6E1;border-radius:6px}img{max-width:100%;border-radius:4px}</style></head><body><h1>青付安 · 维权凭证报告</h1><p class="meta">资产: ${aname} | ${new Date().toLocaleString()}</p>`
       for(const [k,items] of Object.entries(groups)) {
         report+=`<h2>${escapeHtml(getMaterialLabel(k))}</h2>`
-        items.forEach(f=>{ report+=`<div class="item"><strong>${escapeHtml(f.name)}</strong> · ${escapeHtml(f.size||'--')}`; if(f.dataUrl)report+=`<br><img src="${f.dataUrl}">`; report+='</div>' })
+        items.forEach(f=>{
+            report+=`<div class="item"><strong>${escapeHtml(f.name)}</strong> · ${escapeHtml(f.size||'--')}`
+            if(f.dataUrl){
+              const isImg = (f.mimeType||'').startsWith('image/') || f.type === 'image'
+              if(isImg){
+                report+=`<br><img src="${f.dataUrl}" style="max-width:100%;border-radius:4px">`
+              } else {
+                report+=`<br><a href="${f.dataUrl}" download="${escapeHtml(f.name)}" style="display:inline-block;margin-top:6px;padding:6px 14px;background:#48A9A6;color:#fff;border-radius:6px;text-decoration:none;font-size:12px">📥 下载文件</a>`
+              }
+            }
+            report+='</div>'
+          })
       }
       report+=`<p class="meta" style="margin-top:32px">本报告由青付安App生成，仅供维权参考</p></body></html>`
 
@@ -225,14 +307,12 @@ function pickAndSave(accept,capture) {
     const files=e.target.files; if(!files||!files.length){ cleanup(); return }
     pendingCount = files.length
     Array.from(files).forEach(f=>{
-      const entry={folderId:currentFolder.value?.id||'',name:f.name,type:f.type||'file',size:f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(1)+'KB',materialType:pickedType.value?.key||'',dataUrl:''}
-      if(f.type.startsWith('image/')){
-        const r=new FileReader()
-        r.onload=ev=>{ entry.dataUrl=ev.target.result; addFile(entry); pendingCount--; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
-        r.onerror=()=>{ addFile(entry); pendingCount-- }
-        r.readAsDataURL(f)
-      }
-      else { addFile(entry); pendingCount--; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
+      const entry={folderId:currentFolder.value?.id||'',name:f.name,type:f.type.startsWith('image/')?'image':(f.name.split('.').pop()||'file'),size:f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(1)+'KB',materialType:pickedType.value?.key||'',dataUrl:'',mimeType:f.type||'application/octet-stream'}
+      const isImage = f.type.startsWith('image/')
+      const r=new FileReader()
+      r.onload=ev=>{ entry.dataUrl=ev.target.result; addFile(entry); pendingCount--; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
+      r.onerror=()=>{ addFile(entry); pendingCount-- }
+      r.readAsDataURL(f)
     })
     cleanup()
   }
@@ -307,4 +387,34 @@ function removeFile(id) { delFile(id); currentFolder.value={...currentFolder.val
 .manage-type{font-size:10px;color:#48A9A6;padding:1px 6px;background:#B8E6E1;border-radius:4px;white-space:nowrap}
 .btn-del-sm{padding:4px 10px;font-size:11px;color:#E8686A;border:1px solid #E8686A;border-radius:4px;cursor:pointer}
 .copy-text{background:#B8E6E1;padding:12px;border-radius:8px;font-size:12px;color:#245957;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin:12px 0}
+
+/* 资料夹卡片布局 */
+.folder-card { position: relative; overflow: hidden; }
+.folder-main { cursor: pointer; }
+.folder-name.unnamed { color: #AAA; font-style: italic; }
+
+/* 滑动操作菜单 */
+.action-menu {
+  display: flex; gap: 0;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed #B8E6E1;
+  animation: slideDown .2s ease;
+}
+@keyframes slideDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 60px; } }
+.action-item {
+  flex: 1; text-align: center; padding: 8px 0;
+  font-size: 13px; font-weight: bold; color: #245957;
+  border-radius: 6px; cursor: pointer;
+}
+.action-item:active { background: #B8E6E1; }
+.action-item.danger { color: #E8686A; }
+
+/* 编辑弹窗 */
+.label { display: block; font-size: 14px; font-weight: bold; color: #245957; margin: 12px 0 4px; }
+.input-blue { width: 100%; height: 44px; background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 12px; padding: 0 12px; font-size: 15px; color: #245957; outline: none; box-sizing: border-box; }
+.select-wrap { position: relative; }
+.select-box { width: 100%; height: 44px; background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 12px; padding: 0 36px 0 12px; font-size: 15px; color: #245957; appearance: none; -webkit-appearance: none; outline: none; cursor: pointer; }
+.arrow-down { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #48A9A6; pointer-events: none; }
+.btn-row { display: flex; gap: 12px; margin-top: 16px; }
+.flex-1 { flex: 1; }
 </style>
