@@ -91,7 +91,7 @@
     <!-- 四大功能按钮 -->
     <div class="btn-group">
       <div class="btn-primary" @click="!isExpired && goWriteOff()" :class="{ disabled: isExpired }">◯ 核销记录</div>
-      <div class="btn-primary" @click="showPause = true">◯ 暂停 / 转卡</div>
+      <div class="btn-primary" @click="showPause = true">◯ 暂停 / 改期</div>
       <div class="btn-secondary" @click="showRefund = true">◯ 申请退款</div>
       <div class="btn-secondary" @click="goEvidence">◯ 查看证据资料</div>
     </div>

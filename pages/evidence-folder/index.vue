@@ -147,6 +147,7 @@ const pickedType = ref(null)
 const menuFolderId = ref(null)    // 当前展开操作菜单的文件夹ID
 const editFolder = ref(null)      // 正在编辑的文件夹对象
 const editForm = ref({ name: '', assetId: '' })
+const folderRefresh = ref(0)     // 强制刷新 folders 列表
 
 // 如果 URL 带了 assetId，自动选中该资产的文件夹
 onMounted(() => {
@@ -170,7 +171,7 @@ const materialTypes = [
 ]
 
 function getMaterialLabel(key) { return materialTypes.find(m=>m.key===key)?.label||key }
-const folders = computed(()=>getFolders())
+const folders = computed(()=>{ void folderRefresh.value; return getFolders() })
 const currentFiles = computed(()=>currentFolder.value?getFiles(currentFolder.value.id):[])
 const uploadedCount = computed(()=>materialTypes.filter(mt=>isUploaded(mt.key)).length)
 function isUploaded(k) { return currentFiles.value.some(f=>f.materialType===k) }
@@ -212,6 +213,7 @@ function saveEdit() {
   window.__toast?.('资料夹已更新')
   editFolder.value = null
   menuFolderId.value = null
+  folderRefresh.value++
   // 如果当前选中的文件夹被编辑，刷新引用
   if (currentFolder.value?.id === f.id) {
     currentFolder.value = { ...currentFolder.value, name: editForm.value.name.trim(), assetId: editForm.value.assetId }
@@ -223,6 +225,7 @@ function confirmDel(f) {
     // 取消选中（如果当前选中的是要删除的文件夹）
     if (currentFolder.value?.id === f.id) currentFolder.value = null
     deleteFolder(f.id)
+    folderRefresh.value++
     window.__toast?.('资料夹已删除')
   }
 }
