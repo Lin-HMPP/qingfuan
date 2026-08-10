@@ -27,6 +27,54 @@
         <div v-if="i < menus.length - 1" class="divider-blue menu-divider" />
       </div>
     </div>
+
+    <!-- 使用帮助弹窗 -->
+    <div v-if="showHelp" class="help-mask" @click="showHelp = false">
+      <div class="help-modal" @click.stop>
+        <span class="help-title">📖 使用帮助</span>
+        <div class="help-steps">
+          <div class="help-step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <span class="step-title">录入套餐信息</span>
+              <span class="step-desc">填写商家名称、预付金额、服务次数和使用期限</span>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <span class="step-title">查看决策评估</span>
+              <span class="step-desc">系统自动分析 16 项风险指标，帮你判断值不值得办卡</span>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <span class="step-title">确认生成资产</span>
+              <span class="step-desc">确认后预付卡会加入资产列表，可随时查看剩余次数和到期时间</span>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="step-num">4</div>
+            <div class="step-text">
+              <span class="step-title">日常核销打卡</span>
+              <span class="step-desc">每次到店消费后打卡扣次，系统自动更新剩余权益</span>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="step-num">5</div>
+            <div class="step-text">
+              <span class="step-title">管理证据材料</span>
+              <span class="step-desc">上传合同、付款截图、聊天记录，纠纷时一键打包导出维权材料</span>
+            </div>
+          </div>
+        </div>
+        <div class="help-tip">
+          💡 所有数据仅存储在本地手机中，不上传任何服务器
+        </div>
+        <div class="btn-primary" @click="showHelp = false">知道了</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -46,9 +94,12 @@ function toggleLock() {
   }
 }
 
-const menus = ['我的维权记录', '隐私设置', '本地凭证管理', '重置所有数据']
+const menus = ['使用帮助', '隐私设置', '本地凭证管理', '重置所有数据']
+const showHelp = ref(false)
+
 function onMenu(m) {
-  if (m === '隐私设置') alert('所有数据仅本地存储，不上传服务器。\n\n支持 PIN 码锁定保护敏感信息。')
+  if (m === '使用帮助') { showHelp.value = true }
+  else if (m === '隐私设置') alert('所有数据仅本地存储，不上传服务器。\n\n支持 PIN 码锁定保护敏感信息。')
   else if (m === '本地凭证管理') alert('所有凭证文件仅保存在本机。\n换设备不会自动同步。')
   else if (m === '重置所有数据') {
     if (window.confirm('确认重置？\n\n这将清除所有资产、核销记录、PIN码等本地数据。此操作不可恢复！')) {
@@ -56,7 +107,6 @@ function onMenu(m) {
       location.reload()
     }
   }
-  else alert('功能开发中，敬请期待')
 }
 
 const statsData = ref({ totalAmount: 0, count: 0, pending: 0 })
@@ -95,4 +145,17 @@ const stats = computed(() => [
 .menu-text { flex: 1; font-size: 15px; color: #245957; }
 .arrow-blue { font-size: 18px; color: #48A9A6; }
 .menu-divider { position: absolute; bottom: 0; left: 14px; right: 0; }
+
+.help-mask { position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; }
+.help-modal { width: 343px; background: #fff; border: 1px solid #48A9A6; border-radius: 16px; padding: 24px; max-height: 80vh; overflow-y: auto; }
+.help-title { display: block; text-align: center; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 20px; }
+.help-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.help-step { display: flex; gap: 12px; align-items: flex-start; }
+.step-num { width: 24px; height: 24px; border-radius: 12px; background: #48A9A6; color: #fff; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-text { flex: 1; }
+.step-title { display: block; font-size: 14px; font-weight: bold; color: #245957; }
+.step-desc { display: block; font-size: 12px; color: #638F8D; margin-top: 2px; line-height: 1.5; }
+.help-tip { padding: 10px 14px; margin: 12px 0; background: #B8E6E1; border-radius: 8px; font-size: 12px; color: #245957; text-align: center; }
+.help-modal .btn-primary { height: 44px; background: #48A9A6; color: #fff; border-radius: 8px; font-size: 15px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; width: 100%; }
+.help-modal .btn-primary:active { opacity: .85; }
 </style>
