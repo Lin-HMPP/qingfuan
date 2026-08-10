@@ -41,7 +41,11 @@
       <input class="input-blue" v-model="form.giftTimes" type="number" placeholder="无赠送填0" />
 
       <span class="label"><span class="star">*</span><span class="label-text">服务有效期限</span></span>
-      <div class="validity-row">
+      <div class="no-expiry-toggle" @click="form.noExpiry = !form.noExpiry" :class="{ active: form.noExpiry }">
+        <div class="toggle-dot"></div>
+        <span class="toggle-label">没有固定期限（次卡）</span>
+      </div>
+      <div class="validity-row" v-if="!form.noExpiry">
         <input class="input-blue validity-input" v-model="form.validityValue" type="number" placeholder="输入数字" />
         <div class="unit-tabs">
           <div class="unit-tab" :class="{ active: form.validityUnit === 'day' }" @click="form.validityUnit = 'day'">日</div>
@@ -49,7 +53,10 @@
           <div class="unit-tab" :class="{ active: form.validityUnit === 'quarter' }" @click="form.validityUnit = 'quarter'">季度</div>
         </div>
       </div>
-      <span class="validity-display" v-if="form.validityValue">
+      <span class="validity-display" v-if="form.noExpiry">
+        次卡 · 无固定使用期限，用完即止
+      </span>
+      <span class="validity-display" v-else-if="form.validityValue">
         有效期：{{ form.validityValue }}{{ unitLabel }}
       </span>
 
@@ -225,7 +232,7 @@ const images = ref([])
 
 const form = ref({
   totalPrice: '', totalTimes: '', giftTimes: '0',
-  validityValue: '', validityUnit: 'month',
+  validityValue: '', validityUnit: 'month', noExpiry: false,
   monthlyBudget: '', weeklyFreq: '',
   storeName: '', contractName: '', payeeName: '',
   refundRule: '', transferRule: '', pauseRule: '',
@@ -238,6 +245,7 @@ const unitLabel = computed(() =>
 
 // 将数字+单位统一折算为"月"数，供后续规则引擎使用
 const validityMonths = computed(() => {
+  if (form.value.noExpiry) return 99  // 次卡无固定期限，设一个较大值
   const v = parseInt(form.value.validityValue) || 0
   if (form.value.validityUnit === 'day')   return +(v / 30).toFixed(1)
   if (form.value.validityUnit === 'quarter') return v * 3
@@ -280,7 +288,7 @@ const freqEstimate = computed(() => {
 })
 const progress = computed(() => {
   let p = 0
-  if (totalPrice.value && totalTimes.value && form.value.validityValue) p++
+  if (totalPrice.value && totalTimes.value && (form.value.validityValue || form.value.noExpiry)) p++
   if (form.value.monthlyBudget && form.value.weeklyFreq) p++
   if (form.value.storeName && form.value.contractName && form.value.payeeName) p++
   if (form.value.refundRule || form.value.transferRule || form.value.pauseRule) p++
@@ -302,7 +310,7 @@ onMounted(() => {
       Object.assign(form.value, {
         totalPrice: d.totalPrice || '', totalTimes: d.totalTimes || '',
         giftTimes: d.giftTimes || '0', validityValue: d.validityValue || '',
-        validityUnit: d.validityUnit || 'month', monthlyBudget: d.monthlyBudget || '',
+        validityUnit: d.validityUnit || 'month', noExpiry: d.noExpiry || false, monthlyBudget: d.monthlyBudget || '',
         weeklyFreq: d.weeklyFreq || '', storeName: d.storeName || '',
         contractName: d.contractName || '', payeeName: d.payeeName || '',
         refundRule: d.refundRule || '', transferRule: d.transferRule || '',
@@ -415,8 +423,8 @@ function onSubmit() {
     $toast?.('请输入有效的总服务次数')
     return
   }
-  if (!form.value.validityValue || !isPositiveInt(form.value.validityValue)) {
-    $toast?.('请输入有效的服务期限')
+  if (!form.value.noExpiry && (!form.value.validityValue || !isPositiveInt(form.value.validityValue))) {
+    $toast?.('请输入有效的服务期限，或选择「没有固定期限」')
     return
   }
   if (!form.value.monthlyBudget || !isPositiveNumber(form.value.monthlyBudget)) {
@@ -500,6 +508,26 @@ function onSubmit() {
 .unit-tab { height: 44px; padding: 0 14px; border: 1px solid #48A9A6; border-radius: 8px; font-size: 14px; color: #48A9A6; display: flex; align-items: center; cursor: pointer; white-space: nowrap; }
 .unit-tab.active { background: #48A9A6; color: #fff; font-weight: bold; }
 .validity-display { display: block; margin-top: 6px; font-size: 12px; color: #48A9A6; }
+
+.no-expiry-toggle {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 4px;
+  padding: 8px 14px; border: 1.5px solid #B8E6E1; border-radius: 8px;
+  cursor: pointer; user-select: none; transition: border-color .2s;
+}
+.no-expiry-toggle.active { border-color: #48A9A6; }
+.toggle-dot {
+  width: 36px; height: 20px; border-radius: 10px; background: #D8D8D8;
+  position: relative; transition: background .2s;
+}
+.toggle-dot::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%; background: #fff;
+  transition: transform .2s;
+}
+.no-expiry-toggle.active .toggle-dot { background: #48A9A6; }
+.no-expiry-toggle.active .toggle-dot::after { transform: translateX(16px); }
+.toggle-label { font-size: 13px; color: #638F8D; }
+.no-expiry-toggle.active .toggle-label { color: #245957; font-weight: bold; }
 
 .cost-preview {
   padding: 8px 14px; margin-top: 8px;
