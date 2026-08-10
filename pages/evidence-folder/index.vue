@@ -77,7 +77,7 @@
         <div class="type-list">
           <div class="type-item" v-for="mt in materialTypes" :key="mt.key" @click="onTypePicked(mt)">{{ mt.label }}<span class="type-arrow">›</span></div>
         </div>
-        <div class="btn-cancel" @click="showTypePicker=false">取消</div>
+        <div class="btn-cancel solo" @click="showTypePicker=false">取消</div>
       </div>
     </div>
 
@@ -90,7 +90,7 @@
         <div class="option" @click="uploadCamera">拍 摄<span class="opt-arrow">›</span></div>
         <div class="option" @click="uploadAlbum">相册选择<span class="opt-arrow">›</span></div>
         <div class="option" @click="uploadFile">文件上传<span class="opt-arrow">›</span></div>
-        <div class="btn-cancel" @click="showMethodPicker=false">取消</div>
+        <div class="btn-cancel solo" @click="showMethodPicker=false">取消</div>
       </div>
     </div>
 
@@ -104,7 +104,7 @@
           <div class="btn-del-sm" @click="removeFile(f.id)">删除</div>
         </div>
         <div v-if="!currentFiles.length" class="no-files">暂无文件</div>
-        <div class="btn-cancel" @click="showManage=false">关闭</div>
+        <div class="btn-cancel solo" @click="showManage=false">关闭</div>
       </div>
     </div>
 
@@ -383,7 +383,7 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 .file-type{font-size:10px;color:#48A9A6;padding:1px 6px;background:#B8E6E1;border-radius:4px;white-space:nowrap}
 .file-size{font-size:10px;color:#888;white-space:nowrap}
 .no-files{text-align:center;padding:20px;font-size:13px;color:#638F8D}
-.btn-row{display:flex;gap:8px;margin:14px 16px}
+.btn-row{display:flex;gap:10px;margin:14px 0}
 .flex-1{flex:1}
 .btn-primary,.btn-secondary{height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer}
 .btn-primary{background:#48A9A6;color:#fff;border:none}
@@ -399,7 +399,8 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 .type-arrow{font-size:16px;color:#638F8D}
 .option{display:flex;align-items:center;height:48px;background:#B8E6E1;border:1px solid #48A9A6;border-radius:8px;padding:0 16px;margin:6px 0;cursor:pointer;font-size:15px;color:#245957}
 .opt-arrow{font-size:18px;color:#48A9A6;margin-left:auto}
-.btn-cancel{margin-top:8px;height:44px;background:#fff;border:1px solid #999;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#245957;cursor:pointer}
+.btn-cancel{height:44px;background:#fff;border:1px solid #999;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#245957;cursor:pointer}
+.btn-cancel.solo{margin-top:8px}
 .manage-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F0F0F0;gap:8px}
 .manage-name{flex:1;font-size:13px;color:#245957;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .manage-type{font-size:10px;color:#48A9A6;padding:1px 6px;background:#B8E6E1;border-radius:4px;white-space:nowrap}
@@ -433,6 +434,4 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 .select-wrap { position: relative; }
 .select-box { width: 100%; height: 44px; background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 12px; padding: 0 36px 0 12px; font-size: 15px; color: #245957; appearance: none; -webkit-appearance: none; outline: none; cursor: pointer; }
 .arrow-down { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #48A9A6; pointer-events: none; }
-.btn-row { display: flex; gap: 12px; margin-top: 16px; }
-.flex-1 { flex: 1; }
 </style>
