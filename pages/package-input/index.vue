@@ -902,8 +902,12 @@ function onSubmit() {
     giftClear: !!(form.value.giftTimes && parseInt(form.value.giftTimes) > 0),
     refundKnown: !!(form.value.refundRule && form.value.refundRule.trim())
   }
+  // 图片 base64 太大塞不进 sessionStorage，单独存 localStorage
+  const imagesData = images.value.length ? JSON.stringify(images.value) : null
+  const pkgLight = { ...pkg, images: undefined }  // 去掉图片数据
   try {
-    sessionStorage.setItem('qf_package_data', JSON.stringify(pkg))
+    sessionStorage.setItem('qf_package_data', JSON.stringify(pkgLight))
+    if (imagesData) localStorage.setItem('qf_package_images', imagesData)
     track('套餐录入', '确认录入', scene.value, Math.round(totalPrice.value))
     router.push('/decision-card')
   } catch (e) {

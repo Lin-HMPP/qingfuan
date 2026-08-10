@@ -421,7 +421,10 @@ function onAssetConfirm() {
     name: (data.value.storeName || '资产') + ' · ' + (data.value.scene || '') + ' 凭证',
     note: '自动创建'
   })
-  const imgs = data.value.images || []
+  let imgs = data.value.images || []
+  if (!imgs.length) {
+    try { const raw = localStorage.getItem('qf_package_images'); if (raw) imgs = JSON.parse(raw) } catch(e) {}
+  }
   imgs.forEach(img => {
     addFile({
       folderId: folder.id,
@@ -433,6 +436,7 @@ function onAssetConfirm() {
     })
   })
   sessionStorage.removeItem('qf_package_data')
+  localStorage.removeItem('qf_package_images')
   showConfirm.value = false
   window.__toast?.('资产卡已创建，可在资产列表中查看')
   router.replace('/asset-list')

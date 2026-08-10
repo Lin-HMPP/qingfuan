@@ -167,8 +167,11 @@ function confirmAsset() {
     })
     // 自动创建同名证据资料夹
     const folder = addFolder({ assetId: asset.id, name: (data.value.storeName || '资产') + ' · ' + (data.value.scene || '') + ' 凭证', note: '自动创建' })
-    // 同步套餐录入页上传的材料到证据夹
-    const images = data.value.images || []
+    // 从 localStorage 读取套餐录入时上传的图片（sessionStorage 容量不足，图片单独存）
+    let images = data.value.images || []
+    if (!images.length) {
+      try { const raw = localStorage.getItem('qf_package_images'); if (raw) images = JSON.parse(raw) } catch(e) {}
+    }
     images.forEach(img => {
       // 判断是否为图片：有 dataUrl 且 dataUrl 以 data:image 开头
       const isImage = img.dataUrl && img.dataUrl.startsWith('data:image')
@@ -185,6 +188,7 @@ function confirmAsset() {
     })
   }
   sessionStorage.removeItem('qf_package_data')
+  localStorage.removeItem('qf_package_images')
   router.replace('/asset-list')
 }
 </script>

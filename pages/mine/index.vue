@@ -55,7 +55,8 @@
     <!-- 使用帮助弹窗 -->
     <div v-if="showHelp" class="help-mask" @click="showHelp = false">
       <div class="help-modal" @click.stop>
-        <span class="help-title">📖 使用帮助</span>
+        <svg class="help-title-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span class="help-title">使用指南</span>
         <div class="help-title-deco" />
         <div class="help-steps">
           <div class="help-step" v-for="(step, idx) in helpSteps" :key="idx">
@@ -67,7 +68,7 @@
           </div>
         </div>
         <div class="help-tip">
-          💡 所有数据仅存储在本地手机中，不上传任何服务器
+          所有数据仅存储在本地手机中，不上传任何服务器。更多功能请探索各页面。
         </div>
         <div class="btn-primary" @click="showHelp = false">知道了</div>
       </div>
@@ -89,7 +90,7 @@ function toggleLock() {
   }
 }
 
-const menus = ['使用帮助', '规则说明', '隐私设置', '本地凭证管理', '重置所有数据']
+const menus = ['使用指南', '规则说明', '隐私设置', '本地凭证管理', '重置所有数据']
 const showHelp = ref(false)
 const showRules = ref(false)
 
@@ -114,7 +115,7 @@ const ruleList = [
 ]
 
 function onMenu(m) {
-  if (m === '使用帮助') { showHelp.value = true }
+  if (m === '使用指南') { showHelp.value = true }
   else if (m === '规则说明') { showRules.value = true }
   else if (m === '隐私设置') alert('所有数据仅本地存储，不上传服务器。\n\n支持 PIN 码锁定保护敏感信息。')
   else if (m === '本地凭证管理') alert('所有凭证文件仅保存在本机。\n换设备不会自动同步。')
@@ -127,11 +128,11 @@ function onMenu(m) {
 }
 
 const helpSteps = [
-  { title: '录入套餐信息', desc: '填写商家名称、预付金额、服务次数和使用期限' },
-  { title: '查看决策评估', desc: '系统自动分析 16 项风险指标，帮你判断值不值得办卡' },
-  { title: '确认生成资产', desc: '确认后预付卡会加入资产列表，可随时查看剩余次数和到期时间' },
-  { title: '日常核销打卡', desc: '每次到店消费后打卡扣次，系统自动更新剩余权益' },
-  { title: '管理证据材料', desc: '上传合同、付款截图、聊天记录，纠纷时一键打包导出维权材料' },
+  { title: '两种录入方式', desc: '右上角 ＋ 快速录入（10秒建卡）或首页「购买前先检查」完整录入（含风险评估）。两种方式都会自动创建证据资料夹。' },
+  { title: '查看决策评估', desc: '录入信息后系统自动分析 17 项风险指标，包括单次成本、频率匹配、主体一致性、退款条款、平台团购风险等。' },
+  { title: '管理预付资产', desc: '资产列表查看所有预付卡，支持核销打卡、暂停锁卡、编辑有效期、申请退款参考。充卡不限次模式自动切换打卡。' },
+  { title: '证据资料夹', desc: '上传合同、付款截图、聊天记录等凭证材料，材料检查清单点击「缺失」可直接补充，纠纷时一键打包导出维权报告。' },
+  { title: '安全与隐私', desc: '所有数据仅保存在本机，不上传服务器。支持 PIN 码锁定保护敏感信息，锁定后页面底部显示解锁入口。' },
 ]
 
 
@@ -196,6 +197,7 @@ const stats = computed(() => [
 .help-mask { position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; }
 .help-modal { width: 343px; background: #fff; border: 1px solid #48A9A6; border-radius: 16px; padding: 24px; max-height: 80vh; overflow-y: auto; }
 .help-title { display: block; text-align: center; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 20px; }
+.help-title-icon { display: block; margin: 0 auto 8px; }
 .help-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
 .help-step { display: flex; gap: 12px; align-items: flex-start; }
 .step-num { width: 24px; height: 24px; border-radius: 12px; background: #48A9A6; color: #fff; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
