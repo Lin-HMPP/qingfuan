@@ -82,10 +82,10 @@
         <span class="fold-arrow">{{ showModule2 ? '▼' : '›' }}</span>
       </div>
       <div v-if="showModule2" @click.stop>
-        <span class="label"><span class="star">*</span><span class="label-text">每月可支配预付预算</span></span>
+        <span class="label"><span class="star">*</span><span class="label-text">{{ sceneCopy.budgetLabel || '每月可支配预付预算' }}</span></span>
         <input class="input-blue" v-model="form.monthlyBudget" type="text" inputmode="decimal" :placeholder="sceneCopy.budgetHint" />
 
-        <span class="label"><span class="star">*</span><span class="label-text">预计每周到店使用次数</span></span>
+        <span class="label"><span class="star">*</span><span class="label-text">{{ sceneCopy.freqLabel || '预计每周到店使用次数' }}</span></span>
         <input class="input-blue" v-model="form.weeklyFreq" type="text" inputmode="decimal" :placeholder="sceneCopy.freqHint" />
 
         <div v-if="freqEstimate.show" class="freq-info" :class="freqEstimate.risk ? 'freq-warn' : 'freq-ok'">
@@ -260,114 +260,122 @@ import SceneCustom from '@/components/scene-picker/custom.vue'
 // ── 场景化文案配置 ──
 const SCENE_COPY = {
   '健身/舞蹈': {
-    totalPriceHint: '如：年卡 ¥2,880、季卡 ¥980',
-    timesLabel: '总服务次数',
-    timesHint: '（不含赠课次数）',
-    giftHint: '如：赠送2节私教课，无赠送填0',
-    unlimitedLabel: '无限次（充年卡 / 不限次数）',
-    validityHint: '如：12',
-    budgetHint: '如：每月愿花 300 元在健身上',
-    freqHint: '如：每周去健身房 3 次',
-    storeHint: '如：XX 健身工作室',
-    contractHint: '如：XX 体育文化有限公司',
-    payeeHint: '如：微信收款名「XX 健身」',
-    promoHint: '如：办年卡送运动包、限时8折',
+    totalPriceHint: '如：年卡 ¥2,880、季卡 ¥980、次卡 ¥50/次',
+    timesLabel: '总次数',
+    timesHint: '（不含赠送的私教课或体验课）',
+    giftHint: '如：赠送 2 节私教课，无赠送填 0',
+    unlimitedLabel: '不限次数（充年卡，有效期内任意到店）',
+    validityHint: '如：12（个月）',
+    budgetLabel: '每月健身预算',
+    budgetHint: '如：你每月最多愿意花多少钱在健身上',
+    freqLabel: '预计每周锻炼次数',
+    freqHint: '如：你计划每周去几次健身房',
+    storeHint: '如：XX 健身工作室 · 万达店',
+    contractHint: '如：XX 体育文化传播有限公司',
+    payeeHint: '如：收款方微信昵称或商户名称',
+    promoHint: '如：办年卡送健身包、双人同行第二人半价',
     refundOptions: [
-      { key: 'full', label: '未开卡全额退，开卡按比例退' },
-      { key: 'custom', label: '其他' }
+      { key: 'full', label: '未开卡全额退，已开卡按已消费次数比例退' },
+      { key: 'custom', label: '其他退款规则（自行填写）' }
     ],
     transferOptions: [
       { key: 'no', label: '不可转卡' },
-      { key: 'free', label: '可转卡，无手续费' },
-      { key: 'fee', label: '可转卡，手续费 __%' }
+      { key: 'free', label: '可转卡，不另收手续费' },
+      { key: 'fee', label: '可转卡，收手续费 __%' }
     ],
     pauseOptions: [
-      { key: 'no', label: '不可暂停' },
-      { key: 'free', label: '可暂停，无附加条件' },
-      { key: 'custom', label: '可暂停 __ 次，每次最长 __ 天' }
+      { key: 'no', label: '不可请假暂停' },
+      { key: 'free', label: '可请假暂停，无额外限制' },
+      { key: 'custom', label: '可请假 __ 次，每次最长 __ 天' }
     ]
   },
   '培训课程': {
-    totalPriceHint: '如：考研全程班 ¥15,800、雅思冲刺 ¥4,800',
-    timesLabel: '总课时数',
-    timesHint: '（不含赠送课时）',
-    giftHint: '如：赠送10节真题课，无赠送填0',
-    unlimitedLabel: '无限次（不限课时 / 随到随学）',
-    validityHint: '如：6',
-    budgetHint: '如：每月愿花 1,000 元在培训上',
-    freqHint: '如：每周上课 4 次',
-    storeHint: '如：XX 考研培训中心',
+    totalPriceHint: '如：考研全程班 ¥15,800、雅思冲刺班 ¥4,800',
+    timesLabel: '总课时',
+    timesHint: '（不含赠送的真题课或试听课）',
+    giftHint: '如：报班送 10 节真题精讲课，无赠送填 0',
+    unlimitedLabel: '不限课时（随到随学，有效期内任意上课）',
+    validityHint: '如：6（个月，从开课日起算）',
+    budgetLabel: '每月培训预算',
+    budgetHint: '如：你每月最多愿意花多少钱在培训上',
+    freqLabel: '预计每周上课次数',
+    freqHint: '如：你计划每周上几次课',
+    storeHint: '如：XX 考研 · 大学城校区',
     contractHint: '如：XX 教育科技有限公司',
-    payeeHint: '如：微信收款名「XX 教育」',
-    promoHint: '如：报名送教材、团报优惠',
+    payeeHint: '如：收款方微信昵称或对公账户名',
+    promoHint: '如：团报每人减 ¥500、推荐学员返现',
     refundOptions: [
-      { key: 'full', label: '未开课全额退，已开课按课时比例退' },
-      { key: 'custom', label: '其他' }
+      { key: 'full', label: '未开课全额退，已开课按剩余课时比例退' },
+      { key: 'custom', label: '其他退款规则（自行填写）' }
     ],
     transferOptions: [
-      { key: 'no', label: '不可转让' },
-      { key: 'free', label: '可转让，无手续费' },
-      { key: 'fee', label: '可转让，手续费 __%' }
+      { key: 'no', label: '不可转让给他人' },
+      { key: 'free', label: '可转让，不收转让费' },
+      { key: 'fee', label: '可转让，收转让费 __%' }
     ],
     pauseOptions: [
       { key: 'no', label: '不可休学' },
-      { key: 'free', label: '可休学，无附加条件' },
+      { key: 'free', label: '可申请休学，无附加条件' },
       { key: 'custom', label: '可休学 __ 次，每次最长 __ 天' }
     ]
   },
   '摄影套餐': {
-    totalPriceHint: '如：婚纱照 ¥6,999、写真 ¥1,999',
-    timesLabel: '总拍摄套数',
-    timesHint: '（不含赠送精修）',
-    giftHint: '如：赠送10张精修，无赠送填0',
-    unlimitedLabel: '不限套数（约拍年卡）',
-    validityHint: '如：3',
-    budgetHint: '如：每月愿花 500 元在摄影上',
-    freqHint: '如：一次性消费，计划3个月内拍摄',
-    storeHint: '如：XX 婚纱摄影',
+    totalPriceHint: '如：婚纱照 ¥6,999、个人写真 ¥1,999、全家福 ¥2,888',
+    timesLabel: '拍摄套数 / 精修张数',
+    timesHint: '（填套餐约定的拍摄套数或精修总张数）',
+    giftHint: '如：赠送 10 张精修、加送相册一本，无赠送填 0',
+    unlimitedLabel: '不限次数（约拍年卡，有效期内任意约拍）',
+    validityHint: '如：3（个月，从付款日起算）',
+    budgetLabel: '摄影总预算',
+    budgetHint: '如：你计划总共花多少钱在这次拍摄上',
+    freqLabel: '拍摄时间安排',
+    freqHint: '如：你打算几个月内拍完，或一共拍几次',
+    storeHint: '如：XX 婚纱摄影 · 旗舰店',
     contractHint: '如：XX 摄影服务有限公司',
-    payeeHint: '如：微信收款名「XX 摄影」',
-    promoHint: '如：预付定金翻倍、加送相册',
+    payeeHint: '如：收款方微信昵称或公司账户',
+    promoHint: '如：付定金 ¥999 抵 ¥1,999、送孕妇照或宝宝照',
     refundOptions: [
-      { key: 'full', label: '未拍摄全额退，已拍摄按套数比例退' },
-      { key: 'custom', label: '其他' }
+      { key: 'full', label: '未拍摄全额退，已拍摄按未拍套数比例退' },
+      { key: 'custom', label: '其他退款规则（自行填写）' }
     ],
     transferOptions: [
-      { key: 'no', label: '不可转卡' },
-      { key: 'free', label: '可转卡，无手续费' },
-      { key: 'fee', label: '可转卡，手续费 __%' }
+      { key: 'no', label: '不可转单给他人' },
+      { key: 'free', label: '可转单，不收手续费' },
+      { key: 'fee', label: '可转单，收手续费 __%' }
     ],
     pauseOptions: [
       { key: 'no', label: '不可延期' },
-      { key: 'free', label: '可延期，无附加费用' },
+      { key: 'free', label: '可免费延期一次' },
       { key: 'custom', label: '可延期 __ 次，每次最长 __ 天' }
     ]
   },
   '美容美发': {
-    totalPriceHint: '如：染烫套餐 ¥1,280、年卡 ¥3,800',
-    timesLabel: '总服务次数',
-    timesHint: '（不含赠送护理）',
-    giftHint: '如：赠送2次头皮护理，无赠送填0',
-    unlimitedLabel: '无限次（充年卡 / 不限次数）',
-    validityHint: '如：6',
-    budgetHint: '如：每月愿花 200 元在美容美发上',
-    freqHint: '如：每两周去 1 次',
-    storeHint: '如：XX 美发沙龙',
-    contractHint: '如：XX 美容美发有限公司',
-    payeeHint: '如：微信收款名「XX 造型」',
-    promoHint: '如：办卡送护理套装、会员日折扣',
+    totalPriceHint: '如：全年洗剪吹 ¥3,800、染烫套餐 ¥1,280',
+    timesLabel: '总次数',
+    timesHint: '（不含赠送的护理或体验项目）',
+    giftHint: '如：赠送 2 次头皮护理，无赠送填 0',
+    unlimitedLabel: '不限次数（充年卡，有效期内任意消费）',
+    validityHint: '如：6（个月）',
+    budgetLabel: '每月美发预算',
+    budgetHint: '如：你每月最多愿意花多少钱在美发上',
+    freqLabel: '预计消费频率',
+    freqHint: '如：你大概多久去一次美发店',
+    storeHint: '如：XX 美发沙龙 · 太古里店',
+    contractHint: '如：XX 美容美发管理有限公司',
+    payeeHint: '如：收款方微信昵称或店铺收款名',
+    promoHint: '如：办卡送洗护套装、生日当月免费护理一次',
     refundOptions: [
-      { key: 'full', label: '未开卡全额退，开卡按比例退' },
-      { key: 'custom', label: '其他' }
+      { key: 'full', label: '未开卡全额退，已开卡按已消费次数比例退' },
+      { key: 'custom', label: '其他退款规则（自行填写）' }
     ],
     transferOptions: [
       { key: 'no', label: '不可转卡' },
-      { key: 'free', label: '可转卡，无手续费' },
-      { key: 'fee', label: '可转卡，手续费 __%' }
+      { key: 'free', label: '可转卡，不另收手续费' },
+      { key: 'fee', label: '可转卡，收手续费 __%' }
     ],
     pauseOptions: [
       { key: 'no', label: '不可暂停' },
-      { key: 'free', label: '可暂停，无附加条件' },
+      { key: 'free', label: '可暂停，无额外限制' },
       { key: 'custom', label: '可暂停 __ 次，每次最长 __ 天' }
     ]
   }
@@ -375,30 +383,32 @@ const SCENE_COPY = {
 
 // 默认/自定义场景的通用文案
 const DEFAULT_COPY = {
-  totalPriceHint: '输入实付总金额',
-  timesLabel: '总服务次数',
-  timesHint: '（不含赠送次数）',
-  giftHint: '无赠送填0',
-  unlimitedLabel: '无限次（充卡 / 不限次数）',
-  validityHint: '输入数字',
-  budgetHint: '每月能用于办卡的支出上限',
-  freqHint: '如每周2次',
-  storeHint: '门店招牌、海报上的名称',
-  contractHint: '合同盖章公司名',
-  payeeHint: '微信/支付宝收款显示名称',
-  promoHint: '如：限时优惠、赠送权益说明等',
+  totalPriceHint: '输入你实际支付的总金额',
+  timesLabel: '总次数 / 总数量',
+  timesHint: '（不含赠送的部分）',
+  giftHint: '有赠送就填，没有填 0',
+  unlimitedLabel: '不限次数（充卡 / 年卡，有效期内任意消费）',
+  validityHint: '输入有效期的数字',
+  budgetLabel: '你的预算',
+  budgetHint: '你愿意为这项消费花多少钱',
+  freqLabel: '预计消费频率',
+  freqHint: '你预计多久消费一次',
+  storeHint: '门店招牌上写的是什么名字',
+  contractHint: '合同上盖章的公司全称',
+  payeeHint: '你转账给了谁（微信名 / 商户名）',
+  promoHint: '销售跟你说了哪些优惠活动',
   refundOptions: [
-    { key: 'full', label: '未开卡全额退，开卡按比例退' },
-    { key: 'custom', label: '其他' }
+    { key: 'full', label: '未消费全额退，已消费按比例退' },
+    { key: 'custom', label: '其他退款规则（自行填写）' }
   ],
   transferOptions: [
-    { key: 'no', label: '不可转卡' },
-    { key: 'free', label: '可转卡，无手续费' },
-    { key: 'fee', label: '可转卡，手续费 __%' }
+    { key: 'no', label: '不可转让' },
+    { key: 'free', label: '可转让，不收手续费' },
+    { key: 'fee', label: '可转让，收手续费 __%' }
   ],
   pauseOptions: [
-    { key: 'no', label: '不可暂停' },
-    { key: 'free', label: '可暂停，无附加条件' },
+    { key: 'no', label: '不可暂停 / 延期' },
+    { key: 'free', label: '可暂停或延期，无附加条件' },
     { key: 'custom', label: '可暂停 __ 次，每次最长 __ 天' }
   ]
 }
