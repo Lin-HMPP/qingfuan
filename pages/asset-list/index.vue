@@ -88,7 +88,7 @@ import { deleteWriteOff, deleteFolder, deleteFile, KEYS, set } from '@/common/st
 
 const router = useRouter()
 const $toast = (msg) => window.__toast?.(msg)
-function guard() { if (locked.value) { $toast('信息已锁定，请先解锁'); return false } return true }
+function guard() { if (locked.value) { window.__toast?.('🔒 信息已锁定，请到「我的」页面解锁'); return false } return true }
 // 使用 refreshKey 强制 computed 重新读取 localStorage
 const refreshKey = ref(0)
 const assets = computed(() => { void refreshKey.value; return getAssets() })
