@@ -7,6 +7,7 @@ import App from './App.vue'
 const routes = [
   { path: '/',              redirect: '/home' },
   { path: '/home',          component: () => import('./pages/index/index.vue') },
+  { path: '/quick-input',   component: () => import('./pages/quick-input/index.vue') },
   { path: '/package-input', component: () => import('./pages/package-input/index.vue') },
   { path: '/decision-card', component: () => import('./pages/decision-card/index.vue') },
   { path: '/risk-report',   component: () => import('./pages/risk-report/index.vue') },

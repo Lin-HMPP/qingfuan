@@ -39,24 +39,30 @@
       </template>
     </div>
 
-    <!-- 双卡片入口 -->
-    <div class="card-row">
-      <div class="card-blue card-half" @click="goCheck">
-        <div class="card-bar" />
-        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><circle cx="14" cy="14" r="11"/><path d="M10 10l8 8M10 18l8-8"/></svg>
-        <span class="card-title">购买前先检查</span>
-        <p class="card-desc">录入套餐信息，测算单次成本</p>
-        <p class="card-desc">识别预付消费隐藏风险</p>
-        <div class="btn-primary-sm">立即测算</div>
+    <!-- 双入口：快速录入 + 完整评估 -->
+    <div class="entry-section">
+      <div class="entry-card entry-quick" @click="goQuickInput">
+        <div class="entry-icon">⚡</div>
+        <div class="entry-body">
+          <span class="entry-title">快速录入一张卡</span>
+          <span class="entry-desc">3 步 · 10 秒完成</span>
+        </div>
+        <span class="entry-arrow">›</span>
       </div>
-      <div class="card-blue card-half" @click="goAssets">
-        <div class="card-bar" />
-        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="20" height="14" rx="2"/><line x1="4" y1="12" x2="24" y2="12"/><line x1="14" y1="12" x2="14" y2="21"/></svg>
-        <span class="card-title">我的预付资产</span>
-        <span class="card-amount">预付总额 {{ locked ? '•••' : totalAmount.toLocaleString() }} 元</span>
-        <p class="card-desc">在库储值卡 {{ locked ? '•••' : assetCount }} 张</p>
-        <div class="btn-secondary-sm">查看全部卡项</div>
+      <div class="entry-card entry-full" @click="goCheck">
+        <div class="entry-icon">📋</div>
+        <div class="entry-body">
+          <span class="entry-title">完整录入（含风险评估）</span>
+          <span class="entry-desc">深度分析 · 约 2 分钟</span>
+        </div>
+        <span class="entry-arrow">›</span>
       </div>
+    </div>
+
+    <!-- 资产概览 -->
+    <div class="stats-line" @click="goAssets" v-if="assetCount > 0">
+      <span>预付总额 <b>{{ locked ? '•••' : totalAmount.toLocaleString() }}</b> 元 · 在库 <b>{{ locked ? '•••' : assetCount }}</b> 张</span>
+      <span class="stats-arrow">查看全部 ›</span>
     </div>
 
     <!-- 消费证据资料夹 -->
@@ -123,6 +129,7 @@ const expiringList = computed(() =>
 const totalAmount = computed(() => assets.value.reduce((s, a) => s + (a.totalPrice || 0), 0))
 const assetCount = computed(() => assets.value.length)
 
+function goQuickInput() { if (!guard()) return; router.push('/quick-input'); track('首页', '快速录入') }
 function goCheck() { if (!guard()) return; router.push('/package-input'); track('首页', '点击测算') }
 function goAssets() { if (!guard()) return; router.push('/asset-list'); track('首页', '查看资产') }
 function goEvidenceFolder() { if (!guard()) return; router.push('/evidence-folder'); track('首页', '打开证据夹') }
@@ -162,16 +169,32 @@ function onCustomScene(name) {
 .btn-writeoff { width: 44px; height: 22px; background: #48A9A6; color: #fff; font-size: 10px; font-weight: bold; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 4px; }
 .btn-voucher { width: 44px; height: 22px; background: #fff; color: #48A9A6; font-size: 10px; font-weight: bold; border: 1px solid #48A9A6; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
 
-.card-row { display: flex; gap: 10px; margin: 14px 16px 0; }
-.card-half { flex: 1; padding: 14px 12px 16px; position: relative; cursor: pointer; min-height: 150px; display: flex; flex-direction: column; }
+/* 双层入口 */
+.entry-section { margin: 14px 16px 0; display: flex; flex-direction: column; gap: 10px; }
+.entry-card { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 14px; cursor: pointer; transition: transform .1s; }
+.entry-card:active { transform: scale(0.98); }
+.entry-quick { background: #48A9A6; }
+.entry-full { background: #fff; border: 1.5px solid #48A9A6; }
+.entry-icon { font-size: 28px; flex-shrink: 0; }
+.entry-body { flex: 1; }
+.entry-title { display: block; font-size: 16px; font-weight: bold; }
+.entry-quick .entry-title { color: #fff; }
+.entry-full .entry-title { color: #245957; }
+.entry-desc { display: block; font-size: 12px; margin-top: 2px; }
+.entry-quick .entry-desc { color: rgba(255,255,255,.8); }
+.entry-full .entry-desc { color: #638F8D; }
+.entry-arrow { font-size: 22px; }
+.entry-quick .entry-arrow { color: rgba(255,255,255,.7); }
+.entry-full .entry-arrow { color: #48A9A6; }
+
+/* 资产概览行 */
+.stats-line { display: flex; justify-content: space-between; align-items: center; margin: 14px 16px 0; padding: 10px 14px; background: #F5FAFA; border: 1px solid #B8E6E1; border-radius: 10px; font-size: 12px; color: #4A7A77; cursor: pointer; }
+.stats-line b { color: #245957; }
+.stats-arrow { color: #48A9A6; font-weight: bold; }
+
 .card-bar { width: 3px; height: 16px; background: #48A9A6; border-radius: 2px; position: absolute; left: 12px; top: 16px; }
 .card-icon { position: absolute; right: 12px; top: 14px; opacity: 0.6; }
 .card-title { display: block; font-size: 16px; font-weight: bold; color: #245957; margin: 0 0 8px 10px; }
-.card-desc { font-size: 11px; color: #638F8D; margin: 0 0 2px 10px; }
-.card-amount { display: block; font-size: 13px; font-weight: bold; color: #48A9A6; margin: 0 0 4px 10px; }
-.btn-primary-sm { height: 36px; margin-top: auto; background: #48A9A6; color: #fff; font-size: 13px; font-weight: bold; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-.btn-secondary-sm { height: 36px; margin-top: auto; background: #fff; color: #48A9A6; font-size: 13px; font-weight: bold; border: 1px solid #48A9A6; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-
 .evidence-card { margin: 14px 16px 0; padding: 14px 14px 40px; position: relative; cursor: pointer; }
 .card-desc-long { font-size: 12px; color: #638F8D; margin: 6px 0 0 10px; line-height: 1.5; }
 .link-blue { position: absolute; right: 14px; bottom: 12px; font-size: 12px; font-weight: bold; color: #48A9A6; }

@@ -146,7 +146,24 @@
         <div class="btn-primary" :class="{ dimmed: verdictLevel === 'red' }" @click="confirmAsset">
           {{ verdictLevel === 'red' ? '我已知晓风险，仍要生成资产卡' : '确认录入，生成资产卡' }}
         </div>
-        <div class="btn-secondary" @click="goRiskReport">查看详细风险分析报告</div>
+        <!-- 内嵌风险维度详情 -->
+        <div class="detail-toggle" @click="showDetail = !showDetail">
+          <span>{{ showDetail ? '收起' : '展开' }}风险维度详情</span>
+          <span class="detail-arrow" :class="{ open: showDetail }">›</span>
+        </div>
+        <div class="detail-panel" v-if="showDetail">
+          <div class="dim-item" v-for="dim in result?.dimensions || []" :key="dim.key">
+            <div class="dim-head">
+              <span class="dim-name">{{ dim.title }}</span>
+              <div class="dim-stars">
+                <span class="ds" v-for="i in 5" :key="i" :class="{ on: i <= dim.score }" />
+              </div>
+            </div>
+            <div class="dim-rule" v-for="r in dim.rules" :key="r.code" :class="'dr-' + r.level">
+              <span class="dr-text">{{ r.level === 'high' ? '🔴' : r.level === 'medium' ? '🟡' : '○' }} {{ r.layers.fact }}</span>
+            </div>
+          </div>
+        </div>
         <div class="btn-back" :class="{ strong: verdictLevel === 'red' }" @click="navigateBack">
           {{ verdictLevel === 'red' ? '← 返回修改套餐信息' : '返回修改' }}
         </div>
@@ -175,6 +192,7 @@ const loading = ref(true)
 const result = ref(null)
 const showConfirm = ref(false)
 const showPassed = ref(false)
+const showDetail = ref(false)
 
 onMounted(() => {
   const raw = sessionStorage.getItem('qf_package_data')
@@ -367,7 +385,6 @@ function navigateBack() {
   }
   router.push('/package-input')
 }
-function goRiskReport() { router.push('/risk-report') }
 function confirmAsset() { showConfirm.value = true }
 
 function onAssetConfirm() {
@@ -513,4 +530,23 @@ function onAssetConfirm() {
   border: 1.5px solid #245957; border-radius: 10px;
 }
 .disclaimer { display: block; text-align: center; font-size: 10px; color: #638F8D; padding: 8px 0; }
+
+/* 内嵌风险详情 */
+.detail-toggle { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F5FAFA; border: 1px dashed #B8E6E1; border-radius: 10px; font-size: 13px; color: #48A9A6; cursor: pointer; }
+.detail-toggle:active { background: #E8F5F4; }
+.detail-arrow { font-size: 16px; transition: transform .2s; }
+.detail-arrow.open { transform: rotate(90deg); }
+.detail-panel { margin-top: 8px; padding: 12px; background: #fff; border: 1px solid #B8E6E1; border-radius: 10px; animation: fadeIn .2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.dim-item { margin-bottom: 12px; }
+.dim-item:last-child { margin-bottom: 0; }
+.dim-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.dim-name { font-size: 13px; font-weight: bold; color: #245957; }
+.dim-stars { display: flex; gap: 3px; }
+.ds { width: 8px; height: 8px; border-radius: 50%; background: #E0E0E0; }
+.ds.on { background: #48A9A6; }
+.dim-rule { padding: 4px 0; }
+.dr-text { font-size: 11px; color: #638F8D; line-height: 1.4; }
+.dr-high .dr-text { color: #DC3545; }
+.dr-medium .dr-text { color: #FD7E14; }
 </style>

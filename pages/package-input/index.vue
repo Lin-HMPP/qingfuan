@@ -74,45 +74,50 @@
       </div>
     </div>
 
-    <!-- 模块二：个人使用规划 -->
-    <div class="card-blue module">
-      <div class="module-header">
-        <div class="module-bar" />
-        <span class="module-title">二、个人使用规划</span>
+    <!-- 模块二：个人使用规划（可折叠） -->
+    <div class="card-blue module-fold">
+      <div class="fold-header" @click="showModule2 = !showModule2">
+        <span class="fold-title">二、个人使用规划</span>
+        <span class="fold-status" v-if="!showModule2">{{ module2Status }}</span>
+        <span class="fold-arrow">{{ showModule2 ? '▼' : '›' }}</span>
       </div>
+      <div v-if="showModule2" @click.stop>
+        <span class="label"><span class="star">*</span><span class="label-text">每月可支配预付预算</span></span>
+        <input class="input-blue" v-model="form.monthlyBudget" type="text" inputmode="decimal" placeholder="每月能用于办卡的支出上限" />
 
-      <span class="label"><span class="star">*</span><span class="label-text">每月可支配预付预算</span></span>
-      <input class="input-blue" v-model="form.monthlyBudget" type="text" inputmode="decimal" placeholder="每月能用于办卡的支出上限" />
+        <span class="label"><span class="star">*</span><span class="label-text">预计每周到店使用次数</span></span>
+        <input class="input-blue" v-model="form.weeklyFreq" type="text" inputmode="decimal" placeholder="如每周2次" />
 
-      <span class="label"><span class="star">*</span><span class="label-text">预计每周到店使用次数</span></span>
-      <input class="input-blue" v-model="form.weeklyFreq" type="text" inputmode="decimal" placeholder="如每周2次" />
-
-      <div v-if="freqEstimate.show" class="freq-info" :class="freqEstimate.risk ? 'freq-warn' : 'freq-ok'">
-        {{ freqEstimate.msg }}
+        <div v-if="freqEstimate.show" class="freq-info" :class="freqEstimate.risk ? 'freq-warn' : 'freq-ok'">
+          {{ freqEstimate.msg }}
+        </div>
       </div>
     </div>
 
-    <!-- 模块三：签约&收款主体信息 -->
-    <div class="card-blue module">
-      <div class="module-header">
-        <div class="module-bar" />
-        <span class="module-title">三、签约&收款主体信息</span>
+    <!-- 模块三：签约&收款主体信息（可折叠） -->
+    <div class="card-blue module-fold">
+      <div class="fold-header" @click="showModule3 = !showModule3">
+        <span class="fold-title">三、签约&收款主体信息</span>
+        <span class="fold-status" v-if="!showModule3">{{ module3Status }}</span>
+        <span class="fold-arrow">{{ showModule3 ? '▼' : '›' }}</span>
       </div>
+      <div v-if="showModule3" @click.stop>
+        <span class="label"><span class="star">*</span><span class="label-text">门店宣传名称</span></span>
+        <input class="input-blue" v-model="form.storeName" placeholder="门店招牌、海报上的名称" />
 
-      <span class="label"><span class="star">*</span><span class="label-text">门店宣传名称</span></span>
-      <input class="input-blue" v-model="form.storeName" placeholder="门店招牌、海报上的名称" />
+        <span class="label"><span class="star">*</span><span class="label-text">合同签约主体名称</span></span>
+        <input class="input-blue" v-model="form.contractName" placeholder="合同盖章公司名" />
 
-      <span class="label"><span class="star">*</span><span class="label-text">合同签约主体名称</span></span>
-      <input class="input-blue" v-model="form.contractName" placeholder="合同盖章公司名" />
-
-      <span class="label"><span class="star">*</span><span class="label-text">收款账户/商家收款名</span></span>
-      <input class="input-blue" v-model="form.payeeName" placeholder="微信/支付宝收款显示名称" />
+        <span class="label"><span class="star">*</span><span class="label-text">收款账户/商家收款名</span></span>
+        <input class="input-blue" v-model="form.payeeName" placeholder="微信/支付宝收款显示名称" />
+      </div>
     </div>
 
     <!-- 模块四：套餐履约规则（可折叠） -->
     <div class="card-blue module-fold">
       <div class="fold-header" @click="showModule4 = !showModule4">
         <span class="fold-title">四、套餐履约规则（可折叠）</span>
+        <span class="fold-status" v-if="!showModule4">{{ module4Status }}</span>
         <span class="fold-arrow">{{ showModule4 ? '▼' : '›' }}</span>
       </div>
       <div v-if="showModule4" @click.stop>
@@ -286,8 +291,32 @@ const materialTypes = [
   { key: 'refund_chat',  label: '退费沟通记录' },
   { key: 'negotiation',  label: '退款转卡协商材料' },
 ]
+const showModule2 = ref(false)  // 默认折叠
+const showModule3 = ref(false)
 const showModule4 = ref(false)
 const showModule5 = ref(false)
+
+// 折叠状态下的完成标识
+const module2Status = computed(() => {
+  const parts = []
+  if (form.value.monthlyBudget && isPositiveNumber(form.value.monthlyBudget)) parts.push('预算已填')
+  if (form.value.weeklyFreq && isPositiveNumber(form.value.weeklyFreq)) parts.push('频率已填')
+  return parts.length === 2 ? '✓ 已完成' : parts.length ? '已填 ' + parts.length + '/2' : '待填写'
+})
+const module3Status = computed(() => {
+  const parts = []
+  if (form.value.storeName) parts.push(1)
+  if (form.value.contractName) parts.push(1)
+  if (form.value.payeeName) parts.push(1)
+  return parts.length === 3 ? '✓ 已完成' : parts.length ? '已填 ' + parts.length + '/3' : '待填写'
+})
+const module4Status = computed(() => {
+  const parts = []
+  if (form.value.refundRule) parts.push(1)
+  if (form.value.transferRule) parts.push(1)
+  if (form.value.pauseRule) parts.push(1)
+  return parts.length === 3 ? '✓ 已完成' : parts.length ? '已设 ' + parts.length + '/3' : '选填'
+})
 
 // ── 模块四：规则选择器状态 ──
 // 退款规则
@@ -760,6 +789,7 @@ function onSubmit() {
 .fold-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
 .fold-title { font-size: 13px; color: #245957; }
 .fold-optional { color: #638F8D; }
+.fold-status { font-size: 11px; color: #48A9A6; margin-left: auto; margin-right: 8px; }
 .fold-arrow { font-size: 12px; color: #638F8D; }
 
 .upload-card { margin: 8px 16px 0; padding: 14px; }
