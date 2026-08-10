@@ -114,29 +114,34 @@ function doCreate() {
   if (errs.length) { $toast('请完善：' + errs.join('、')); return }
 
   const validityMonths = parseInt(form.validityMonths) || 12
-  const asset = addAsset({
-    scene: form.scene,
-    name: form.storeName.trim() + '·套餐',
-    totalPrice: price,
-    totalTimes: form.unlimited ? 999 : (parseInt(form.totalTimes) || 0),
-    validityMonths,
-    weeklyFreq: 0,
-    monthlyBudget: 0,
-    storeName: form.storeName.trim(),
-    contractName: '',
-    payeeName: '',
-    refundRule: '',
-    transferRule: '',
-    pauseRule: '',
-    unlimited: form.unlimited,
-    noExpiry: false,
-    giftTimes: 0,
-    usedTimes: 0,
-    status: 'active'
-  })
-  addFolder({ assetId: asset.id, name: form.storeName.trim() + '·凭证', note: '快速录入自动创建' })
-  track('快速录入', '创建资产', form.scene, price)
-  router.replace('/asset-list')
+  try {
+    const asset = addAsset({
+      scene: form.scene,
+      name: form.storeName.trim() + '·套餐',
+      totalPrice: price,
+      totalTimes: form.unlimited ? 999 : (parseInt(form.totalTimes) || 0),
+      validityMonths,
+      weeklyFreq: 0,
+      monthlyBudget: 0,
+      storeName: form.storeName.trim(),
+      contractName: '',
+      payeeName: '',
+      refundRule: '',
+      transferRule: '',
+      pauseRule: '',
+      unlimited: form.unlimited,
+      noExpiry: false,
+      giftTimes: 0,
+      usedTimes: 0,
+      status: 'active'
+    })
+    addFolder({ assetId: asset.id, name: form.storeName.trim() + '·凭证', note: '快速录入自动创建' })
+    track('快速录入', '创建资产', form.scene, price)
+    router.push('/asset-list')
+  } catch (e) {
+    console.error('快速录入失败:', e)
+    $toast('创建失败，请重试')
+  }
 }
 </script>
 
