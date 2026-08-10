@@ -4,6 +4,9 @@
     <div class="nav-bar">
       <span class="logo">青付安</span>
       <div class="nav-icons">
+        <div class="icon-quick" @click="showQuickDialog = true" title="快速录入">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
         <div class="icon-dot" />
         <div class="icon-avatar" />
       </div>
@@ -39,30 +42,24 @@
       </template>
     </div>
 
-    <!-- 双入口：快速录入 + 完整评估 -->
-    <div class="entry-section">
-      <div class="entry-card entry-quick" @click="goQuickInput">
-        <div class="entry-icon">⚡</div>
-        <div class="entry-body">
-          <span class="entry-title">快速录入一张卡</span>
-          <span class="entry-desc">3 步 · 10 秒完成</span>
-        </div>
-        <span class="entry-arrow">›</span>
+    <!-- 双卡片入口 -->
+    <div class="card-row">
+      <div class="card-blue card-half" @click="goCheck">
+        <div class="card-bar" />
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><circle cx="14" cy="14" r="11"/><path d="M10 10l8 8M10 18l8-8"/></svg>
+        <span class="card-title">购买前先检查</span>
+        <p class="card-desc">录入套餐信息，测算单次成本</p>
+        <p class="card-desc">识别预付消费隐藏风险</p>
+        <div class="btn-primary-sm">立即测算</div>
       </div>
-      <div class="entry-card entry-full" @click="goCheck">
-        <div class="entry-icon">📋</div>
-        <div class="entry-body">
-          <span class="entry-title">完整录入（含风险评估）</span>
-          <span class="entry-desc">深度分析 · 约 2 分钟</span>
-        </div>
-        <span class="entry-arrow">›</span>
+      <div class="card-blue card-half" @click="goAssets">
+        <div class="card-bar" />
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="20" height="14" rx="2"/><line x1="4" y1="12" x2="24" y2="12"/><line x1="14" y1="12" x2="14" y2="21"/></svg>
+        <span class="card-title">我的预付资产</span>
+        <span class="card-amount">预付总额 {{ locked ? '•••' : totalAmount.toLocaleString() }} 元</span>
+        <p class="card-desc">在库储值卡 {{ locked ? '•••' : assetCount }} 张</p>
+        <div class="btn-secondary-sm">查看全部卡项</div>
       </div>
-    </div>
-
-    <!-- 资产概览 -->
-    <div class="stats-line" @click="goAssets" v-if="assetCount > 0">
-      <span>预付总额 <b>{{ locked ? '•••' : totalAmount.toLocaleString() }}</b> 元 · 在库 <b>{{ locked ? '•••' : assetCount }}</b> 张</span>
-      <span class="stats-arrow">查看全部 ›</span>
     </div>
 
     <!-- 消费证据资料夹 -->
@@ -84,6 +81,17 @@
     <p class="disclaimer">本工具仅提供预付消费信息管理，不涉及任何资金托管与线上交易服务</p>
 
     <scene-custom v-if="showCustomScene" @confirm="onCustomScene" @close="showCustomScene = false" />
+
+    <!-- 快速录入确认弹窗 -->
+    <div v-if="showQuickDialog" class="mask" @click="showQuickDialog = false">
+      <div class="quick-dialog" @click.stop>
+        <span class="qd-icon">⚡</span>
+        <span class="qd-title">快速录入模式</span>
+        <span class="qd-desc">仅填写核心信息，10 秒完成建卡<br>其余信息可后续在资产详情中补充</span>
+        <div class="qd-btn" @click="goQuickInput">进入快速录入</div>
+        <div class="qd-cancel" @click="showQuickDialog = false">取消</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -98,21 +106,16 @@ import SceneCustom from '@/components/scene-picker/custom.vue'
 const router = useRouter()
 const $toast = (msg) => window.__toast?.(msg)
 const showCustomScene = ref(false)
+const showQuickDialog = ref(false)
 const scenes = ['健身/舞蹈', '培训课程', '摄影套餐', '美容美发']
 
-// 统一锁检查：锁定状态下给出反馈
 function guard() {
-  if (locked.value) {
-    $toast('信息已锁定，请先解锁')
-    return false
-  }
+  if (locked.value) { $toast('信息已锁定，请先解锁'); return false }
   return true
 }
 
-// 实时读取资产（每次 computed 求值时从 localStorage 获取最新数据）
 const assets = computed(() => getAssets())
 
-// 到期判定
 function remainingDays(a) {
   const end = new Date(a.createdAt)
   end.setMonth(end.getMonth() + (a.validityMonths || 12))
@@ -120,7 +123,6 @@ function remainingDays(a) {
 }
 function remainingTimes(a) { return (a.totalTimes || 0) - (a.usedTimes || 0) }
 
-// 即将到期列表
 const expiringList = computed(() =>
   assets.value.filter(a => a.status !== 'expired' && remainingDays(a) <= 30 && remainingDays(a) > 0)
     .map(a => ({ ...a, remainingDays: remainingDays(a), remainingTimes: remainingTimes(a) }))
@@ -129,7 +131,7 @@ const expiringList = computed(() =>
 const totalAmount = computed(() => assets.value.reduce((s, a) => s + (a.totalPrice || 0), 0))
 const assetCount = computed(() => assets.value.length)
 
-function goQuickInput() { if (!guard()) return; router.push('/quick-input'); track('首页', '快速录入') }
+function goQuickInput() { showQuickDialog.value = false; if (!guard()) return; router.push('/quick-input'); track('首页', '快速录入') }
 function goCheck() { if (!guard()) return; router.push('/package-input'); track('首页', '点击测算') }
 function goAssets() { if (!guard()) return; router.push('/asset-list'); track('首页', '查看资产') }
 function goEvidenceFolder() { if (!guard()) return; router.push('/evidence-folder'); track('首页', '打开证据夹') }
@@ -149,6 +151,8 @@ function onCustomScene(name) {
 .nav-bar { display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 16px; border-bottom: 1px solid #48A9A6; background: #fff; }
 .logo { font-size: 18px; font-weight: bold; color: #245957; }
 .nav-icons { display: flex; align-items: center; gap: 10px; }
+.icon-quick { width: 30px; height: 30px; border: 1.5px solid #48A9A6; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
+.icon-quick:active { background: #B8E6E1; }
 .icon-dot { width: 16px; height: 16px; background: #48A9A6; border-radius: 50%; }
 .icon-avatar { width: 20px; height: 20px; background: #48A9A6; border-radius: 50%; }
 
@@ -169,32 +173,16 @@ function onCustomScene(name) {
 .btn-writeoff { width: 44px; height: 22px; background: #48A9A6; color: #fff; font-size: 10px; font-weight: bold; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 4px; }
 .btn-voucher { width: 44px; height: 22px; background: #fff; color: #48A9A6; font-size: 10px; font-weight: bold; border: 1px solid #48A9A6; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
 
-/* 双层入口 */
-.entry-section { margin: 14px 16px 0; display: flex; flex-direction: column; gap: 10px; }
-.entry-card { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 14px; cursor: pointer; transition: transform .1s; }
-.entry-card:active { transform: scale(0.98); }
-.entry-quick { background: #48A9A6; }
-.entry-full { background: #fff; border: 1.5px solid #48A9A6; }
-.entry-icon { font-size: 28px; flex-shrink: 0; }
-.entry-body { flex: 1; }
-.entry-title { display: block; font-size: 16px; font-weight: bold; }
-.entry-quick .entry-title { color: #fff; }
-.entry-full .entry-title { color: #245957; }
-.entry-desc { display: block; font-size: 12px; margin-top: 2px; }
-.entry-quick .entry-desc { color: rgba(255,255,255,.8); }
-.entry-full .entry-desc { color: #638F8D; }
-.entry-arrow { font-size: 22px; }
-.entry-quick .entry-arrow { color: rgba(255,255,255,.7); }
-.entry-full .entry-arrow { color: #48A9A6; }
-
-/* 资产概览行 */
-.stats-line { display: flex; justify-content: space-between; align-items: center; margin: 14px 16px 0; padding: 10px 14px; background: #F5FAFA; border: 1px solid #B8E6E1; border-radius: 10px; font-size: 12px; color: #4A7A77; cursor: pointer; }
-.stats-line b { color: #245957; }
-.stats-arrow { color: #48A9A6; font-weight: bold; }
-
+.card-row { display: flex; gap: 10px; margin: 14px 16px 0; }
+.card-half { flex: 1; padding: 14px 12px 16px; position: relative; cursor: pointer; min-height: 150px; display: flex; flex-direction: column; }
 .card-bar { width: 3px; height: 16px; background: #48A9A6; border-radius: 2px; position: absolute; left: 12px; top: 16px; }
 .card-icon { position: absolute; right: 12px; top: 14px; opacity: 0.6; }
 .card-title { display: block; font-size: 16px; font-weight: bold; color: #245957; margin: 0 0 8px 10px; }
+.card-desc { font-size: 11px; color: #638F8D; margin: 0 0 2px 10px; }
+.card-amount { display: block; font-size: 13px; font-weight: bold; color: #48A9A6; margin: 0 0 4px 10px; }
+.btn-primary-sm { height: 36px; margin-top: auto; background: #48A9A6; color: #fff; font-size: 13px; font-weight: bold; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+.btn-secondary-sm { height: 36px; margin-top: auto; background: #fff; color: #48A9A6; font-size: 13px; font-weight: bold; border: 1px solid #48A9A6; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+
 .evidence-card { margin: 14px 16px 0; padding: 14px 14px 40px; position: relative; cursor: pointer; }
 .card-desc-long { font-size: 12px; color: #638F8D; margin: 6px 0 0 10px; line-height: 1.5; }
 .link-blue { position: absolute; right: 14px; bottom: 12px; font-size: 12px; font-weight: bold; color: #48A9A6; }
@@ -207,4 +195,14 @@ function onCustomScene(name) {
 .tag-custom { color: #638F8D; width: 100%; justify-content: center; }
 
 .disclaimer { text-align: center; font-size: 10px; color: #638F8D; padding: 20px 16px 8px; }
+
+/* 快速录入弹窗 */
+.mask { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; }
+.quick-dialog { width: 280px; background: #fff; border-radius: 18px; padding: 28px 24px 20px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+.qd-icon { font-size: 40px; display: block; margin-bottom: 8px; }
+.qd-title { display: block; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 8px; }
+.qd-desc { display: block; font-size: 13px; color: #638F8D; line-height: 1.6; margin-bottom: 20px; }
+.qd-btn { height: 46px; background: #48A9A6; color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+.qd-btn:active { opacity: 0.85; }
+.qd-cancel { height: 36px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #638F8D; cursor: pointer; }
 </style>
