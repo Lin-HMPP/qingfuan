@@ -403,14 +403,14 @@ const DEFAULT_COPY = {
   ]
 }
 
-// 根据当前场景获取对应文案
-const sceneCopy = computed(() => SCENE_COPY[scene.value] || DEFAULT_COPY)
-
 const router = useRouter()
 const route = useRoute()
 const $toast = (msg) => window.__toast?.(msg)
 
 const scene = ref('健身/舞蹈')
+
+// 根据当前场景获取对应文案（必须在 scene 定义之后）
+const sceneCopy = computed(() => SCENE_COPY[scene.value] || DEFAULT_COPY)
 const showScenePicker = ref(false)
 const showCustomScene = ref(false)
 
