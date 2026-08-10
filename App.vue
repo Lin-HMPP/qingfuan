@@ -140,16 +140,6 @@ html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-h
 /* ——— 全局免责声明 ——— */
 .disclaimer { display: block; text-align: center; font-size: 11px; color: #4A7A77; padding: 8px 16px; }
 
-/* ——— 黄色强调体系（第二主题色 #FFD133） ——— */
-.accent-yellow { color: #E8B800; }
-.bg-yellow-soft { background: #FFF8E1; }
-.badge-yellow {
-  display: inline-block; padding: 2px 8px;
-  background: #FFF8E1; color: #C79100;
-  border: 1px solid #FFD133; border-radius: 4px;
-  font-size: 10px; font-weight: bold;
-}
-
 /* ——— 通用工具类 ——— */
 .flex-1 { flex: 1; }
 </style>

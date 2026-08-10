@@ -85,7 +85,7 @@ const dimensions = computed(() => result.value?.dimensions || [])
 
 function dimLevelColor(dim) {
   if (dim.score >= 4) return '#28A745'
-  if (dim.score >= 2) return '#E8B800'
+  if (dim.score >= 2) return '#FD7E14'
   return '#DC3545'
 }
 function dimLevelLabel(dim) {
@@ -159,7 +159,7 @@ function confirmAsset() {
 .sc-detail { font-size: 11px; color: #638F8D; display: block; margin-top: 2px; }
 .sc-tag { font-size: 11px; font-weight: bold; }
 .sc-tag.good { color: #28A745; }
-.sc-tag.bad { color: #C79100; }
+.sc-tag.bad { color: #DC3545; }
 .progress-label { font-size: 13px; font-weight: bold; display: block; margin-top: 6px; }
 .progress-bar { height: 14px; background: #E6E6E6; border-radius: 7px; margin: 4px 0; }
 .progress-fill { height: 100%; background: #28A745; border-radius: 7px; }

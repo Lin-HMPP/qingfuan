@@ -54,7 +54,7 @@ function switchTab(path) { if (route.path !== path) router.push(path) }
 .tab:not(.active) .tab-label { color: #638F8D; }
 .tab-indicator {
   position: absolute; bottom: 6px;
-  width: 16px; height: 3px; background: #FFD133;
+  width: 16px; height: 3px; background: #48A9A6;
   border-radius: 1.5px;
 }
 </style>

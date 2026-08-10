@@ -158,8 +158,7 @@ function onCustomScene(name) {
 .expire-item { display: flex; align-items: center; height: 32px; background: #fff; border: 1px solid #48A9A6; border-radius: 6px; padding: 0 10px; margin-bottom: 6px; }
 .expire-empty { padding: 16px 0; text-align: center; font-size: 13px; color: #638F8D; }
 .expire-info { flex: 1; font-size: 13px; color: #245957; }
-.expire-info.urgent { font-weight: bold; color: #C79100; }
-.expire-item { border-left: 3px solid #FFD133; }
+.expire-info.urgent { font-weight: bold; }
 .btn-writeoff { width: 44px; height: 22px; background: #48A9A6; color: #fff; font-size: 10px; font-weight: bold; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 4px; }
 .btn-voucher { width: 44px; height: 22px; background: #fff; color: #48A9A6; font-size: 10px; font-weight: bold; border: 1px solid #48A9A6; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
 
