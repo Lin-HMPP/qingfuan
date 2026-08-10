@@ -71,27 +71,15 @@ html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-h
 .page-fade-enter-from { opacity: 0; transform: translateX(8px); }
 .page-fade-leave-to { opacity: 0; transform: translateX(-8px); }
 
-/* ——— 卡片：薄荷绿轮廓 + 明黄角装饰 ——— */
+/* ——— 卡片：薄荷绿轮廓 ——— */
 .card-blue {
   background: #fff; border: 1.5px solid #48A9A6; border-radius: 16px;
-  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-  position: relative;
-}
-/* 左上角明黄短折线装饰 */
-.card-blue::before {
-  content: ''; position: absolute; top: -1px; left: 12px;
-  width: 14px; height: 2px; background: #FFD133; border-radius: 1px;
-}
-/* 右下角明黄短折线装饰（仅大卡片） */
-.card-blue.card-decor::after {
-  content: ''; position: absolute; bottom: -1px; right: 12px;
-  width: 14px; height: 2px; background: #FFD133; border-radius: 1px;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 .card-blue:active { transform: scale(0.97); }
 
 .card-light {
   background: #B8E6E1; border-radius: 8px;
-  position: relative;
 }
 
 /* ——— 主按钮：薄荷绿填充 + 按压加深 ——— */
@@ -136,44 +124,21 @@ html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-h
   position: relative;
 }
 
-/* ——— 导航栏：薄荷绿底线 + 明黄平行装饰线 ——— */
+/* ——— 导航栏 ——— */
 .nav-bar {
   display: flex; align-items: center; height: 44px;
   background: #fff; padding: 0 16px; position: relative;
-  border-bottom: 1.5px solid #48A9A6;
-}
-.nav-bar::after {
-  content: ''; position: absolute; bottom: -4px; left: 16px; right: 16px;
-  height: 1px; background: #FFD133; border-radius: 0.5px;
+  border-bottom: 1px solid #48A9A6;
 }
 .nav-bar .back { font-size: 15px; color: #48A9A6; cursor: pointer; z-index: 1; }
-.nav-bar .back:active { transform: scale(0.96); color: #9FD8D2; }
+.nav-bar .back:active { transform: scale(0.96); }
 .nav-bar .title {
   position: absolute; left: 50%; transform: translateX(-50%);
   font-size: 18px; font-weight: bold; color: #245957; white-space: nowrap;
 }
-/* 标题底部短明黄装饰线 */
-.nav-bar .title::after {
-  content: ''; display: block; width: 20px; height: 2px;
-  background: #FFD133; border-radius: 1px; margin: 1px auto 0;
-}
 
 /* ——— 全局免责声明 ——— */
 .disclaimer { display: block; text-align: center; font-size: 11px; color: #4A7A77; padding: 8px 16px; }
-
-/* ——— 全局可点击元素按压反馈 ——— */
-a, button, [role="button"], .clickable,
-.tag, .menu-item, .folder-card, .record-item, .asset-card,
-.btn-writeoff, .btn-voucher, .btn-add, .btn-manage,
-.option, .type-item, .num-key, .tab, .lock-btn {
-  cursor: pointer;
-  transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
-}
-.tag:active, .menu-item:active, .folder-card:active, .record-item:active,
-.asset-card:active, .btn-writeoff:active, .btn-voucher:active, .btn-add:active,
-.option:active, .type-item:active, .num-key:active, .tab:active {
-  transform: scale(0.96); background: #9FD8D2;
-}
 
 /* ——— 通用工具类 ——— */
 .flex-1 { flex: 1; }

@@ -38,9 +38,8 @@ function switchTab(path) { if (route.path !== path) router.push(path) }
 .tab-bar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
   display: flex; height: 56px; background: #fff;
-  border-top: 1.5px solid #48A9A6;
+  border-top: 1px solid #48A9A6;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  box-shadow: 0 -1px 0 0 #FFD133; /* 明黄平行装饰线 */
 }
 @media (min-width: 450px) {
   .tab-bar { width: 375px; left: 50%; transform: translateX(-50%); }

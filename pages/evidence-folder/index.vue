@@ -251,8 +251,7 @@ function removeFile(id) { delFile(id); currentFolder.value={...currentFolder.val
 .empty-card{margin:40px 16px;text-align:center;padding:32px 16px;border:1px dashed #48A9A6;border-radius:12px;display:flex;flex-direction:column;align-items:center}
 .empty-text{font-size:16px;color:#245957;display:block;margin-bottom:8px}
 .empty-hint{font-size:12px;color:#638F8D;display:block;max-width:260px;line-height:1.6}
-.folder-card{margin:8px 16px;padding:14px;background:#fff;border:1.5px solid #48A9A6;border-radius:12px;position:relative;cursor:pointer;overflow:hidden}
-.folder-card::after{content:'';position:absolute;top:-1px;right:12px;width:12px;height:1.5px;background:#FFD133;border-radius:0.5px}
+.folder-card{margin:8px 16px;padding:14px;background:#fff;border:1px solid #48A9A6;border-radius:12px;position:relative;cursor:pointer}
 .folder-name{font-size:15px;font-weight:bold;display:block}
 .folder-meta{font-size:12px;color:#888}
 .folder-actions{position:absolute;right:14px;top:14px;display:flex;gap:8px;align-items:center}

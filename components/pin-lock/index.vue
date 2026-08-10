@@ -134,7 +134,7 @@ function confirm() {
 .title { font-size: 18px; font-weight: bold; color: #245957; }
 
 .pin-dots { display: flex; gap: 12px; margin: 16px 0; }
-.dot { width: 14px; height: 14px; border: 2px solid #48A9A6; border-radius: 4px; transition: background .15s; }
+.dot { width: 14px; height: 14px; border: 2px solid #48A9A6; border-radius: 50%; transition: background .15s; }
 .dot.filled { background: #48A9A6; }
 
 .num-pad { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; }
