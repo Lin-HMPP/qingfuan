@@ -29,7 +29,7 @@
       <span class="record-text">{{ r.date }}  {{ r.note || '核销' }}  剩余{{ r.remainingAfter }}次</span>
     </div>
 
-    <write-off-detail v-if="detailRecord" :record="detailRecord" @close="detailRecord = null" @deleted="onDeleted" />
+    <write-off-detail v-if="detailRecord" :record="detailRecord" @close="detailRecord = null" @deleted="onDeleted" @updated="onUpdated" />
     </template>
   </div>
 </template>
@@ -77,18 +77,26 @@ function onSave() {
   $toast?.('核销记录已保存')
 }
 
-function showDetail(r) { detailRecord.value = r }
-function onDeleted() {
-  detailRecord.value = null
-  // 刷新资产数据
-  asset.value = getAssetById(asset.value.id)
+function refreshAsset() {
+  asset.value = getAssetById(asset.value?.id)
   if (asset.value) {
     const end = new Date(asset.value.createdAt)
     end.setMonth(end.getMonth() + (asset.value.validityMonths || 12))
     scoped.remainingTimes = (asset.value.totalTimes || 0) - (asset.value.usedTimes || 0)
     scoped.remainingDays = Math.max(0, Math.ceil((end - Date.now()) / 86400000))
   }
-  records.value = getWriteOffs(asset.value.id)
+}
+
+function showDetail(r) { detailRecord.value = r }
+function onUpdated() {
+  detailRecord.value = null
+  refreshAsset()
+  records.value = getWriteOffs(asset.value?.id)
+}
+function onDeleted() {
+  detailRecord.value = null
+  refreshAsset()
+  records.value = getWriteOffs(asset.value?.id)
 }
 
 function navigateBack() { router.push(`/asset-detail?id=${asset.value?.id || ''}`) }
