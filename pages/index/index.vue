@@ -15,9 +15,9 @@
     <!-- 标题区 -->
     <div class="hero">
       <div class="hero-icon">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="24" cy="24" r="20"/>
-          <path d="M16 24l6 6 10-12"/>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
         </svg>
       </div>
       <h2 class="hero-title">预付消费，看得懂、算得清、管得住</h2>
@@ -46,7 +46,7 @@
     <div class="card-row">
       <div class="card-blue card-half" @click="goCheck">
         <div class="card-bar" />
-        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><circle cx="14" cy="14" r="11"/><path d="M10 10l8 8M10 18l8-8"/></svg>
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span class="card-title">购买前先检查</span>
         <p class="card-desc">录入套餐信息，测算单次成本</p>
         <p class="card-desc">识别预付消费隐藏风险</p>
@@ -54,7 +54,7 @@
       </div>
       <div class="card-blue card-half" @click="goAssets">
         <div class="card-bar" />
-        <svg class="card-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="7" width="20" height="14" rx="2"/><line x1="4" y1="12" x2="24" y2="12"/><line x1="14" y1="12" x2="14" y2="21"/></svg>
+        <svg class="card-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         <span class="card-title">我的预付资产</span>
         <span class="card-amount">预付总额 {{ locked ? '•••' : totalAmount.toLocaleString() }} 元</span>
         <p class="card-desc">在库储值卡 {{ locked ? '•••' : assetCount }} 张</p>
@@ -65,7 +65,7 @@
     <!-- 消费证据资料夹 -->
     <div class="card-blue evidence-card" @click="goEvidenceFolder">
       <div class="card-bar" />
-      <svg class="card-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <svg class="card-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
       <span class="card-title">消费证据资料夹</span>
       <p class="card-desc-long">归集合同、付款截图、核销记录，纠纷一键导出全套维权凭证</p>
       <span class="link-blue" @click.stop="goNewFolder">新建资料夹 ›</span>
@@ -85,7 +85,7 @@
     <!-- 快速录入确认弹窗 -->
     <div v-if="showQuickDialog" class="mask" @click="showQuickDialog = false">
       <div class="quick-dialog" @click.stop>
-        <span class="qd-icon">⚡</span>
+        <svg class="qd-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         <span class="qd-title">快速录入模式</span>
         <span class="qd-desc">仅填写核心信息，10 秒完成建卡<br>其余信息可后续在资产详情中补充</span>
         <div class="qd-btn" @click="goQuickInput">进入快速录入</div>
@@ -199,7 +199,7 @@ function onCustomScene(name) {
 /* 快速录入弹窗 */
 .mask { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; }
 .quick-dialog { width: 280px; background: #fff; border-radius: 18px; padding: 28px 24px 20px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
-.qd-icon { font-size: 40px; display: block; margin-bottom: 8px; }
+.qd-icon { display: block; margin: 0 auto 8px; }
 .qd-title { display: block; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 8px; }
 .qd-desc { display: block; font-size: 13px; color: #638F8D; line-height: 1.6; margin-bottom: 20px; }
 .qd-btn { height: 46px; background: #48A9A6; color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }

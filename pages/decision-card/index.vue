@@ -14,7 +14,11 @@
     <template v-if="!loading && data.totalPrice">
       <!-- ═══ 结论横幅 ═══ -->
       <div class="verdict" :class="'verdict-' + verdictLevel">
-        <div class="verdict-icon">{{ verdictIcon }}</div>
+        <div class="verdict-icon">
+          <svg v-if="verdictLevel==='green'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <svg v-else-if="verdictLevel==='orange'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FD7E14" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg v-else width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DC3545" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
         <div class="verdict-text">
           <span class="verdict-title">{{ verdictTitle }}</span>
           <span class="verdict-sub">{{ verdictSub }}</span>
@@ -48,7 +52,7 @@
       <!-- ═══ 花费算账 ═══ -->
       <div class="section">
         <div class="section-head">
-          <span class="section-icon">💰</span>
+          <svg class="section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span class="section-title">你的花费算账</span>
         </div>
 
@@ -64,7 +68,9 @@
           <span class="cost-label">你的月预算</span>
           <span class="cost-value">¥{{ budgetCompare.monthlyBudget }}</span>
           <span class="cost-sub" :class="budgetCompare.over ? 'text-danger' : 'text-ok'">
-            {{ budgetCompare.over ? '⚠️ ' : '✓ ' }}{{ budgetCompare.msg }}
+            <svg v-if="budgetCompare.over" class="inline-icon warn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC3545" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg v-else class="inline-icon ok" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#28A745" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ budgetCompare.msg }}
           </span>
         </div>
 
@@ -73,7 +79,9 @@
           <span class="cost-label">消耗节奏</span>
           <span class="cost-value">每周 {{ freqInfo.needed }} 次</span>
           <span class="cost-sub" :class="freqInfo.ok ? 'text-ok' : 'text-danger'">
-            {{ freqInfo.ok ? '✓ ' : '⚠️ ' }}{{ freqInfo.msg }}
+            <svg v-if="freqInfo.ok" class="inline-icon ok" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#28A745" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg v-else class="inline-icon warn" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC3545" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            {{ freqInfo.msg }}
           </span>
         </div>
         <!-- 频率分析（无限次） -->
@@ -104,7 +112,7 @@
       <!-- ═══ 需要关注的问题 ═══ -->
       <div class="section" v-if="problems.length">
         <div class="section-head">
-          <span class="section-icon">⚠️</span>
+          <svg class="section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FD7E14" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span class="section-title">需要关注的问题</span>
           <span class="section-badge">{{ problems.length }} 项</span>
         </div>
@@ -112,31 +120,37 @@
         <div class="problem-item" v-for="p in problems" :key="p.code" :class="'problem-' + p.level">
           <div class="problem-bar" />
           <div class="problem-body">
-            <span class="problem-fact">{{ p.icon }} {{ p.fact }}</span>
-            <span class="problem-action">→ {{ p.action }}</span>
+            <span class="problem-fact">{{ p.fact }}</span>
+            <span class="problem-action">{{ p.action }}</span>
           </div>
         </div>
       </div>
 
       <!-- ═══ 已通过检查 ═══ -->
       <div class="passed-toggle" v-if="passedCount > 0" @click="showPassed = !showPassed">
-        <span>✓ 通过 {{ passedCount }} 项检查</span>
+        <span>
+          <svg class="inline-icon ok" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          通过 {{ passedCount }} 项检查
+        </span>
         <span class="passed-arrow" :class="{ open: showPassed }">›</span>
       </div>
       <div class="passed-list" v-if="showPassed">
         <div class="passed-item" v-for="p in passedItems" :key="p.code">
-          <span class="passed-fact">✓ {{ p.fact }}</span>
+          <span class="passed-fact">
+            <svg class="inline-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ p.fact }}
+          </span>
         </div>
       </div>
 
       <!-- ═══ 付款前行动清单 ═══ -->
       <div class="section checklist" v-if="checklist.length">
         <div class="section-head">
-          <span class="section-icon">📋</span>
+          <svg class="section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
           <span class="section-title">付款前建议你做这些</span>
         </div>
         <div class="check-item" v-for="(item, i) in checklist" :key="i">
-          <span class="check-box">☐</span>
+          <svg class="check-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
           <span class="check-text">{{ item }}</span>
         </div>
       </div>
@@ -160,7 +174,7 @@
               </div>
             </div>
             <div class="dim-rule" v-for="r in dim.rules" :key="r.code" :class="'dr-' + r.level">
-              <span class="dr-text">{{ r.level === 'high' ? '🔴' : r.level === 'medium' ? '🟡' : '○' }} {{ r.layers.fact }}</span>
+              <span class="dr-text"><span class="dr-dot" :class="'dot-' + r.level"></span>{{ r.layers.fact }}</span>
             </div>
           </div>
         </div>
@@ -217,11 +231,6 @@ const verdictLevel = computed(() => {
   if (h >= 3) return 'red'
   if (h >= 1 || m >= 3) return 'orange'
   return 'green'
-})
-const verdictIcon = computed(() => {
-  if (verdictLevel.value === 'red') return '🔴'
-  if (verdictLevel.value === 'orange') return '🟠'
-  return '🟢'
 })
 const verdictTitle = computed(() => {
   if (verdictLevel.value === 'red') return '建议谨慎决策'
@@ -350,7 +359,6 @@ const problems = computed(() => {
     .map(r => ({
       code: r.code,
       level: r.level,
-      icon: r.level === 'high' ? '🔴' : '🟡',
       fact: r.layers.fact,
       action: r.layers.action || '建议核实后再做决定'
     }))
@@ -443,7 +451,7 @@ function onAssetConfirm() {
 .verdict-green { background: #E8F5F0; border: 1.5px solid #48A9A6; }
 .verdict-orange { background: #FFF8EE; border: 1.5px solid #FD7E14; }
 .verdict-red { background: #FFF0F0; border: 1.5px solid #DC3545; }
-.verdict-icon { font-size: 28px; }
+.verdict-icon { flex-shrink: 0; }
 .verdict-title { display: block; font-size: 18px; font-weight: bold; color: #245957; }
 .verdict-sub { display: block; font-size: 12px; color: #4A7A77; margin-top: 2px; }
 .verdict-red .verdict-title { color: #A71D2A; }
@@ -461,8 +469,9 @@ function onAssetConfirm() {
 /* ── 通用区块 ── */
 .section { margin: 10px 16px; padding: 16px; background: #fff; border: 1px solid #48A9A6; border-radius: 14px; }
 .section-head { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
-.section-icon { font-size: 18px; }
+.section-icon { flex-shrink: 0; }
 .section-title { font-size: 15px; font-weight: bold; color: #245957; flex: 1; }
+.inline-icon { flex-shrink: 0; vertical-align: middle; margin-right: 2px; }
 .section-badge { font-size: 11px; padding: 2px 10px; border-radius: 10px; background: #DC3545; color: #fff; font-weight: bold; }
 
 /* ── 花费算账 ── */
@@ -503,7 +512,7 @@ function onAssetConfirm() {
 /* ── 行动清单 ── */
 .checklist { border-color: #48A9A6; }
 .check-item { display: flex; gap: 10px; padding: 8px 0; align-items: flex-start; }
-.check-box { font-size: 16px; color: #48A9A6; flex-shrink: 0; }
+.check-box { flex-shrink: 0; margin-top: 1px; }
 .check-text { font-size: 13px; color: #245957; line-height: 1.5; }
 
 /* ── 底部 ── */
@@ -547,6 +556,10 @@ function onAssetConfirm() {
 .ds.on { background: #48A9A6; }
 .dim-rule { padding: 4px 0; }
 .dr-text { font-size: 11px; color: #638F8D; line-height: 1.4; }
+.dr-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.dot-high { background: #DC3545; }
+.dot-medium { background: #FD7E14; }
+.dot-low, .dot-none { background: #B8E6E1; }
 .dr-high .dr-text { color: #DC3545; }
 .dr-medium .dr-text { color: #FD7E14; }
 </style>

@@ -7,7 +7,7 @@
     </div>
 
     <div class="hint-card">
-      <span class="hint-icon">⚡</span>
+      <svg class="hint-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       <span class="hint-text">只填核心信息，10 秒完成，其余可后续补充</span>
     </div>
 
@@ -55,7 +55,10 @@
       </div>
     </div>
 
-    <div class="btn-create" @click="doCreate">⚡ 直接创建资产卡</div>
+    <div class="btn-create" @click="doCreate">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      直接创建资产卡
+    </div>
     <span class="disclaimer">创建后可在资产详情中补充更多信息</span>
   </div>
 </template>
@@ -145,7 +148,7 @@ function doCreate() {
 .title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 17px; font-weight: bold; color: #245957; }
 
 .hint-card { display: flex; align-items: center; gap: 8px; margin: 10px 16px; padding: 10px 14px; background: #F5FAFA; border: 1px dashed #48A9A6; border-radius: 10px; }
-.hint-icon { font-size: 18px; }
+.hint-icon { flex-shrink: 0; }
 .hint-text { font-size: 12px; color: #4A7A77; }
 
 .label { display: block; font-size: 14px; font-weight: bold; color: #245957; margin: 14px 16px 4px; }

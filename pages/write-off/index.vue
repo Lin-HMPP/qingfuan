@@ -35,7 +35,7 @@
       <!-- 无限次模式：自动1次 + 频率分析 -->
       <template v-else>
         <div class="checkin-badge">
-          <span class="checkin-icon">📍</span>
+          <svg class="checkin-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>本次到店自动计 1 次打卡</span>
         </div>
         <div class="freq-tip" v-if="freqAdvice">
@@ -113,11 +113,11 @@ const freqAdvice = computed(() => {
   const expectedVisits = Math.round(used / Math.max(0.01, elapsedRatio))
   const weeklyAvg = (used / Math.max(1, daysSinceStart / 7)).toFixed(1)
 
-  if (used === 0) return '💡 完成首次打卡，开始追踪到店频率'
-  if (elapsedRatio > 0.7 && used < 5) return `⚠️ 已过${Math.round(elapsedRatio*100)}%有效期，仅到店${used}次，周均${weeklyAvg}次偏少`
-  if (weeklyAvg >= 3) return `✅ 周均到店 ${weeklyAvg} 次，频率很好，物有所值`
-  if (weeklyAvg >= 1.5) return `👍 周均到店 ${weeklyAvg} 次，频率适中`
-  return `📊 周均到店 ${weeklyAvg} 次，建议保持规律到店`
+  if (used === 0) return '完成首次打卡，开始追踪到店频率'
+  if (elapsedRatio > 0.7 && used < 5) return `已过${Math.round(elapsedRatio*100)}%有效期，仅到店${used}次，周均${weeklyAvg}次偏少`
+  if (weeklyAvg >= 3) return `周均到店 ${weeklyAvg} 次，频率很好，物有所值`
+  if (weeklyAvg >= 1.5) return `周均到店 ${weeklyAvg} 次，频率适中`
+  return `周均到店 ${weeklyAvg} 次，建议保持规律到店`
 })
 
 onMounted(() => {
@@ -164,7 +164,7 @@ function onSave() {
     records.value = getWriteOffs(asset.value.id)
     form.note = ''
     track('打卡', '到店记录', asset.value.storeName)
-    $toast?.('打卡已记录 📍')
+    $toast?.('打卡已记录')
     return
   }
 
@@ -244,7 +244,7 @@ function navigateBack() { router.push(`/asset-detail?id=${asset.value?.id || ''}
   background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 8px;
   font-size: 13px; color: #245957; font-weight: bold;
 }
-.checkin-icon { font-size: 18px; }
+.checkin-icon { flex-shrink: 0; }
 .freq-tip {
   padding: 8px 12px; margin-bottom: 8px;
   background: #F5FAFA; border: 1px dashed #48A9A6; border-radius: 6px;

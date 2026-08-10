@@ -90,10 +90,22 @@
 
     <!-- 四大功能按钮 -->
     <div class="btn-group">
-      <div class="btn-primary" @click="!isExpired && goWriteOff()" :class="{ disabled: isExpired }">◯ 核销记录</div>
-      <div class="btn-primary" @click="showPause = true">◯ 暂停 / 改期</div>
-      <div class="btn-secondary" @click="showRefund = true">◯ 申请退款</div>
-      <div class="btn-secondary" @click="goEvidence">◯ 查看证据资料</div>
+      <div class="btn-primary" @click="!isExpired && goWriteOff()" :class="{ disabled: isExpired }">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:6px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        核销记录
+      </div>
+      <div class="btn-primary" @click="showPause = true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:6px"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        暂停 / 改期
+      </div>
+      <div class="btn-secondary" @click="showRefund = true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:6px"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        申请退款
+      </div>
+      <div class="btn-secondary" @click="goEvidence">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:6px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        查看证据资料
+      </div>
     </div>
 
     <span class="disclaimer">权益数值为动态测算结果，线下协商以合同原件为准</span>

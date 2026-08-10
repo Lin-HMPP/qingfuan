@@ -26,8 +26,14 @@
       </div>
       <!-- 滑动操作菜单 -->
       <div class="action-menu" v-if="menuFolderId === f.id" @click.stop>
-        <div class="action-item" @click="startEdit(f)">✏️ 编辑</div>
-        <div class="action-item danger" @click="confirmDel(f)">🗑️ 删除</div>
+        <div class="action-item" @click="startEdit(f)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          编辑
+        </div>
+        <div class="action-item danger" @click="confirmDel(f)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          删除
+        </div>
       </div>
     </div>
 
@@ -262,7 +268,7 @@ function doExport(folder) {
               if(isImg){
                 report+=`<br><img src="${f.dataUrl}" style="max-width:100%;border-radius:4px">`
               } else {
-                report+=`<br><a href="${f.dataUrl}" download="${escapeHtml(f.name)}" style="display:inline-block;margin-top:6px;padding:6px 14px;background:#48A9A6;color:#fff;border-radius:6px;text-decoration:none;font-size:12px">📥 下载文件</a>`
+                report+=`<br><a href="${f.dataUrl}" download="${escapeHtml(f.name)}" style="display:inline-block;margin-top:6px;padding:6px 14px;background:#48A9A6;color:#fff;border-radius:6px;text-decoration:none;font-size:12px">&#8595; 下载文件</a>`
               }
             }
             report+='</div>'

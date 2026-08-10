@@ -89,7 +89,7 @@
         <span class="be-detail">你计划每周到店 <b>{{ result.costs.breakEven.weeklyFreq }}</b> 次</span>
         <span class="be-detail">理想单次成本约 <b>¥{{ result.costs.breakEven.idealPerVisitCost.toFixed(1) }}</b></span>
         <div class="be-verdict" :class="result.costs.breakEven.visitsPerWeek <= result.costs.breakEven.weeklyFreq ? 'good' : 'warn'">
-          {{ result.costs.breakEven.visitsPerWeek <= result.costs.breakEven.weeklyFreq ? '✅ 频率达标，充卡划算' : '⚠️ 频率不足，可能难以回本' }}
+          {{ result.costs.breakEven.visitsPerWeek <= result.costs.breakEven.weeklyFreq ? '✓ 频率达标，充卡划算' : '! 频率不足，可能难以回本' }}
         </div>
       </div>
 
