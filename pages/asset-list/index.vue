@@ -49,6 +49,8 @@ import { locked } from '@/store/lock.js'
 import { getAssets } from '@/common/storage.js'
 
 const router = useRouter()
+const $toast = (msg) => window.__toast?.(msg)
+function guard() { if (locked.value) { $toast('信息已锁定，请先解锁'); return false } return true }
 const assets = computed(() => getAssets())
 const totalAmount = computed(() => assets.value.reduce((s, a) => s + (a.totalPrice || 0), 0))
 const expiringCount = computed(() => assets.value.filter(a => isExpiring(a)).length)
@@ -62,10 +64,10 @@ function isExpiring(a) { return remainingDays(a) <= 30 }
 function unitCost(a) { return a.totalTimes ? Math.round(a.totalPrice / a.totalTimes) : 0 }
 
 function navigateBack() { router.push('/') }
-function goDetail(asset) { if (locked.value) return; router.push(`/asset-detail?id=${asset.id}`) }
-function goWriteOff(asset) { if (locked.value) return; router.push(`/write-off?id=${asset.id}`) }
-function goEvidence(asset) { if (locked.value) return; router.push(`/evidence-folder?assetId=${asset.id}`) }
-function goAdd() { if (locked.value) return; router.push('/package-input') }
+function goDetail(asset) { if (!guard()) return; router.push(`/asset-detail?id=${asset.id}`) }
+function goWriteOff(asset) { if (!guard()) return; router.push(`/write-off?id=${asset.id}`) }
+function goEvidence(asset) { if (!guard()) return; router.push(`/evidence-folder?assetId=${asset.id}`) }
+function goAdd() { if (!guard()) return; router.push('/package-input') }
 </script>
 
 <style lang="scss" scoped>

@@ -108,6 +108,8 @@ import { track } from '@/common/analytics.js'
 import PackageLoading from '@/components/package-loading/index.vue'
 
 const router = useRouter()
+const $toast = (msg) => window.__toast?.(msg)
+function guard() { if (locked.value) { $toast('信息已锁定，请先解锁'); return false } return true }
 const showLoading = ref(false)
 const showTypePicker = ref(false)
 const showMethodPicker = ref(false)
@@ -140,7 +142,7 @@ function navigateBack() {
     router.back()
   }
 }
-function selectFolder(f) { if (locked.value) return; currentFolder.value=f }
+function selectFolder(f) { if (!guard()) return; currentFolder.value=f }
 
 // 导出
 function onExport(f) { track('证据夹', '导出单个'); currentFolder.value=f; doExport(f) }
