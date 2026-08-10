@@ -376,10 +376,10 @@ function goBack() {
   if (hasContent) {
     if (window.confirm('放弃编辑？\n当前内容尚未保存，确定返回吗？')) {
       saveDraft({ form: form.value, scene: scene.value, images: images.value })
-      router.push('/')
+      router.push('/home')
     }
   } else {
-    router.push('/')
+    router.push('/home')
   }
 }
 

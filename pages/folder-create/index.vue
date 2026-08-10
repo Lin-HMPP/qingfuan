@@ -51,7 +51,7 @@ const assetOptions = computed(() => {
   } catch (e) { return [] }
 })
 
-function goBack() { router.back() }
+function goBack() { router.push('/evidence-folder') }
 
 const $toast = (msg) => window.__toast?.(msg)
 
@@ -62,7 +62,7 @@ function doCreate() {
   try {
     addFolder({ assetId: assetId.value, name, note: folderNote.value.trim() })
     $toast('文件夹创建成功')
-    setTimeout(() => router.back(), 800)
+    setTimeout(() => router.push('/evidence-folder'), 800)
   } catch (e) {
     $toast('创建失败：' + e.message)
   }

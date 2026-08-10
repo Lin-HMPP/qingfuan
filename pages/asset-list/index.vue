@@ -108,7 +108,7 @@ function remainingDays(a) {
 function isExpiring(a) { const d = remainingDays(a); return d <= 30 && d > 0 }
 function unitCost(a) { return a.totalTimes ? Math.round(a.totalPrice / a.totalTimes) : 0 }
 
-function navigateBack() { router.push('/') }
+function navigateBack() { router.push('/home') }
 function goDetail(asset) { if (!guard()) return; router.push(`/asset-detail?id=${asset.id}`) }
 function goWriteOff(asset) { if (!guard()) return; router.push(`/write-off?id=${asset.id}`) }
 function goEvidence(asset) { if (!guard()) return; router.push(`/evidence-folder?assetId=${asset.id}`) }

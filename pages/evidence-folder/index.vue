@@ -150,7 +150,7 @@ function navigateBack() {
   if (currentFolder.value?.assetId) {
     router.push(`/asset-detail?id=${currentFolder.value.assetId}`)
   } else {
-    router.back()
+    router.push('/asset-list')
   }
 }
 function goNewFolder() { if (!guard()) return; router.push('/folder-create') }

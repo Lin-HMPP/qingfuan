@@ -104,7 +104,7 @@ onMounted(() => {
   }
 })
 
-function navigateBack() { router.back() }
+function navigateBack() { router.push('/decision-card') }
 function confirmAsset() {
   if (data.value && data.value.totalPrice) {
     const asset = addAsset({

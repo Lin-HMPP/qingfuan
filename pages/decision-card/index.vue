@@ -260,7 +260,7 @@ function navigateBack() {
   if (data.value && data.value.totalPrice) {
     sessionStorage.setItem('qf_draft_back', JSON.stringify(data.value))
   }
-  router.back()
+  router.push('/package-input')
 }
 
 function goRiskReport() {
