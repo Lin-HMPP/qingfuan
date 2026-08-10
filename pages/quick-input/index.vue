@@ -136,7 +136,6 @@ function doCreate() {
   })
   addFolder({ assetId: asset.id, name: form.storeName.trim() + '·凭证', note: '快速录入自动创建' })
   track('快速录入', '创建资产', form.scene, price)
-  $toast('资产卡已创建')
   router.replace('/asset-list')
 }
 </script>
