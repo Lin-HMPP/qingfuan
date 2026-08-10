@@ -24,7 +24,25 @@
   </script>
   <style>
     html, body, #app { margin: 0; padding: 0; height: 100%; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; background: #F5FAFA; }
+    /* 加载屏 */
+    #app-loading {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #F5FAFA;
+    }
+    #app-loading .ld-icon {
+      width: 64px; height: 64px; margin-bottom: 20px;
+      border: 3px solid #B8E6E1; border-top-color: #48A9A6;
+      border-radius: 50%; animation: ld-spin .8s linear infinite;
+    }
+    @keyframes ld-spin { to { transform: rotate(360deg); } }
+    #app-loading .ld-text { font-size: 16px; color: #48A9A6; font-weight: bold; }
+    #app-loading .ld-sub { font-size: 12px; color: #638F8D; margin-top: 6px; }
+    #app-loading.done {
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+    }
     /* 移动端居中容器 */
     @media (min-width: 450px) {
       body { background: #E8E8E8; display: flex; justify-content: center; }
@@ -33,6 +51,11 @@
   </style>
 </head>
 <body>
+  <div id="app-loading">
+    <div class="ld-icon"></div>
+    <div class="ld-text">小助手正在赶来</div>
+    <div class="ld-sub">青付安 · 你的预付消费管家</div>
+  </div>
   <div id="app"></div>
   <script type="module" src="/main.js"></script>
 </body>

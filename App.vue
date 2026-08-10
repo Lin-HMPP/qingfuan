@@ -32,6 +32,12 @@ onMounted(() => {
   window.__showPin = (mode) => { window.__pinMode = mode; showPinLock.value = true }
   checkLock()
   if (locked.value) showPinLock.value = true
+  // 加载完成，隐藏启动屏
+  const loading = document.getElementById('app-loading')
+  if (loading) {
+    loading.classList.add('done')
+    setTimeout(() => loading.remove(), 400)
+  }
 })
 
 function onUnlocked() { doUnlock(); showPinLock.value = false }
