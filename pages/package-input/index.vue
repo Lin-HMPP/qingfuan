@@ -32,17 +32,17 @@
       </div>
 
       <span class="label"><span class="star">*</span><span class="label-text">套餐总价（元）</span></span>
-      <input class="input-blue" v-model="form.totalPrice" type="text" inputmode="decimal" placeholder="输入实付总金额" />
+      <input class="input-blue" v-model="form.totalPrice" type="text" inputmode="decimal" :placeholder="sceneCopy.totalPriceHint" />
 
-      <span class="label"><span class="star">*</span><span class="label-text">总服务次数</span><span class="label-hint">（不含赠课次数）</span></span>
+      <span class="label"><span class="star">*</span><span class="label-text">{{ sceneCopy.timesLabel }}</span><span class="label-hint">{{ sceneCopy.timesHint }}</span></span>
       <div class="no-expiry-toggle" @click="toggleUnlimited()" :class="{ active: form.unlimited }">
         <div class="toggle-dot"></div>
-        <span class="toggle-label">无限次（充卡 / 不限次数）</span>
+        <span class="toggle-label">{{ sceneCopy.unlimitedLabel }}</span>
       </div>
       <div v-if="!form.unlimited">
-        <input class="input-blue" v-model="form.totalTimes" type="number" placeholder="不含赠课次数" />
-        <span class="label"><span class="label-text">赠送次数/赠课</span></span>
-        <input class="input-blue" v-model="form.giftTimes" type="number" placeholder="无赠送填0" />
+        <input class="input-blue" v-model="form.totalTimes" type="number" :placeholder="sceneCopy.timesHint.replace(/[（）]/g,'')" />
+        <span class="label"><span class="label-text">赠送</span></span>
+        <input class="input-blue" v-model="form.giftTimes" type="number" :placeholder="sceneCopy.giftHint" />
       </div>
       <span class="validity-display" v-if="form.unlimited">
         充卡模式 · 不限次数，在有效期内任意到店
@@ -54,7 +54,7 @@
         <span class="toggle-label">没有固定期限（次卡）</span>
       </div>
       <div class="validity-row" v-if="!form.noExpiry">
-        <input class="input-blue validity-input" v-model="form.validityValue" type="number" placeholder="输入数字" />
+        <input class="input-blue validity-input" v-model="form.validityValue" type="number" :placeholder="sceneCopy.validityHint" />
         <div class="unit-tabs">
           <div class="unit-tab" :class="{ active: form.validityUnit === 'day' }" @click="form.validityUnit = 'day'">日</div>
           <div class="unit-tab" :class="{ active: form.validityUnit === 'month' }" @click="form.validityUnit = 'month'">月</div>
@@ -83,10 +83,10 @@
       </div>
       <div v-if="showModule2" @click.stop>
         <span class="label"><span class="star">*</span><span class="label-text">每月可支配预付预算</span></span>
-        <input class="input-blue" v-model="form.monthlyBudget" type="text" inputmode="decimal" placeholder="每月能用于办卡的支出上限" />
+        <input class="input-blue" v-model="form.monthlyBudget" type="text" inputmode="decimal" :placeholder="sceneCopy.budgetHint" />
 
         <span class="label"><span class="star">*</span><span class="label-text">预计每周到店使用次数</span></span>
-        <input class="input-blue" v-model="form.weeklyFreq" type="text" inputmode="decimal" placeholder="如每周2次" />
+        <input class="input-blue" v-model="form.weeklyFreq" type="text" inputmode="decimal" :placeholder="sceneCopy.freqHint" />
 
         <div v-if="freqEstimate.show" class="freq-info" :class="freqEstimate.risk ? 'freq-warn' : 'freq-ok'">
           {{ freqEstimate.msg }}
@@ -103,13 +103,13 @@
       </div>
       <div v-if="showModule3" @click.stop>
         <span class="label"><span class="star">*</span><span class="label-text">门店宣传名称</span></span>
-        <input class="input-blue" v-model="form.storeName" placeholder="门店招牌、海报上的名称" />
+        <input class="input-blue" v-model="form.storeName" :placeholder="sceneCopy.storeHint" />
 
         <span class="label"><span class="star">*</span><span class="label-text">合同签约主体名称</span></span>
-        <input class="input-blue" v-model="form.contractName" placeholder="合同盖章公司名" />
+        <input class="input-blue" v-model="form.contractName" :placeholder="sceneCopy.contractHint" />
 
         <span class="label"><span class="star">*</span><span class="label-text">收款账户/商家收款名</span></span>
-        <input class="input-blue" v-model="form.payeeName" placeholder="微信/支付宝收款显示名称" />
+        <input class="input-blue" v-model="form.payeeName" :placeholder="sceneCopy.payeeHint" />
       </div>
     </div>
 
@@ -129,8 +129,7 @@
           <span class="rule-arrow" :class="{ open: refundOpen }">▼</span>
         </div>
         <div class="rule-options" v-if="refundOpen">
-          <div class="rule-option" :class="{ active: refundPreset === 'full' }" @click.stop="selectRefund('full')">未开卡全额退，开卡按比例退</div>
-          <div class="rule-option" :class="{ active: refundPreset === 'custom' }" @click.stop="selectRefund('custom')">其他</div>
+          <div class="rule-option" v-for="opt in sceneCopy.refundOptions" :key="opt.key" :class="{ active: refundPreset === opt.key }" @click.stop="selectRefund(opt.key)">{{ opt.label }}</div>
           <div class="rule-custom" v-if="refundPreset === 'custom'" @click.stop>
             <input class="input-blue" v-model="refundCustomText" placeholder="请输入退款规则" @input="onRefundCustomInput" />
           </div>
@@ -143,9 +142,7 @@
           <span class="rule-arrow" :class="{ open: transferOpen }">▼</span>
         </div>
         <div class="rule-options" v-if="transferOpen">
-          <div class="rule-option" :class="{ active: transferPreset === 'no' }" @click.stop="selectTransfer('no')">不可转卡</div>
-          <div class="rule-option" :class="{ active: transferPreset === 'free' }" @click.stop="selectTransfer('free')">可转卡，无手续费</div>
-          <div class="rule-option" :class="{ active: transferPreset === 'fee' }" @click.stop="selectTransfer('fee')">可转卡，手续费 __%</div>
+          <div class="rule-option" v-for="opt in sceneCopy.transferOptions" :key="opt.key" :class="{ active: transferPreset === opt.key }" @click.stop="selectTransfer(opt.key)">{{ opt.label }}</div>
           <div class="rule-custom" v-if="transferPreset === 'fee'" @click.stop>
             <span class="inline-label">手续费</span>
             <input class="input-blue fee-input" v-model.number="transferFee" type="number" placeholder="%" min="0" max="100" @input="onTransferFeeInput" />
@@ -160,9 +157,7 @@
           <span class="rule-arrow" :class="{ open: pauseOpen }">▼</span>
         </div>
         <div class="rule-options" v-if="pauseOpen">
-          <div class="rule-option" :class="{ active: pausePreset === 'no' }" @click.stop="selectPause('no')">不可暂停</div>
-          <div class="rule-option" :class="{ active: pausePreset === 'free' }" @click.stop="selectPause('free')">可暂停，无附加条件</div>
-          <div class="rule-option" :class="{ active: pausePreset === 'custom' }" @click.stop="selectPause('custom')">可暂停 __ 次，每次最长 __ 天</div>
+          <div class="rule-option" v-for="opt in sceneCopy.pauseOptions" :key="opt.key" :class="{ active: pausePreset === opt.key }" @click.stop="selectPause(opt.key)">{{ opt.label }}</div>
           <div class="rule-custom" v-if="pausePreset === 'custom'" @click.stop>
             <span class="inline-label">可暂停</span>
             <input class="input-blue pause-num" v-model.number="pauseCount" type="number" placeholder="次" min="0" @input="onPauseCustomInput" />
@@ -182,7 +177,7 @@
         <span class="fold-arrow">{{ showModule5 ? '▼' : '›' }}</span>
       </div>
       <div v-if="showModule5" @click.stop>
-        <input class="input-blue" v-model="form.promoNote" placeholder="如：限时优惠、赠送权益说明等" />
+        <input class="input-blue" v-model="form.promoNote" :placeholder="sceneCopy.promoHint" />
       </div>
     </div>
 
@@ -261,6 +256,156 @@ import { isPositiveNumber, isPositiveInt } from '@/common/validator.js'
 import { track } from '@/common/analytics.js'
 import ScenePicker from '@/components/scene-picker/index.vue'
 import SceneCustom from '@/components/scene-picker/custom.vue'
+
+// ── 场景化文案配置 ──
+const SCENE_COPY = {
+  '健身/舞蹈': {
+    totalPriceHint: '如：年卡 ¥2,880、季卡 ¥980',
+    timesLabel: '总服务次数',
+    timesHint: '（不含赠课次数）',
+    giftHint: '如：赠送2节私教课，无赠送填0',
+    unlimitedLabel: '无限次（充年卡 / 不限次数）',
+    validityHint: '如：12',
+    budgetHint: '如：每月愿花 300 元在健身上',
+    freqHint: '如：每周去健身房 3 次',
+    storeHint: '如：XX 健身工作室',
+    contractHint: '如：XX 体育文化有限公司',
+    payeeHint: '如：微信收款名「XX 健身」',
+    promoHint: '如：办年卡送运动包、限时8折',
+    refundOptions: [
+      { key: 'full', label: '未开卡全额退，开卡按比例退' },
+      { key: 'custom', label: '其他' }
+    ],
+    transferOptions: [
+      { key: 'no', label: '不可转卡' },
+      { key: 'free', label: '可转卡，无手续费' },
+      { key: 'fee', label: '可转卡，手续费 __%' }
+    ],
+    pauseOptions: [
+      { key: 'no', label: '不可暂停' },
+      { key: 'free', label: '可暂停，无附加条件' },
+      { key: 'custom', label: '可暂停 __ 次，每次最长 __ 天' }
+    ]
+  },
+  '培训课程': {
+    totalPriceHint: '如：考研全程班 ¥15,800、雅思冲刺 ¥4,800',
+    timesLabel: '总课时数',
+    timesHint: '（不含赠送课时）',
+    giftHint: '如：赠送10节真题课，无赠送填0',
+    unlimitedLabel: '无限次（不限课时 / 随到随学）',
+    validityHint: '如：6',
+    budgetHint: '如：每月愿花 1,000 元在培训上',
+    freqHint: '如：每周上课 4 次',
+    storeHint: '如：XX 考研培训中心',
+    contractHint: '如：XX 教育科技有限公司',
+    payeeHint: '如：微信收款名「XX 教育」',
+    promoHint: '如：报名送教材、团报优惠',
+    refundOptions: [
+      { key: 'full', label: '未开课全额退，已开课按课时比例退' },
+      { key: 'custom', label: '其他' }
+    ],
+    transferOptions: [
+      { key: 'no', label: '不可转让' },
+      { key: 'free', label: '可转让，无手续费' },
+      { key: 'fee', label: '可转让，手续费 __%' }
+    ],
+    pauseOptions: [
+      { key: 'no', label: '不可休学' },
+      { key: 'free', label: '可休学，无附加条件' },
+      { key: 'custom', label: '可休学 __ 次，每次最长 __ 天' }
+    ]
+  },
+  '摄影套餐': {
+    totalPriceHint: '如：婚纱照 ¥6,999、写真 ¥1,999',
+    timesLabel: '总拍摄套数',
+    timesHint: '（不含赠送精修）',
+    giftHint: '如：赠送10张精修，无赠送填0',
+    unlimitedLabel: '不限套数（约拍年卡）',
+    validityHint: '如：3',
+    budgetHint: '如：每月愿花 500 元在摄影上',
+    freqHint: '如：一次性消费，计划3个月内拍摄',
+    storeHint: '如：XX 婚纱摄影',
+    contractHint: '如：XX 摄影服务有限公司',
+    payeeHint: '如：微信收款名「XX 摄影」',
+    promoHint: '如：预付定金翻倍、加送相册',
+    refundOptions: [
+      { key: 'full', label: '未拍摄全额退，已拍摄按套数比例退' },
+      { key: 'custom', label: '其他' }
+    ],
+    transferOptions: [
+      { key: 'no', label: '不可转卡' },
+      { key: 'free', label: '可转卡，无手续费' },
+      { key: 'fee', label: '可转卡，手续费 __%' }
+    ],
+    pauseOptions: [
+      { key: 'no', label: '不可延期' },
+      { key: 'free', label: '可延期，无附加费用' },
+      { key: 'custom', label: '可延期 __ 次，每次最长 __ 天' }
+    ]
+  },
+  '美容美发': {
+    totalPriceHint: '如：染烫套餐 ¥1,280、年卡 ¥3,800',
+    timesLabel: '总服务次数',
+    timesHint: '（不含赠送护理）',
+    giftHint: '如：赠送2次头皮护理，无赠送填0',
+    unlimitedLabel: '无限次（充年卡 / 不限次数）',
+    validityHint: '如：6',
+    budgetHint: '如：每月愿花 200 元在美容美发上',
+    freqHint: '如：每两周去 1 次',
+    storeHint: '如：XX 美发沙龙',
+    contractHint: '如：XX 美容美发有限公司',
+    payeeHint: '如：微信收款名「XX 造型」',
+    promoHint: '如：办卡送护理套装、会员日折扣',
+    refundOptions: [
+      { key: 'full', label: '未开卡全额退，开卡按比例退' },
+      { key: 'custom', label: '其他' }
+    ],
+    transferOptions: [
+      { key: 'no', label: '不可转卡' },
+      { key: 'free', label: '可转卡，无手续费' },
+      { key: 'fee', label: '可转卡，手续费 __%' }
+    ],
+    pauseOptions: [
+      { key: 'no', label: '不可暂停' },
+      { key: 'free', label: '可暂停，无附加条件' },
+      { key: 'custom', label: '可暂停 __ 次，每次最长 __ 天' }
+    ]
+  }
+}
+
+// 默认/自定义场景的通用文案
+const DEFAULT_COPY = {
+  totalPriceHint: '输入实付总金额',
+  timesLabel: '总服务次数',
+  timesHint: '（不含赠送次数）',
+  giftHint: '无赠送填0',
+  unlimitedLabel: '无限次（充卡 / 不限次数）',
+  validityHint: '输入数字',
+  budgetHint: '每月能用于办卡的支出上限',
+  freqHint: '如每周2次',
+  storeHint: '门店招牌、海报上的名称',
+  contractHint: '合同盖章公司名',
+  payeeHint: '微信/支付宝收款显示名称',
+  promoHint: '如：限时优惠、赠送权益说明等',
+  refundOptions: [
+    { key: 'full', label: '未开卡全额退，开卡按比例退' },
+    { key: 'custom', label: '其他' }
+  ],
+  transferOptions: [
+    { key: 'no', label: '不可转卡' },
+    { key: 'free', label: '可转卡，无手续费' },
+    { key: 'fee', label: '可转卡，手续费 __%' }
+  ],
+  pauseOptions: [
+    { key: 'no', label: '不可暂停' },
+    { key: 'free', label: '可暂停，无附加条件' },
+    { key: 'custom', label: '可暂停 __ 次，每次最长 __ 天' }
+  ]
+}
+
+// 根据当前场景获取对应文案
+const sceneCopy = computed(() => SCENE_COPY[scene.value] || DEFAULT_COPY)
+
 const router = useRouter()
 const route = useRoute()
 const $toast = (msg) => window.__toast?.(msg)
@@ -325,12 +470,13 @@ const refundPreset = ref('')        // 'full' | 'custom' | ''
 const refundCustomText = ref('')
 function selectRefund(preset) {
   refundPreset.value = preset
-  if (preset === 'full') {
-    form.value.refundRule = '未开卡全额退，开卡按比例退'
-    refundOpen.value = false
-  } else if (preset === 'custom') {
+  if (preset === 'custom') {
     form.value.refundRule = refundCustomText.value
-    // 不关闭，让用户输入
+  } else {
+    // 从 sceneCopy 中查找对应的 label
+    const opt = sceneCopy.value.refundOptions.find(o => o.key === preset)
+    if (opt) form.value.refundRule = opt.label
+    refundOpen.value = false
   }
 }
 function onRefundCustomInput() {
@@ -343,20 +489,20 @@ const transferPreset = ref('')      // 'no' | 'free' | 'fee' | ''
 const transferFee = ref(null)
 function selectTransfer(preset) {
   transferPreset.value = preset
-  if (preset === 'no') {
-    form.value.transferRule = '不可转卡'
-    transferOpen.value = false
-  } else if (preset === 'free') {
-    form.value.transferRule = '可转卡，无手续费'
-    transferOpen.value = false
-  } else if (preset === 'fee') {
+  if (preset === 'fee') {
     transferFee.value = null
     form.value.transferRule = ''
+  } else {
+    const opt = sceneCopy.value.transferOptions.find(o => o.key === preset)
+    if (opt) form.value.transferRule = opt.label
+    transferOpen.value = false
   }
 }
 function onTransferFeeInput() {
   const fee = transferFee.value
-  form.value.transferRule = (fee || fee === 0) ? `可转卡，手续费${fee}%` : ''
+  // 从场景文案提取「可转卡」或「可转让」前缀
+  const prefix = sceneCopy.value.transferOptions.find(o => o.key === 'fee')?.label.replace(' __%', '') || '可转卡，手续费'
+  form.value.transferRule = (fee || fee === 0) ? `${prefix}${fee}%` : ''
 }
 
 // 暂停规则
@@ -366,22 +512,28 @@ const pauseCount = ref(null)
 const pauseDays = ref(null)
 function selectPause(preset) {
   pausePreset.value = preset
-  if (preset === 'no') {
-    form.value.pauseRule = '不可暂停'
-    pauseOpen.value = false
-  } else if (preset === 'free') {
-    form.value.pauseRule = '可暂停，无附加条件'
-    pauseOpen.value = false
-  } else if (preset === 'custom') {
+  if (preset === 'custom') {
     pauseCount.value = null
     pauseDays.value = null
     form.value.pauseRule = ''
+  } else {
+    const opt = sceneCopy.value.pauseOptions.find(o => o.key === preset)
+    if (opt) form.value.pauseRule = opt.label
+    pauseOpen.value = false
   }
 }
 function onPauseCustomInput() {
   const c = pauseCount.value
   const d = pauseDays.value
-  form.value.pauseRule = (c && d) ? `可暂停${c}次，每次最长${d}天` : (c ? `可暂停${c}次` : '')
+  // 从场景文案提取模板
+  const tmpl = sceneCopy.value.pauseOptions.find(o => o.key === 'custom')?.label || '可暂停 __ 次，每次最长 __ 天'
+  if (c && d) {
+    form.value.pauseRule = tmpl.replace('__', c).replace('__', d)
+  } else if (c) {
+    form.value.pauseRule = tmpl.replace(' __ 次，每次最长 __ 天', `${c} 次`)
+  } else {
+    form.value.pauseRule = ''
+  }
 }
 
 // 外部点击关闭规则选项
@@ -393,32 +545,45 @@ function closeAllRulePickers() {
 
 // 从 form 值反向同步规则选择器 UI 状态（草稿恢复/决策卡返回时调用）
 function syncRulePickers() {
-  // 退款规则
-  if (form.value.refundRule === '未开卡全额退，开卡按比例退') {
-    refundPreset.value = 'full'
+  const copy = sceneCopy.value
+  // 退款规则：匹配当前场景的预设项
+  const refundPresetOpt = copy.refundOptions.find(o => o.key !== 'custom' && form.value.refundRule === o.label)
+  if (refundPresetOpt) {
+    refundPreset.value = refundPresetOpt.key
   } else if (form.value.refundRule) {
     refundPreset.value = 'custom'
     refundCustomText.value = form.value.refundRule
   }
   // 转卡规则
-  if (form.value.transferRule === '不可转卡') {
+  const transferNoOpt = copy.transferOptions.find(o => o.key === 'no')
+  const transferFreeOpt = copy.transferOptions.find(o => o.key === 'free')
+  if (transferNoOpt && form.value.transferRule === transferNoOpt.label) {
     transferPreset.value = 'no'
-  } else if (form.value.transferRule === '可转卡，无手续费') {
+  } else if (transferFreeOpt && form.value.transferRule === transferFreeOpt.label) {
     transferPreset.value = 'free'
-  } else if (form.value.transferRule && form.value.transferRule.startsWith('可转卡，手续费')) {
-    transferPreset.value = 'fee'
-    const m = form.value.transferRule.match(/手续费(\d+)%/)
-    if (m) transferFee.value = parseInt(m[1])
+  } else if (form.value.transferRule) {
+    // 匹配手续费模式
+    const feeOpt = copy.transferOptions.find(o => o.key === 'fee')
+    if (feeOpt) {
+      const prefix = feeOpt.label.replace(' __%', '')
+      if (form.value.transferRule.startsWith(prefix)) {
+        transferPreset.value = 'fee'
+        const m = form.value.transferRule.match(/(\d+)%/)
+        if (m) transferFee.value = parseInt(m[1])
+      }
+    }
   }
   // 暂停规则
-  if (form.value.pauseRule === '不可暂停') {
+  const pauseNoOpt = copy.pauseOptions.find(o => o.key === 'no')
+  const pauseFreeOpt = copy.pauseOptions.find(o => o.key === 'free')
+  if (pauseNoOpt && form.value.pauseRule === pauseNoOpt.label) {
     pausePreset.value = 'no'
-  } else if (form.value.pauseRule === '可暂停，无附加条件') {
+  } else if (pauseFreeOpt && form.value.pauseRule === pauseFreeOpt.label) {
     pausePreset.value = 'free'
-  } else if (form.value.pauseRule && form.value.pauseRule.startsWith('可暂停')) {
+  } else if (form.value.pauseRule) {
     pausePreset.value = 'custom'
-    const mc = form.value.pauseRule.match(/可暂停(\d+)次/)
-    const md = form.value.pauseRule.match(/最长(\d+)天/)
+    const mc = form.value.pauseRule.match(/(\d+)\s*次/)
+    const md = form.value.pauseRule.match(/最长\s*(\d+)\s*天/)
     if (mc) pauseCount.value = parseInt(mc[1])
     if (md) pauseDays.value = parseInt(md[1])
   }
