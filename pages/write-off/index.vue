@@ -28,15 +28,16 @@
 
       <!-- 普通模式：手动输入次数 -->
       <template v-if="!isUnlimited">
-        <span class="label"><span class="star">*</span> 本次消耗课时</span>
-        <input class="input-blue" v-model="form.hours" type="number" placeholder="输入消耗次数" />
+        <span class="label"><span class="star">*</span> {{ wCopy.unitLabel }}</span>
+        <input class="input-blue" v-model="form.hours" type="number" :placeholder="wCopy.unitHint" />
+        <span class="save-note">{{ wCopy.saveNote }}</span>
       </template>
 
       <!-- 无限次模式：自动1次 + 频率分析 -->
       <template v-else>
         <div class="checkin-badge">
           <svg class="checkin-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>本次到店自动计 1 次打卡</span>
+          <span>{{ wCopy.checkinMsg }}</span>
         </div>
         <div class="freq-tip" v-if="freqAdvice">
           {{ freqAdvice }}
@@ -44,9 +45,8 @@
       </template>
 
       <span class="label">备注（选填）</span>
-      <input class="input-blue" v-model="form.note" :placeholder="isUnlimited ? '训练内容、教练姓名等' : '训练内容、教练姓名等'" />
-      <span class="save-note" v-if="!isUnlimited">保存后自动回写资产详情，更新剩余课时与到期测算</span>
-      <span class="save-note" v-else>打卡后自动累计到店次数，帮你追踪是否值回票价</span>
+      <input class="input-blue" v-model="form.note" :placeholder="wCopy.noteHint" />
+      <span class="save-note" v-if="isUnlimited">打卡后自动累计到店次数，帮你追踪是否值回票价</span>
     </div>
 
     <div class="btn-primary save-btn" @click="onSave">{{ isUnlimited ? '打卡记录' : '保存核销记录' }}</div>
@@ -55,8 +55,8 @@
     <span class="section-title" style="margin:16px 16px 8px">{{ isUnlimited ? '近期打卡记录' : '近期核销记录' }}</span>
     <div v-if="!records.length" class="no-records">暂无记录，开始{{ isUnlimited ? '打卡' : '核销' }}吧</div>
     <div class="record-item" v-for="r in records" :key="r.id" @click="showDetail(r)">
-      <span class="record-text" v-if="!isUnlimited">{{ r.date }}  {{ r.note || '核销' }}  剩余{{ r.remainingAfter }}次</span>
-      <span class="record-text" v-else>{{ r.date }}  {{ r.note || '到店打卡' }}  累计{{ r.remainingAfter }}次到店</span>
+      <span class="record-text" v-if="!isUnlimited">{{ r.date }}  {{ r.note || '核销' }}  剩余{{ r.remainingAfter }}{{ wCopy.unit }}</span>
+      <span class="record-text" v-else>{{ r.date }}  {{ r.note || '到店打卡' }}  累计{{ r.remainingAfter }}{{ wCopy.unit }}到店</span>
     </div>
 
     <write-off-detail v-if="detailRecord" :record="detailRecord" :isUnlimited="isUnlimited" @close="detailRecord = null" @deleted="onDeleted" @updated="onUpdated" />
@@ -71,6 +71,21 @@ import { getAssetById, getWriteOffs, addWriteOff, updateAsset, deleteWriteOff } 
 import { isPositiveInt } from '@/common/validator.js'
 import { track } from '@/common/analytics.js'
 import WriteOffDetail from '@/components/write-off-detail/index.vue'
+
+// ── 核销页场景化文案 ──
+const WRITEOFF_COPY = {
+  '健身/舞蹈': { unit: '次', unitLabel: '消耗次数', unitHint: '输入本次消耗次数', noteHint: '训练内容、教练姓名等', saveNote: '保存后自动回写资产详情，更新剩余次数与到期测算', checkinMsg: '本次到店锻炼自动计 1 次' },
+  '培训课程': { unit: '课时', unitLabel: '消耗课时', unitHint: '输入本次消耗课时', noteHint: '上课内容、授课老师等', saveNote: '保存后自动回写资产详情，更新剩余课时与到期测算', checkinMsg: '本次上课自动计 1 课时' },
+  '摄影套餐': { unit: '套', unitLabel: '拍摄套数', unitHint: '输入本次拍摄套数', noteHint: '拍摄内容、摄影师等', saveNote: '保存后自动回写资产详情，更新剩余套数与到期测算', checkinMsg: '本次约拍自动计 1 套' },
+  '美容美发': { unit: '次', unitLabel: '消费次数', unitHint: '输入本次消费次数', noteHint: '服务项目、发型师等', saveNote: '保存后自动回写资产详情，更新剩余次数与到期测算', checkinMsg: '本次到店消费自动计 1 次' },
+}
+const DEFAULT_WRITEOFF = { unit: '次', unitLabel: '消耗次数', unitHint: '输入消耗次数', noteHint: '训练内容、教练姓名等', saveNote: '保存后自动回写资产详情，更新剩余次数与到期测算', checkinMsg: '本次到店自动计 1 次打卡' }
+
+// 根据资产场景获取文案
+const wCopy = computed(() => {
+  const scene = asset.value?.scene || ''
+  return WRITEOFF_COPY[scene] || DEFAULT_WRITEOFF
+})
 
 const router = useRouter()
 const route = useRoute()

@@ -445,18 +445,21 @@ function ruleR12(d) {
   const hasPromo = d.hasPromo === true || d.hasPromo === 'true'
   const hasRecord = d.hasRecord === true || d.hasRecord === 'true'
   const complete = [hasContract, hasPayment, hasPromo, hasRecord].filter(Boolean).length
-  const missing = []
-  if (!hasContract) missing.push('合同协议/付款截图')
-  if (!hasPayment) missing.push('付款凭证')
-  if (!hasPromo) missing.push('宣传材料（海报/聊天记录）')
-  if (!hasRecord) missing.push('核销打卡记录')
+  const materialList = [
+    { key: 'contract',  label: '合同协议',        have: hasContract },
+    { key: 'payment',   label: '付款截图',        have: hasPayment },
+    { key: 'promo',     label: '宣传材料（海报/聊天记录）', have: hasPromo },
+    { key: 'record',    label: '核销打卡记录',     have: hasRecord }
+  ]
+  const haveList = materialList.filter(m => m.have).map(m => m.label)
+  const missList = materialList.filter(m => !m.have).map(m => m.label)
   return riskResult(
     complete < 2 ? 'high' : complete < 4 ? 'medium' : 'low',
     'R12', '材料留存完整性检查',
-    `已留存 ${complete}/4 类材料${missing.length ? '，缺失：' + missing.join('、') : ''}`,
-    '在「证据资料夹」中上传对应材料',
-    '四类材料：①合同付款凭证 ②宣传承诺材料 ③核销打卡记录 ④问题沟通记录',
-    complete < 4 ? `建议尽快补充：${missing.join('、')}` : '四类材料留存完整，维权时可直接导出'
+    `已留存 ${complete}/4 类：${haveList.length ? haveList.join('、') : '暂无'}${missList.length ? '；缺失：' + missList.join('、') : ''}`,
+    '在套餐录入页或证据资料夹中上传对应材料',
+    '四类关键证据：①合同 ②付款截图 ③宣传海报/聊天记录 ④核销打卡记录',
+    complete < 4 ? `建议补充：${missList.join('、')}` : '四类关键证据已留存，维权时可一键导出'
   )
 }
 

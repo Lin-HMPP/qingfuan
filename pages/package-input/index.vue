@@ -855,6 +855,8 @@ function onSubmit() {
   }
 
   clearDraft()
+  // 从实际上传材料统计各类型留存情况
+  const materialKeys = images.value.map(img => MATERIAL_LABEL_MAP[img.materialLabel]).filter(Boolean)
   // 将套餐数据存入 sessionStorage，决策卡页面读取
   const pkg = {
     ...form.value,
@@ -862,16 +864,16 @@ function onSubmit() {
     validityMonths: validityMonths.value,
     // 携带已上传的材料图片
     images: images.value,
-    // 从表单字段推断规则引擎需要的布尔标志
-    hasContract: !!(form.value.contractName && form.value.contractName.trim()),
+    // 基于实际上传材料计算留存状态
+    hasContract: materialKeys.includes('contract'),
+    hasPayment: materialKeys.includes('payment'),
+    hasPromo: materialKeys.some(k => ['poster', 'chat'].includes(k)),
+    hasRecord: materialKeys.includes('writeoff'),
     refundClear: !!(form.value.refundRule && form.value.refundRule.trim()),
     transferClear: !!(form.value.transferRule && form.value.transferRule.trim()),
     moveClear: false,
     hasGift: !!(form.value.giftTimes && parseInt(form.value.giftTimes) > 0),
     giftClear: !!(form.value.giftTimes && parseInt(form.value.giftTimes) > 0),
-    hasPayment: images.value.length > 0 || !!(form.value.contractName && form.value.contractName.trim()),
-    hasPromo: !!(form.value.promoNote && form.value.promoNote.trim()),
-    hasRecord: false,
     refundKnown: !!(form.value.refundRule && form.value.refundRule.trim())
   }
   try {
