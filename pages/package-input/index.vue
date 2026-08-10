@@ -35,7 +35,7 @@
       <input class="input-blue" v-model="form.totalPrice" type="text" inputmode="decimal" placeholder="输入实付总金额" />
 
       <span class="label"><span class="star">*</span><span class="label-text">总服务次数</span><span class="label-hint">（不含赠课次数）</span></span>
-      <div class="no-expiry-toggle" @click="form.unlimited = !form.unlimited" :class="{ active: form.unlimited }">
+      <div class="no-expiry-toggle" @click="toggleUnlimited()" :class="{ active: form.unlimited }">
         <div class="toggle-dot"></div>
         <span class="toggle-label">无限次（充卡 / 不限次数）</span>
       </div>
@@ -49,7 +49,7 @@
       </span>
 
       <span class="label"><span class="star">*</span><span class="label-text">服务有效期限</span></span>
-      <div class="no-expiry-toggle" @click="form.noExpiry = !form.noExpiry" :class="{ active: form.noExpiry }">
+      <div class="no-expiry-toggle" @click="toggleNoExpiry()" :class="{ active: form.noExpiry }">
         <div class="toggle-dot"></div>
         <span class="toggle-label">没有固定期限（次卡）</span>
       </div>
@@ -220,6 +220,15 @@ const $toast = (msg) => window.__toast?.(msg)
 const scene = ref('健身/舞蹈')
 const showScenePicker = ref(false)
 const showCustomScene = ref(false)
+
+function toggleUnlimited() {
+  form.value.unlimited = !form.value.unlimited
+  if (form.value.unlimited) form.value.noExpiry = false  // 互斥
+}
+function toggleNoExpiry() {
+  form.value.noExpiry = !form.value.noExpiry
+  if (form.value.noExpiry) form.value.unlimited = false  // 互斥
+}
 const showTypePicker = ref(false)
 const showMethodPicker = ref(false)
 const pickedType = ref(null)
@@ -267,7 +276,12 @@ const totalTimes = computed(() => {
 })
 const baseUnitCost = computed(() => {
   if (!totalPrice.value) return 0
-  if (form.value.unlimited) return '按实到次数均摊'
+  if (form.value.unlimited) {
+    const months = validityMonths.value || 12
+    const daily = (totalPrice.value / (months * 30)).toFixed(1)
+    const monthly = (totalPrice.value / months).toFixed(0)
+    return `${daily}元/天 · 约${monthly}元/月`
+  }
   if (!totalTimes.value) return 0
   const giftTimes = parseInt(form.value.giftTimes) || 0
   const total = totalTimes.value + giftTimes
