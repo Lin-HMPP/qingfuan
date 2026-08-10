@@ -494,9 +494,10 @@ function ruleR16(d) {
 function ruleR17(d) {
   const platform = d.groupBuyPlatform
   if (!platform) return riskResult('none', 'R17', '平台团购支付风险', '直接付给商家，无平台代收风险', '', '', '')
-  const name = platform === 'meituan' ? '美团' : '大众点评'
+  const nameMap = { meituan: '美团', dianping: '大众点评', douyin: '抖音', other: '第三方团购平台' }
+  const name = nameMap[platform] || '团购平台'
   return riskResult('medium', 'R17', '平台团购支付风险',
-    `通过${name}平台团购，资金由平台代收而非直接付给门店`,
+    `通过${name}团购，资金由平台代收而非直接付给门店`,
     '确认平台订单信息与门店服务内容一致',
     '平台代收模式下，退款维权需先与平台交涉，维权链路更长',
     `保存${name}订单截图、合同和聊天记录，纠纷时优先向${name}平台发起售后`

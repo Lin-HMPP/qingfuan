@@ -117,6 +117,8 @@
           <div class="gb-tag" :class="{ active: form.groupBuyPlatform === '' }" @click="form.groupBuyPlatform = ''">直接付给商家</div>
           <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'meituan' }" @click="form.groupBuyPlatform = 'meituan'">美团团购</div>
           <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'dianping' }" @click="form.groupBuyPlatform = 'dianping'">大众点评</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'douyin' }" @click="form.groupBuyPlatform = 'douyin'">抖音团购</div>
+          <div class="gb-tag" :class="{ active: form.groupBuyPlatform === 'other' }" @click="form.groupBuyPlatform = 'other'">其他团购</div>
         </div>
       </div>
     </div>
