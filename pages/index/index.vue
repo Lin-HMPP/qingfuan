@@ -40,14 +40,6 @@
           <div class="btn-voucher" @click="goEvidence(a)">凭证</div>
         </div>
       </template>
-      <a v-if="expiringList.length && !allSynced" class="expire-calendar" :href="calendarUrl" download="青付安_到期提醒.ics" @click="onCalendarClick">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        下载到期提醒 · 点击文件导入日历
-      </a>
-      <div v-else-if="expiringList.length" class="expire-calendar synced">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>
-        到期自动提醒
-      </div>
     </div>
 
     <!-- 双卡片入口 -->
@@ -144,47 +136,6 @@ function goCheck() { if (!guard()) return; router.push('/package-input'); track(
 function goAssets() { if (!guard()) return; router.push('/asset-list'); track('首页', '查看资产') }
 function goEvidenceFolder() { if (!guard()) return; router.push('/evidence-folder'); track('首页', '打开证据夹') }
 function goNewFolder() { if (!guard()) return; router.push('/folder-create'); track('首页', '新建资料夹') }
-
-// 日历同步状态
-const CAL_KEY = 'qf_calendar_synced'
-function getCalSynced() { try { return JSON.parse(localStorage.getItem(CAL_KEY) || '[]') } catch { return [] } }
-function markCalSynced() {
-  const ids = expiringList.value.map(a => a.id)
-  localStorage.setItem(CAL_KEY, JSON.stringify([...new Set([...getCalSynced(), ...ids])]))
-}
-const allSynced = computed(() => {
-  const synced = getCalSynced()
-  return expiringList.value.length > 0 && expiringList.value.every(a => synced.includes(a.id))
-})
-
-const calendarUrl = computed(() => {
-  if (!expiringList.value.length) return '#'
-  const pad = n => String(n).padStart(2, '0')
-  const fmt = ts => { const d = new Date(ts); return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T090000Z` }
-  const now = new Date()
-  let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//QingFuAn//CN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n'
-  expiringList.value.forEach(a => {
-    const end = new Date(a.createdAt)
-    end.setMonth(end.getMonth() + (a.validityMonths || 12))
-    ics += 'BEGIN:VEVENT\n'
-    ics += `UID:${a.id}@qingfuan\nDTSTAMP:${fmt(now.getTime())}\n`
-    ics += `DTSTART;VALUE=DATE:${fmt(end.getTime()).slice(0, 8)}\n`
-    ics += `SUMMARY:${a.storeName} 到期提醒\n`
-    ics += 'BEGIN:VALARM\nTRIGGER:-P3D\nACTION:DISPLAY\nDESCRIPTION:3天后到期\nEND:VALARM\n'
-    ics += 'END:VEVENT\n'
-  })
-  ics += 'END:VCALENDAR'
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
-  return URL.createObjectURL(blob)
-})
-
-function onCalendarClick() {
-  // 延迟标记，等下载先触发
-  setTimeout(() => {
-    markCalSynced()
-    window.__toast?.('下载完成，点击文件即可自动导入日历')
-  }, 800)
-}
 function goInput(scene) { if (!guard()) return; router.push(`/package-input?scene=${encodeURIComponent(scene)}`); track('首页', '场景点击', scene) }
 function goWriteOff(asset) { if (!guard()) return; router.push(`/write-off?id=${asset.id}`) }
 function goEvidence(asset) { if (!guard()) return; router.push(`/evidence-folder?assetId=${asset.id}`) }
@@ -215,17 +166,6 @@ function onCustomScene(name) {
 .expire-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; cursor: pointer; }
 .expire-title { font-size: 15px; font-weight: bold; color: #245957; }
 .arrow-blue { font-size: 12px; color: #48A9A6; line-height: 1; }
-.expire-calendar {
-  margin-top: 8px; padding: 8px 12px;
-  background: #F5FAFA; border: 1px dashed #48A9A6; border-radius: 8px;
-  font-size: 12px; color: #48A9A6; font-weight: bold;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all .2s;
-}
-.expire-calendar.synced {
-  background: #B8E6E1; border-style: solid; border-color: #48A9A6;
-  color: #245957; cursor: default; pointer-events: none;
-}
 .expire-item { display: flex; align-items: center; height: 32px; background: #fff; border: 1px solid #48A9A6; border-radius: 6px; padding: 0 10px; margin-bottom: 6px; }
 .expire-empty { padding: 16px 0; text-align: center; font-size: 13px; color: #638F8D; }
 .expire-info { flex: 1; font-size: 13px; color: #245957; }
