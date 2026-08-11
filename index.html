@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>青付安 - 预付消费管理</title>
+  <link rel="manifest" href="/qingfuan/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/qingfuan/icon-512.png" />
+  <meta name="theme-color" content="#48A9A6" />
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?f73fc637cf22f17fdd1b9011ee864f5a";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+  </script>
+  <script>
+  (function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+  })(window, document, "clarity", "script", "y01ek6rc0z");
+  </script>
+  <style>
+    html, body, #app { margin: 0; padding: 0; height: 100%; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; background: #F5FAFA; }
+    /* 加载屏 */
+    #app-loading {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #F5FAFA;
+    }
+    #app-loading .ld-icon {
+      width: 64px; height: 64px; margin-bottom: 20px;
+      border: 3px solid #B8E6E1; border-top-color: #48A9A6;
+      border-radius: 50%; animation: ld-spin .8s linear infinite;
+    }
+    @keyframes ld-spin { to { transform: rotate(360deg); } }
+    #app-loading .ld-text { font-size: 16px; color: #48A9A6; font-weight: bold; }
+    #app-loading .ld-sub { font-size: 12px; color: #638F8D; margin-top: 6px; }
+    #app-loading.done {
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    /* 移动端居中容器 */
+    @media (min-width: 450px) {
+      body { background: #E8E8E8; display: flex; justify-content: center; }
+      #app { width: 375px; max-height: 100vh; overflow-y: auto; box-shadow: 0 0 30px rgba(0,0,0,.15); }
+    }
+  </style>
+  <script type="module" crossorigin src="/qingfuan/assets/index-NiMCTlCK.js"></script>
+  <link rel="stylesheet" crossorigin href="/qingfuan/assets/index-DLdcpDNy.css">
+</head>
+<body>
+  <div id="app-loading">
+    <div class="ld-icon"></div>
+    <div class="ld-text">小助手正在赶来</div>
+    <div class="ld-sub">青付安 · 你的预付消费管家</div>
+  </div>
+  <div id="app"></div>
+</body>
+</html>

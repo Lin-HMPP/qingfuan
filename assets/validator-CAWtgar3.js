@@ -1,0 +1,1 @@
+function n(t){const i=parseInt(t);return!isNaN(i)&&i>0&&i.toString()===t.toString()}function r(t){const i=parseFloat(t);return!isNaN(i)&&i>0}function s(t){return!t||t.length<2||t.length>30?!1:!/[<>:"/\\|?*]/.test(t)}function e(t){return t&&t.trim().length>=1&&t.trim().length<=20}export{n as a,e as b,s as c,r as i};
