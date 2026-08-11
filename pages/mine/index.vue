@@ -34,33 +34,16 @@
         <span class="guide-title">添加到手机桌面</span>
         <!-- 微信 -->
         <div class="guide-steps" v-if="isWeChat">
-          <div class="guide-step"><span class="step-num">1</span>点右上角 <b>···</b></div>
-          <div class="guide-step"><span class="step-num">2</span>点 <b>在浏览器中打开</b></div>
-          <div class="guide-step"><span class="step-num">3</span>在浏览器中按提示添加</div>
+          <div class="guide-step"><span class="guide-num">1</span>点右上角 <b>···</b></div>
+          <div class="guide-step"><span class="guide-num">2</span>点 <b>在浏览器打开</b></div>
+          <div class="guide-step"><span class="guide-num">3</span>在浏览器中按提示添加</div>
         </div>
-        <!-- iOS Safari -->
-        <div class="guide-steps" v-else-if="isIOS">
-          <div class="guide-step"><span class="step-num">1</span>点底部 <b>分享</b> 按钮</div>
-          <div class="guide-step"><span class="step-num">2</span>找到 <b>添加到主屏幕</b></div>
-          <div class="guide-step"><span class="step-num">3</span>点右上角 <b>添加</b></div>
-        </div>
-        <!-- 夸克 -->
-        <div class="guide-steps" v-else-if="isQuark">
-          <div class="guide-step"><span class="step-num">1</span>点底部中间 <b>菜单</b> 图标</div>
-          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到桌面</b></div>
-          <div class="guide-step"><span class="step-num">3</span>确认添加</div>
-        </div>
-        <!-- UC -->
-        <div class="guide-steps" v-else-if="isUC">
-          <div class="guide-step"><span class="step-num">1</span>点底部中间 <b>菜单</b></div>
-          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到桌面</b></div>
-          <div class="guide-step"><span class="step-num">3</span>点 <b>添加</b></div>
-        </div>
-        <!-- 安卓 Chrome / Edge / 其他 -->
+        <!-- 通用指引 -->
         <div class="guide-steps" v-else>
-          <div class="guide-step"><span class="step-num">1</span>点浏览器菜单 <b>⋮</b>（或底部菜单键）</div>
-          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到主屏幕</b></div>
-          <div class="guide-step"><span class="step-num">3</span>在弹窗中确认</div>
+          <div class="guide-step"><span class="guide-num">1</span>打开浏览器菜单或分享按钮</div>
+          <div class="guide-step"><span class="guide-num">2</span>找到 <b>添加到主屏幕</b> 或 <b>添加到桌面</b></div>
+          <div class="guide-step"><span class="guide-num">3</span>根据提示确认添加</div>
+          <div class="guide-tip">不同浏览器的按钮位置略有不同，通常在地址栏旁边或页面底部</div>
         </div>
         <div class="btn-primary" @click="showGuide = false">知道了</div>
       </div>
@@ -330,6 +313,6 @@ const stats = computed(() => [
 .guide-title { display: block; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 16px; }
 .guide-steps { text-align: left; margin-bottom: 16px; }
 .guide-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #245957; }
-.step-num { width: 24px; height: 24px; background: #48A9A6; color: #fff; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.guide-tip { font-size: 11px; color: #E8686A; margin-top: 8px; text-align: center; }
+.guide-num { width: 24px; height: 24px; background: #48A9A6; color: #fff; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.guide-tip { font-size: 11px; color: #638F8D; margin-top: 8px; text-align: center; line-height: 1.5; }
 </style>
