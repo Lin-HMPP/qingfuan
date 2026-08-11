@@ -80,6 +80,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getAssets } from '@/common/storage.js'
 import { locked, doLock } from '@/store/lock.js'
+import { downloadCalendar } from '@/common/notify.js'
 
 function toggleLock() {
   if (locked.value) {
@@ -90,7 +91,7 @@ function toggleLock() {
   }
 }
 
-const menus = ['使用指南', '规则说明', '隐私设置', '本地凭证管理', '重置所有数据']
+const menus = ['使用指南', '规则说明', '导出到期日历', '隐私设置', '本地凭证管理', '重置所有数据']
 const showHelp = ref(false)
 const showRules = ref(false)
 
@@ -117,6 +118,14 @@ const ruleList = [
 function onMenu(m) {
   if (m === '使用指南') { showHelp.value = true }
   else if (m === '规则说明') { showRules.value = true }
+  else if (m === '导出到期日历') {
+    const ok = downloadCalendar()
+    if (ok) {
+      window.__toast?.('日历文件已下载，打开即可导入系统日历')
+    } else {
+      window.__toast?.('暂无可导出的到期日')
+    }
+  }
   else if (m === '隐私设置') alert('所有数据仅本地存储，不上传服务器。\n\n支持 PIN 码锁定保护敏感信息。')
   else if (m === '本地凭证管理') alert('所有凭证文件仅保存在本机。\n换设备不会自动同步。')
   else if (m === '重置所有数据') {

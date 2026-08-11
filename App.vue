@@ -24,6 +24,7 @@ import ToastGlobal from './components/toast/index.vue'
 import TabBar from './components/tab-bar/index.vue'
 import PinLock from './components/pin-lock/index.vue'
 import { locked, showLockBanner, checkLock, doUnlock } from './store/lock.js'
+import { updateBadge, checkNotify } from './common/notify.js'
 
 const route = useRoute()
 const toastRef = ref(null)
@@ -56,6 +57,8 @@ onMounted(() => {
     loading.classList.add('done')
     setTimeout(() => loading.remove(), 400)
   }
+  // 终端提醒：角标 + 到期通知
+  setTimeout(() => { updateBadge(); checkNotify() }, 800)
 })
 
 function onUnlocked() { doUnlock(); showPinLock.value = false; window.__pinMode = undefined }
