@@ -108,7 +108,7 @@
             </div>
           </div>
         </div>
-        <div class="help-tip">所有数据仅存储在本地手机中，不上传任何服务器。</div>
+        <div class="help-tip">所有数据仅存储在本地，不上传任何服务器。</div>
         <div class="btn-primary" style="height:44px;width:100%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;font-size:15px;font-weight:bold;background:#48A9A6;color:#fff" @click="dismissHelp">开始使用</div>
       </div>
     </div>

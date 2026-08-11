@@ -118,7 +118,7 @@
           </div>
         </div>
         <div class="help-tip">
-          所有数据仅存储在本地手机中，不上传任何服务器。更多功能请探索各页面。
+          所有数据仅存储在本地，不上传任何服务器。更多功能请探索各页面。
         </div>
         <div class="btn-primary" @click="showHelp = false">知道了</div>
       </div>

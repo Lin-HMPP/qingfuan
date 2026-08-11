@@ -216,6 +216,7 @@
             <span class="img-size">{{ img.materialLabel || '' }} · {{ formatSize(img.size) }}</span>
           </div>
           <div class="img-saved">✓ 已保存</div>
+          <div v-if="img.dataUrl && img.mimeType && img.mimeType.startsWith('image/')" class="img-edit" @click="openEditor(img, i)">✎</div>
           <div class="img-del" @click="images.splice(i, 1)">✕</div>
         </div>
       </div>
@@ -854,7 +855,7 @@ function pickAndSave(accept, capture) {
       reader.onload = () => {
 	        entry.dataUrl = reader.result
 	        if (entry.mimeType && entry.mimeType.startsWith('image/')) {
-	          editingEntry.value = entry; editingImage.value = reader.result
+	          images.value.push(entry)
 	        } else {
 	          images.value.push(entry)
 	        }
@@ -877,7 +878,25 @@ function pickAndSave(accept, capture) {
   inp.click()
 }
 
+function openEditor(img, idx) {
+  editingEntry.value = { ...img, _idx: idx }
+  editingImage.value = img.dataUrl
+}
+
 function onEditDone(dataUrl) {
+  if (editingEntry.value) {
+    if (editingEntry.value._idx !== undefined) {
+      // 编辑已有图片：原地替换
+      const idx = editingEntry.value._idx
+      if (images.value[idx]) images.value[idx].dataUrl = dataUrl
+    } else {
+      editingEntry.value.dataUrl = dataUrl
+      images.value.push(editingEntry.value)
+    }
+  }
+  editingImage.value = null
+  editingEntry.value = null
+}
   if (editingEntry.value) {
     editingEntry.value.dataUrl = dataUrl
     images.value.push(editingEntry.value)
@@ -1089,6 +1108,7 @@ function onSubmit() {
 .img-name { display: block; font-size: 9px; color: #245957; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .img-size { display: block; font-size: 9px; color: #638F8D; }
 .img-saved { position: absolute; top: 4px; left: 4px; padding: 2px 6px; background: #28A745; color: #fff; font-size: 8px; font-weight: bold; border-radius: 4px; }
+.img-edit { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: #48A9A6; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; }
 .img-del { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; background: #E8686A; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; }
 
 .bottom-btns { margin: 14px 16px; padding: 14px; }

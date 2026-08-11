@@ -370,7 +370,7 @@ function pickAndSave(accept,capture) {
       const entry={folderId:currentFolder.value?.id||'',name:f.name,type:f.type.startsWith('image/')?'image':(f.name.split('.').pop()||'file'),size:f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(1)+'KB',materialType:pickedType.value?.key||'',dataUrl:'',mimeType:f.type||'application/octet-stream'}
       const isImage = f.type.startsWith('image/')
       const r=new FileReader()
-      r.onload=ev=>{ entry.dataUrl=ev.target.result; pendingCount--; if (entry.type === 'image') { editingEntry.value = entry; editingImage.value = ev.target.result } else { addFile(entry) }; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
+      r.onload=ev=>{ entry.dataUrl=ev.target.result; addFile(entry); pendingCount--; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
       r.onerror=()=>{ addFile(entry); pendingCount-- }
       r.readAsDataURL(f)
     })
