@@ -949,7 +949,8 @@ function onSubmit() {
   }
   } catch (e) {
     console.error('onSubmit 异常:', e)
-    tip('操作失败：' + (e.message || '未知错误'))
+    alert('操作失败：' + (e.message || '未知错误'))
+    window.__toast?.('操作失败：' + (e.message || '未知错误'))
   }
 }
 </script>
