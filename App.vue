@@ -73,10 +73,18 @@ function openUnlock() {
    ═══════════════════════════════════════════ */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-highlight-color: transparent; }
-#app { min-height: 100vh; background: #FFFFFF; }
+html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-highlight-color: transparent; height: 100%; }
+/* dvh 修复 PWA 独立模式下的视口高度偏差，iOS/安卓兼容 */
+#app { min-height: 100vh; min-height: 100dvh; background: #FFFFFF; }
 .safe-top { height: env(safe-area-inset-top, 0px); background: #fff; }
-.app-root { position: relative; min-height: 100vh; }
+/* 独立模式没有浏览器工具栏，补一个安全区顶部间距 */
+@media (display-mode: standalone) {
+  .safe-top { min-height: env(safe-area-inset-top, 20px); }
+}
+.app-root { position: relative; min-height: 100vh; min-height: 100dvh; }
+
+/* 修复 PWA 独立模式下各页面 100vh 溢出（覆盖所有 scoped 样式） */
+.page { min-height: 100dvh !important; }
 
 /* ——— 页面过渡 ——— */
 .page-fade-enter-active, .page-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
@@ -157,7 +165,7 @@ html, body { background: #FFFFFF; color: #245957; font-size: 14px; -webkit-tap-h
 
 /* 运行时锁横幅 */
 .lock-banner {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 9000;
+  position: fixed; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); z-index: 9000;
   display: flex; align-items: center; justify-content: center;
   padding: 10px 20px; background: #245957; color: #fff;
   border-radius: 20px; font-size: 13px; font-weight: bold;
