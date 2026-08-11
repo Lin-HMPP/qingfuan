@@ -440,8 +440,8 @@ function onAssetConfirm() {
   sessionStorage.removeItem('qf_package_data')
   localStorage.removeItem('qf_package_images')
   showConfirm.value = false
-  window.__toast?.('资产卡已创建，可在资产列表中查看')
-  router.replace('/asset-list')
+  window.__toast?.('资产卡已创建')
+  router.replace(`/asset-detail?id=${asset.id}`)
 }
 </script>
 
