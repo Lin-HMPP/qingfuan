@@ -1,0 +1,19 @@
+{
+  "name": "青付安 - 预付消费管理",
+  "short_name": "青付安",
+  "description": "青年预付消费决策与履约管理助手",
+  "start_url": "/qingfuan/",
+  "scope": "/qingfuan/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#48A9A6",
+  "background_color": "#F5FAFA",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%2348A9A6'/><text x='256' y='340' text-anchor='middle' fill='white' font-size='320' font-family='sans-serif' font-weight='bold'>安</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

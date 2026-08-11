@@ -35,3 +35,8 @@ app.config.globalProperties.$toast = (msg) => {
 }
 
 app.mount('#app')
+
+// 注册 Service Worker — 离线缓存
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/qingfuan/sw.js', { scope: '/qingfuan/' }).catch(() => {})
+}
