@@ -140,37 +140,48 @@ qingfuan/
 - 各字段 placeholder（总价/次数/期限/预算/频率/店名/合同/收款/促销）
 - 规则选项列表（退款/转卡/暂停，不同场景用不同术语如"休学""延期""转让"）
 
-## 最近完成的优化（2026-08-10）
-### 全新功能
-- 快速录入页 `/quick-input`：5字段极简建卡，10秒完成；自定义期限支持天/月/年
-- 首页右上角 ➕ 快速录入入口（弹窗确认）
-- 决策卡全新重设计：结论横幅 + 花费算账 + 问题列表 + 行动清单 + 内嵌风险详情
-- 场景化文案：4种场景各有专属 placeholder 和规则选项，标签文字也动态切换
-- 核销页场景化文案：单位/标签根据资产场景自动切换
-- 暂停锁卡 + 编辑套餐时间（"转卡"→"改期"）
-- 套餐录入模块二~四默认折叠，显示完成状态标识
-- 支付渠道：直接付商家 / 美团 / 大众点评 / 抖音 / 其他团购，选中自动填收款账户
-- 规则引擎 R17：平台团购代收风险检测（17 条规则）
-- 「我的」→ 规则说明弹窗展示全部 17 条规则
-- 证据夹材料检查清单「缺失」可点击直接跳上传
+## 最新状态（2026-08-11）
 
-### 视觉美化
-- 全站 emoji → SVG 线条图标
-- `common/icons.js`：30+ SVG 图标定义库
-- 编辑弹窗按钮布局统一对齐
+### 已部署功能
+- **使用频率周/月/年切换**：模块二频率支持切换时间单位，内部归一化为每周次数，向下兼容旧数据（新增 `freqValue` + `freqUnit` 字段，旧字段 `weeklyFreq` 已弃用但保留兼容）
+- **图片编辑器**：`components/image-editor/`，上传图片后可点 ✎ 进入打码/裁剪，canvas 处理
+- **导出预览弹窗**：证据夹导出前弹窗预览所有材料，图片可点击放大，确认后下载
+- **新用户引导**：首页检测无资产时自动弹使用指南（4 步：录卡→评估→管理→留证），`qf_onboarded` 标记
+- **PWA 桌面图标**：manifest.webmanifest + icon-192/512.png + apple-touch-icon，支持各浏览器添加
+- **离线版 ZIP**：`npm run build:offline` 用 vite-plugin-singlefile 内联为单个 HTML，通过 GitHub Releases 分发
+- **决策卡固定消费建议**：行动清单首条固定显示"高频且稳定→年卡…量力消费"，`fixedTip` + `fixed-tip` 样式区分
+- **添加到桌面按钮**：「我的」页面智能识别微信/浏览器，安卓 Chrome 支持一键安装
+- **风险评估会默认展开一个维度**：决策卡默认展开第一个维度
 
-### 机制加固
-- 锁横幅：运行时任何页面底部显示解锁入口
-- PIN 忘记可清除重置
-- 套餐录入每 10 秒自动保存草稿
-- 核销页：阻拦未来日期、暂停/过期拦截
-- R12 证据留存基于上传文件实际计数（非表单字段推断）
-- 图片单独存 localStorage 防 sessionStorage 超限导致录入失败
-- 资料夹编辑/删除（级联清文件）、文件夹命名改为"店名·场景 凭证"
-- 资产列表新卡高亮 + 消费总次数展示
-- Toast 位置上移避开 TabBar
-- 无限次回本计算根据场景调整市场参考价
+### 体验优化（2026-08-11 批量修复）
+- ⊕ 图标 tooltip："快速录入：10秒极简建卡"
+- 到期提醒为空时显示"录入第一张卡"引导链接
+- 快速录入新增 1 个月期限选项；成功后跳转持仓卡而非资产列表
+- 资产列表按到期日从近到远排序；空态加"快速录入"按钮
+- 套餐录入模块折叠态提示改为"展开填写 ›"（含 module2Status 修复：旧字段 `weeklyFreq`→`freqValue`）
+- 持仓卡"课时履约"→场景化标签（`usageLabel`）
+- 核销次数默认 1，Toast 显示剩余次数/累计到店次数
+- 决策卡 sessionStorage 同步备份到 localStorage（`qf_decision_backup`），刷新不丢失
+- 风险报告维度建议展示所有命中规则（非仅第一条）
+- 证据夹空文件夹导出前拦截提示
+- 重置数据双重 confirm
 
-### 已知注意事项
-- 上传图片后点录入无反应 → 图片 base64 改为 localStorage 存储，sessionStorage 只存元数据
-- `form` 是 `ref()` 包裹的对象，script 里必须用 `form.value.xxx`，模板里才直接 `form.xxx`
+### 稳定性修复
+- **移除 Service Worker**（微信打不开、桌面端 404、夸克按钮无响应）：`main.js` 自毁旧 SW 不注册新的
+- **构建目标 ES2015**（兼容夸克/UC/荣耀等国产浏览器旧内核）
+- **PWA 独立模式视图修复**：`100vh`→`100dvh`，`safe-top` 适配状态栏，`lock-banner` bottom 适配安全区
+- 首页"查看全部"字体 22px→12px
+- 套餐录入收款账户 `readonly` 改用 computed 返回 boolean（修复直接付商家时无法输入）
+- 证据夹布局：TabBar 遮挡修复、文件夹选中高亮、选中后隐藏列表
+- MATERIAL_LABEL_MAP 导入补全（套餐录入 + 决策卡），修复上传图片后提交无反应
+- 旧版 onEditDone 重复代码清理导致的构建失败
+- 安装指引 CSS `.step-num` 冲突修复 → `.guide-num`
+
+### 当前关键约定
+- `router.back()` 全局禁用，统一 `router.push()`
+- `form.value.freqValue` + `freqUnit` 是新字段，`weeklyFreq` 已弃用（但 onSubmit 会归一化写入）
+- `qf_decision_backup` 是决策卡刷新容灾备份
+- `qf_onboarded` 标记新用户引导已完成
+- 离线版用 `vite.offline.config.js` 构建，不要改主 `vite.config.js`
+- 图片编辑器在 `components/image-editor/`，通过 `editingImage` ref 触发显示
+- GitHub Pages 部署用 `peaceiris/actions-gh-pages@v4` + `force_orphan: true`
