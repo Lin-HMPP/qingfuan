@@ -375,6 +375,9 @@ const passedItems = computed(() => {
 })
 const passedCount = computed(() => passedItems.value.length)
 
+// ── 固定消费建议 ──
+const fixedTip = '高频且稳定 → 年卡单价更低；低频或尝鲜 → 月卡/次卡风险更小。预付总额控制在月可支配金额的 30% 以内，量力消费。'
+
 // ── 行动清单 ──
 const checklist = computed(() => {
   if (!result.value) return []
@@ -382,8 +385,7 @@ const checklist = computed(() => {
     .filter(r => r.level === 'high')
     .map(r => r.layers.action)
     .filter(Boolean)
-  // 去重
-  return [...new Set(actions)]
+  return [fixedTip, ...new Set(actions)]
 })
 
 // ── 导航 ──
