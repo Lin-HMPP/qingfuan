@@ -165,7 +165,7 @@ function onCustomScene(name) {
 .expire-card { margin: 14px 16px 0; padding: 14px 14px 10px; }
 .expire-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; cursor: pointer; }
 .expire-title { font-size: 15px; font-weight: bold; color: #245957; }
-.arrow-blue { font-size: 22px; font-weight: bold; color: #48A9A6; line-height: 1; }
+.arrow-blue { font-size: 12px; color: #48A9A6; line-height: 1; }
 .expire-item { display: flex; align-items: center; height: 32px; background: #fff; border: 1px solid #48A9A6; border-radius: 6px; padding: 0 10px; margin-bottom: 6px; }
 .expire-empty { padding: 16px 0; text-align: center; font-size: 13px; color: #638F8D; }
 .expire-info { flex: 1; font-size: 13px; color: #245957; }
