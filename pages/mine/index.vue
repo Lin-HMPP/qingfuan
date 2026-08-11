@@ -123,42 +123,38 @@ const showGuide = ref(false)
 // ── 添加到桌面 ──
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent)
 let deferredPrompt = null
 
 const showInstall = ref(false)
 const installHint = ref('')
 
 function checkInstall() {
-  // 已安装的 PWA 不显示
   if (isStandalone) { showInstall.value = false; return }
-  if (isIOS) {
-    showInstall.value = true
-    installHint.value = '点击查看添加步骤'
-  } else if (deferredPrompt) {
-    showInstall.value = true
+  if (!isMobile) { showInstall.value = false; return }
+  showInstall.value = true
+  if (deferredPrompt) {
     installHint.value = '一键添加到桌面，体验更流畅'
   } else {
-    showInstall.value = false
+    installHint.value = '点击查看添加步骤'
   }
 }
 
 function doInstall() {
-  if (isIOS) {
-    showGuide.value = true
-  } else if (deferredPrompt) {
+  if (deferredPrompt) {
     deferredPrompt.prompt()
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; showInstall.value = false })
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; checkInstall() })
+  } else {
+    showGuide.value = true
   }
 }
 
 onMounted(() => {
-  // 捕获 Chrome 安装事件
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault()
     deferredPrompt = e
     checkInstall()
   })
-  // 已安装后隐藏
   window.addEventListener('appinstalled', () => { showInstall.value = false })
   checkInstall()
 })
