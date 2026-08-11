@@ -196,7 +196,7 @@
 import { useRouter } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
 import { runAllRules } from '@/common/rules-engine.js'
-import { addAsset, addFolder, addFile } from '@/common/storage.js'
+import { addAsset, addFolder, addFile, MATERIAL_LABEL_MAP } from '@/common/storage.js'
 import { track } from '@/common/analytics.js'
 import AssetConfirm from '@/components/asset-confirm/index.vue'
 
@@ -431,7 +431,7 @@ function onAssetConfirm() {
       name: img.name,
       type: img.dataUrl ? 'image' : 'file',
       size: img.size ? (img.size > 1048576 ? (img.size / 1048576).toFixed(1) + 'MB' : (img.size / 1024).toFixed(1) + 'KB') : '--',
-      materialType: img.materialLabel || '',
+      materialType: img.materialLabel ? (MATERIAL_LABEL_MAP[img.materialLabel] || '') : '',
       dataUrl: img.dataUrl || ''
     })
   })
