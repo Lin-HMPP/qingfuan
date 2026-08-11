@@ -40,15 +40,13 @@
           <div class="btn-voucher" @click="goEvidence(a)">凭证</div>
         </div>
       </template>
-      <div class="expire-calendar" v-if="expiringList.length" :class="{ synced: allSynced }" @click="addToCalendar">
-        <template v-if="allSynced">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>
-          到期自动提醒
-        </template>
-        <template v-else>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          添加到手机日历 · 到期前自动提醒
-        </template>
+      <a v-if="expiringList.length && !allSynced" class="expire-calendar" :href="calendarUrl" download="青付安_到期提醒.ics" @click="onCalendarClick">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        下载到期提醒 · 点击文件导入日历
+      </a>
+      <div v-else-if="expiringList.length" class="expire-calendar synced">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>
+        到期自动提醒
       </div>
     </div>
 
@@ -147,56 +145,45 @@ function goAssets() { if (!guard()) return; router.push('/asset-list'); track('�
 function goEvidenceFolder() { if (!guard()) return; router.push('/evidence-folder'); track('首页', '打开证据夹') }
 function goNewFolder() { if (!guard()) return; router.push('/folder-create'); track('首页', '新建资料夹') }
 
-// 日历同步状态（记录已添加到日历的资产ID）
+// 日历同步状态
 const CAL_KEY = 'qf_calendar_synced'
 function getCalSynced() { try { return JSON.parse(localStorage.getItem(CAL_KEY) || '[]') } catch { return [] } }
-function markCalSynced(ids) { localStorage.setItem(CAL_KEY, JSON.stringify([...new Set([...getCalSynced(), ...ids])])) }
+function markCalSynced() {
+  const ids = expiringList.value.map(a => a.id)
+  localStorage.setItem(CAL_KEY, JSON.stringify([...new Set([...getCalSynced(), ...ids])]))
+}
 const allSynced = computed(() => {
   const synced = getCalSynced()
   return expiringList.value.length > 0 && expiringList.value.every(a => synced.includes(a.id))
 })
 
-function addToCalendar() {
-  if (locked.value || allSynced.value) return
+const calendarUrl = computed(() => {
+  if (!expiringList.value.length) return '#'
   const pad = n => String(n).padStart(2, '0')
   const fmt = ts => { const d = new Date(ts); return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T090000Z` }
   const now = new Date()
   let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//QingFuAn//CN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n'
-  const ids = []
   expiringList.value.forEach(a => {
-    ids.push(a.id)
     const end = new Date(a.createdAt)
     end.setMonth(end.getMonth() + (a.validityMonths || 12))
     ics += 'BEGIN:VEVENT\n'
-    ics += `UID:${a.id}@qingfuan\n`
-    ics += `DTSTAMP:${fmt(now.getTime())}\n`
+    ics += `UID:${a.id}@qingfuan\nDTSTAMP:${fmt(now.getTime())}\n`
     ics += `DTSTART;VALUE=DATE:${fmt(end.getTime()).slice(0, 8)}\n`
-    ics += `SUMMARY:${a.storeName} 即将到期\n`
-    ics += `DESCRIPTION:门店：${a.storeName}\\n剩余：${(a.totalTimes||0)-(a.usedTimes||0)}次\\n由青付安生成\n`
-    ics += 'BEGIN:VALARM\nTRIGGER:-P3D\nACTION:DISPLAY\nDESCRIPTION:即将到期提醒\nEND:VALARM\n'
+    ics += `SUMMARY:${a.storeName} 到期提醒\n`
+    ics += 'BEGIN:VALARM\nTRIGGER:-P3D\nACTION:DISPLAY\nDESCRIPTION:3天后到期\nEND:VALARM\n'
     ics += 'END:VEVENT\n'
   })
   ics += 'END:VCALENDAR'
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+  return URL.createObjectURL(blob)
+})
 
-  try {
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-
-    if (isIOS) {
-      // iOS: location.href 跳转 data URI 唤起日历（Safari/微信均可用）
-      window.location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics)
-    } else {
-      // Android: location.href 跳转 blob URL，系统自动识别为日历文件
-      window.location.href = url
-    }
-
-    // 标记已同步
-    markCalSynced(ids)
-    setTimeout(() => { try { URL.revokeObjectURL(url) } catch {} }, 3000)
-  } catch (e) {
-    window.__toast?.('操作失败，请重试')
-  }
+function onCalendarClick() {
+  // 延迟标记，等下载先触发
+  setTimeout(() => {
+    markCalSynced()
+    window.__toast?.('下载完成，点击文件即可自动导入日历')
+  }, 800)
 }
 function goInput(scene) { if (!guard()) return; router.push(`/package-input?scene=${encodeURIComponent(scene)}`); track('首页', '场景点击', scene) }
 function goWriteOff(asset) { if (!guard()) return; router.push(`/write-off?id=${asset.id}`) }
