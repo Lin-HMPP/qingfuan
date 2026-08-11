@@ -143,30 +143,30 @@ function goNewFolder() { if (!guard()) return; router.push('/folder-create'); tr
 
 function addToCalendar() {
   if (locked.value) return
-  // 生成到期日历 ICS
   const pad = n => String(n).padStart(2, '0')
   const dt = ts => { const d = new Date(ts); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}` }
   let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//青付安//预付到期日历//ZH\r\nCALSCALE:GREGORIAN\r\n'
   expiringList.value.forEach(a => {
     const end = new Date(a.createdAt)
     end.setMonth(end.getMonth() + (a.validityMonths || 12))
-    ics += `BEGIN:VEVENT\r\nUID:${a.id}@qingfuan\r\nDTSTART;VALUE=DATE:${dt(end.getTime())}\r\nDTEND;VALUE=DATE:${dt(end.getTime() + 86400000)}\r\nSUMMARY:${a.storeName} 到期（剩余${a.totalTimes - a.usedTimes}次）\r\nBEGIN:VALARM\r\nTRIGGER:-P3D\r\nACTION:DISPLAY\r\nDESCRIPTION:${a.storeName} 3天后到期\r\nEND:VALARM\r\nEND:VEVENT\r\n`
+    ics += `BEGIN:VEVENT\r\nUID:${a.id}@qingfuan\r\nDTSTART;VALUE=DATE:${dt(end.getTime())}\r\nDTEND;VALUE=DATE:${dt(end.getTime() + 86400000)}\r\nSUMMARY:${a.storeName} 到期\r\nBEGIN:VALARM\r\nTRIGGER:-P3D\r\nACTION:DISPLAY\r\nDESCRIPTION:${a.storeName} 3天后到期\r\nEND:VALARM\r\nEND:VEVENT\r\n`
   })
   ics += 'END:VCALENDAR'
 
-  // iOS Safari: data URI 直接唤起日历 App
-  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
-  if (isIOS) {
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+  const file = new File([blob], '青付安_到期提醒.ics', { type: 'text/calendar;charset=utf-8' })
+
+  // 优先用系统分享面板（微信/Safari/Chrome 通用，会显示「添加到日历」选项）
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: '添加到手机日历' }).catch(() => {})
+  } else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
     window.open('data:text/calendar;charset=utf-8,' + encodeURIComponent(ics), '_blank')
   } else {
-    // 其他平台：下载文件
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a'); a.href = url; a.download = '青付安_到期提醒.ics'
     document.body.appendChild(a); a.click(); document.body.removeChild(a)
     setTimeout(() => URL.revokeObjectURL(url), 5000)
   }
-  window.__toast?.('日历文件已生成，按提示导入即可')
 }
 function goInput(scene) { if (!guard()) return; router.push(`/package-input?scene=${encodeURIComponent(scene)}`); track('首页', '场景点击', scene) }
 function goWriteOff(asset) { if (!guard()) return; router.push(`/write-off?id=${asset.id}`) }
