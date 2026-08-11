@@ -38,7 +38,7 @@
     </div>
 
     <template v-if="currentFolder && !locked">
-      <div class="checklist-card">
+      <div class="checklist-card" ref="checklistRef">
         <span class="checklist-title">材料完整性检查清单</span>
         <span class="checklist-sub">（当前文件夹: {{ assetName(currentFolder.assetId) }}）</span>
         <div class="check-item" v-for="mt in materialTypes" :key="mt.key">
@@ -149,6 +149,7 @@ const showTypePicker = ref(false)
 const showMethodPicker = ref(false)
 const showManage = ref(false)
 const currentFolder = ref(null)
+const checklistRef = ref(null)
 const pickedType = ref(null)
 const menuFolderId = ref(null)    // 当前展开操作菜单的文件夹ID
 const editFolder = ref(null)      // 正在编辑的文件夹对象
@@ -191,7 +192,7 @@ function navigateBack() {
   }
 }
 function goNewFolder() { if (!guard()) return; router.push('/folder-create') }
-function selectFolder(f) { if (!guard()) return; menuFolderId.value=null; currentFolder.value=f }
+function selectFolder(f) { if (!guard()) return; menuFolderId.value=null; currentFolder.value=f; setTimeout(() => { checklistRef.value?.scrollIntoView({ behavior:'smooth', block:'start' }) }, 100) }
 
 // 资料夹操作菜单
 function toggleMenu(f) { menuFolderId.value = menuFolderId.value === f.id ? null : f.id }
@@ -383,7 +384,7 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 .file-type{font-size:10px;color:#48A9A6;padding:1px 6px;background:#B8E6E1;border-radius:4px;white-space:nowrap}
 .file-size{font-size:10px;color:#888;white-space:nowrap}
 .no-files{text-align:center;padding:20px;font-size:13px;color:#638F8D}
-.btn-row{display:flex;gap:10px;margin:14px 0}
+.btn-row{display:flex;gap:10px;margin:14px 16px}
 .flex-1{flex:1}
 .btn-primary,.btn-secondary{height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer}
 .btn-primary{background:#48A9A6;color:#fff;border:none}
@@ -408,7 +409,7 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 .copy-text{background:#B8E6E1;padding:12px;border-radius:8px;font-size:12px;color:#245957;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin:12px 0}
 
 /* 资料夹卡片布局 */
-.folder-card { position: relative; overflow: hidden; }
+.folder-card { position: relative; }
 .folder-main { cursor: pointer; }
 .folder-name.unnamed { color: #AAA; font-style: italic; }
 
