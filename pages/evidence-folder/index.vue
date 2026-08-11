@@ -157,6 +157,31 @@
       </div>
     </div>
 
+    <!-- 导出预览弹窗 -->
+    <div v-if="showPreview" class="mask" @click="showPreview = false">
+      <div class="preview-modal" @click.stop>
+        <span class="preview-title">资料预览</span>
+        <span class="preview-sub">共 {{ previewFiles.length }} 份材料，确认后打包导出</span>
+        <div class="preview-list">
+          <div class="preview-item" v-for="f in previewFiles" :key="f.id">
+            <!-- 图片预览 -->
+            <img v-if="f.dataUrl && isImageFile(f)" :src="f.dataUrl" class="preview-thumb" @click="openFile(f)" />
+            <!-- 文件链接 -->
+            <div v-else class="preview-file" @click="openFile(f)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <span class="preview-name">{{ f.name }}</span>
+            </div>
+            <span class="preview-type">{{ getMaterialLabel(f.materialType) }}</span>
+          </div>
+          <div v-if="!previewFiles.length" class="preview-empty">暂无文件</div>
+        </div>
+        <div class="preview-btns">
+          <div class="btn-cancel flex-1" @click="showPreview = false">取消</div>
+          <div class="btn-primary flex-1" @click="confirmExport">确认导出</div>
+        </div>
+      </div>
+    </div>
+
     <package-loading v-if="showLoading" @done="showLoading=false" />
 
     <!-- 图片编辑器（打码/裁剪） -->
@@ -272,9 +297,25 @@ function confirmDel(f) {
   }
 }
 
-// 导出
-function onExport(f) { track('证据夹', '导出单个'); currentFolder.value=f; doExport(f) }
-function onExportAll() { track('证据夹', '一键打包'); doExport(currentFolder.value) }
+// 导出预览
+const showPreview = ref(false)
+const previewFiles = ref([])
+const previewFolder = ref(null)
+
+function onExport(f) { track('证据夹', '导出单个'); openPreview(f) }
+function onExportAll() { track('证据夹', '一键打包'); openPreview(currentFolder.value) }
+
+function openPreview(folder) {
+  if (!folder) return
+  previewFolder.value = folder
+  previewFiles.value = getFiles(folder.id)
+  showPreview.value = true
+}
+
+function confirmExport() {
+  showPreview.value = false
+  if (previewFolder.value) doExport(previewFolder.value)
+}
 
 function escapeHtml(str) {
   const div = document.createElement('div')
@@ -385,6 +426,16 @@ function pickAndSave(accept,capture) {
   }
   window.addEventListener('focus', onFocusCancel)
   document.body.appendChild(inp); inp.click()
+}
+
+function isImageFile(f) { return (f.mimeType || '').startsWith('image/') || f.type === 'image' }
+function openFile(f) {
+  if (f.dataUrl) {
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(`<html><body style="margin:0;display:flex;align-items:center;justify-content:center;background:#000;min-height:100vh"><img src="${f.dataUrl}" style="max-width:100%;max-height:100vh" /></body></html>`)
+    }
+  }
 }
 
 // 过滤 emoji，防止导出乱码
@@ -499,4 +550,21 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 .select-wrap { position: relative; }
 .select-box { width: 100%; height: 44px; background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 12px; padding: 0 36px 0 12px; font-size: 15px; color: #245957; appearance: none; -webkit-appearance: none; outline: none; cursor: pointer; }
 .arrow-down { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #48A9A6; pointer-events: none; }
+
+/* 导出预览弹窗 */
+.preview-modal { width: 343px; background: #fff; border: 1px solid #48A9A6; border-radius: 16px; padding: 24px; max-height: 80vh; display: flex; flex-direction: column; }
+.preview-title { display: block; text-align: center; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 4px; }
+.preview-sub { display: block; text-align: center; font-size: 12px; color: #638F8D; margin-bottom: 16px; }
+.preview-list { flex: 1; overflow-y: auto; max-height: 360px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.preview-item { width: calc(50% - 4px); position: relative; }
+.preview-thumb { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #E5E5E5; cursor: pointer; }
+.preview-file { display: flex; align-items: center; gap: 8px; padding: 14px 10px; background: #F5FAFA; border: 1px solid #B8E6E1; border-radius: 8px; cursor: pointer; }
+.preview-name { font-size: 11px; color: #245957; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.preview-type { display: block; font-size: 9px; color: #48A9A6; margin-top: 2px; }
+.preview-empty { width: 100%; text-align: center; padding: 40px 0; font-size: 13px; color: #638F8D; }
+.preview-btns { display: flex; gap: 10px; }
+.preview-btns .flex-1 { flex: 1; }
+.preview-btns .btn-cancel, .preview-btns .btn-primary { height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; cursor: pointer; }
+.preview-btns .btn-cancel { background: #fff; color: #245957; border: 1px solid #999; }
+.preview-btns .btn-primary { background: #48A9A6; color: #fff; border: none; }
 </style>
