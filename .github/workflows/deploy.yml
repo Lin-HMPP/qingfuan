@@ -25,6 +25,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          force_orphan: true
+          enable_jekyll: false
 
       # 离线版：相对路径，打包 ZIP 上传到 Release
       - run: npm run build:offline
