@@ -15,7 +15,7 @@
       <span class="empty-hint">点击右上角「+ 新建资料夹」来归集每个资产的合同、付款截图等凭证材料</span>
     </div>
 
-    <div class="folder-card" v-for="f in folders" :key="f.id">
+    <div class="folder-card" v-for="f in folders" :key="f.id" :class="{ selected: currentFolder?.id === f.id }">
       <div class="folder-main" @click="selectFolder(f)">
         <span class="folder-name" :class="{ 'unnamed': !f.name }">{{ f.name || '无名资料夹' }}</span>
         <span class="folder-meta">绑定资产 · {{ assetName(f.assetId) }} · 凭证 {{ locked ? "•••" : fileCount(f.id) }} 份</span>
@@ -409,7 +409,18 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 .copy-text{background:#B8E6E1;padding:12px;border-radius:8px;font-size:12px;color:#245957;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin:12px 0}
 
 /* 资料夹卡片布局 */
-.folder-card { position: relative; }
+.folder-card { position: relative; transition: all .2s ease; }
+.folder-card.selected {
+  background: #F5FAFA; border-color: #48A9A6; border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(72,169,166,.12);
+}
+.folder-card.selected::before {
+  content: ''; position: absolute; left: 0; top: 12px; bottom: 12px;
+  width: 3px; background: #48A9A6; border-radius: 0 2px 2px 0;
+}
+.folder-card:not(.selected) {
+  opacity: .55;
+}
 .folder-main { cursor: pointer; }
 .folder-name.unnamed { color: #AAA; font-style: italic; }
 
