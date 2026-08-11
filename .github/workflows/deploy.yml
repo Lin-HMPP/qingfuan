@@ -17,9 +17,28 @@ jobs:
           node-version: 22
 
       - run: npm install
+
+      # 在线版：绝对路径，部署到 gh-pages
       - run: npm run build
 
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+
+      # 离线版：相对路径，打包 ZIP 上传到 Release
+      - run: npm run build:offline
+
+      - name: Package offline ZIP
+        run: |
+          cd dist-offline
+          zip -r ../qingfuan-offline.zip .
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: offline
+          name: '青付安 离线版（持续更新）'
+          body: '解压后双击 index.html 即可使用，无需网络。每次推送 main 分支自动更新。'
+          files: qingfuan-offline.zip
+          prerelease: false
+          make_latest: false
