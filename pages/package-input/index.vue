@@ -94,7 +94,7 @@
             <div class="unit-tab" :class="{ active: form.freqUnit === 'month' }" @click="form.freqUnit = 'month'">月</div>
             <div class="unit-tab" :class="{ active: form.freqUnit === 'year' }" @click="form.freqUnit = 'year'">年</div>
           </div>
-          <input class="freq-input" v-model="form.freqValue" type="text" inputmode="decimal" :placeholder="sceneCopy.freqHint" />
+          <input class="freq-input" v-model="form.freqValue" type="text" inputmode="decimal" placeholder="数字" />
           <span class="freq-suffix">次</span>
         </div>
 
