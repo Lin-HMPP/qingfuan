@@ -153,19 +153,33 @@ function addToCalendar() {
   })
   ics += 'END:VCALENDAR'
 
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
-  const file = new File([blob], '青付安_到期提醒.ics', { type: 'text/calendar;charset=utf-8' })
-
-  // 优先用系统分享面板（微信/Safari/Chrome 通用，会显示「添加到日历」选项）
-  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-    navigator.share({ files: [file], title: '添加到手机日历' }).catch(() => {})
-  } else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-    window.open('data:text/calendar;charset=utf-8,' + encodeURIComponent(ics), '_blank')
-  } else {
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = '青付安_到期提醒.ics'
-    document.body.appendChild(a); a.click(); document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  try {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+    if (isIOS) {
+      // iOS: data URI 直接唤起日历 App（Safari 和微信都可用）
+      const uri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics)
+      const a = document.createElement('a')
+      a.setAttribute('href', uri)
+      a.setAttribute('target', '_blank')
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click()
+      setTimeout(() => document.body.removeChild(a), 100)
+    } else {
+      // Android / 桌面：Blob URL 触发系统处理
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = '青付安_到期提醒.ics'
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click()
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 5000)
+    }
+    window.__toast?.('已唤起日历，按提示添加即可')
+  } catch (e) {
+    window.__toast?.('操作失败，请重试')
   }
 }
 function goInput(scene) { if (!guard()) return; router.push(`/package-input?scene=${encodeURIComponent(scene)}`); track('首页', '场景点击', scene) }
