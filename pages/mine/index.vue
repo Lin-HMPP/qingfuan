@@ -309,10 +309,11 @@ const stats = computed(() => [
 .install-desc { display: block; font-size: 11px; color: #638F8D; margin-top: 2px; }
 .install-arrow { font-size: 20px; color: #48A9A6; }
 .install-mask { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; }
-.install-guide { width: 300px; background: #fff; border-radius: 16px; padding: 24px; text-align: center; }
-.guide-title { display: block; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 16px; }
-.guide-steps { text-align: left; margin-bottom: 16px; }
-.guide-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #245957; }
-.guide-num { width: 24px; height: 24px; background: #48A9A6; color: #fff; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.guide-tip { font-size: 11px; color: #638F8D; margin-top: 8px; text-align: center; line-height: 1.5; }
+.install-guide { width: 320px; background: #fff; border: 1px solid #48A9A6; border-radius: 16px; padding: 24px 20px; text-align: center; }
+.guide-title { display: block; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 20px; }
+.guide-steps { text-align: left; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+.guide-step { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: #245957; line-height: 1.5; }
+.guide-num { width: 24px; height: 24px; background: #48A9A6; color: #fff; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.guide-tip { font-size: 12px; color: #638F8D; text-align: center; line-height: 1.5; padding: 8px 12px; background: #F5FAFA; border-radius: 8px; margin-bottom: 16px; }
+.install-guide .btn-primary { height: 44px; width: 100%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 6px; font-size: 15px; font-weight: bold; background: #48A9A6; color: #fff; }
 </style>
