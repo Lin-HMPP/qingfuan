@@ -67,7 +67,6 @@
         </div>
       </div>
 
-    <template v-if="currentFolder && !locked">
       <div class="checklist-card">
         <span class="checklist-title">材料完整性检查清单</span>
         <span class="checklist-sub">（当前文件夹: {{ assetName(currentFolder.assetId) }}）</span>
