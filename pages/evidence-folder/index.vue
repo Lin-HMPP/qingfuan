@@ -5,40 +5,70 @@
       <span class="title">消费证据资料夹</span>
     </div>
 
-    <div class="section-header">
-      <span class="section-title">全部资产文件夹</span>
-      <span class="btn-add-folder" @click="goNewFolder">+ 新建资料夹</span>
-    </div>
+    <!-- 未选中文件夹：显示全部文件夹列表 -->
+    <template v-if="!currentFolder || locked">
+      <div class="section-header">
+        <span class="section-title">全部资产文件夹</span>
+        <span class="btn-add-folder" @click="goNewFolder">+ 新建资料夹</span>
+      </div>
 
-    <div v-if="!folders.length" class="empty-card">
-      <span class="empty-text">暂无文件夹</span>
-      <span class="empty-hint">点击右上角「+ 新建资料夹」来归集每个资产的合同、付款截图等凭证材料</span>
-    </div>
+      <div v-if="!folders.length" class="empty-card">
+        <span class="empty-text">暂无文件夹</span>
+        <span class="empty-hint">点击右上角「+ 新建资料夹」来归集每个资产的合同、付款截图等凭证材料</span>
+      </div>
 
-    <div class="folder-card" v-for="f in folders" :key="f.id" :class="{ selected: currentFolder?.id === f.id }">
-      <div class="folder-main" @click="selectFolder(f)">
-        <span class="folder-name" :class="{ 'unnamed': !f.name }">{{ f.name || '无名资料夹' }}</span>
-        <span class="folder-meta">绑定资产 · {{ assetName(f.assetId) }} · 凭证 {{ locked ? "•••" : fileCount(f.id) }} 份</span>
-      </div>
-      <div class="folder-actions">
-        <div class="btn-export" @click.stop="onExport(f)">导出凭证</div>
-        <span class="btn-more" @click.stop="toggleMenu(f)">···</span>
-      </div>
-      <!-- 滑动操作菜单 -->
-      <div class="action-menu" v-if="menuFolderId === f.id" @click.stop>
-        <div class="action-item" @click="startEdit(f)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          编辑
+      <div class="folder-card" v-for="f in folders" :key="f.id">
+        <div class="folder-main" @click="selectFolder(f)">
+          <span class="folder-name" :class="{ 'unnamed': !f.name }">{{ f.name || '无名资料夹' }}</span>
+          <span class="folder-meta">绑定资产 · {{ assetName(f.assetId) }} · 凭证 {{ locked ? "•••" : fileCount(f.id) }} 份</span>
         </div>
-        <div class="action-item danger" @click="confirmDel(f)">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          删除
+        <div class="folder-actions">
+          <div class="btn-export" @click.stop="onExport(f)">导出凭证</div>
+          <span class="btn-more" @click.stop="toggleMenu(f)">···</span>
+        </div>
+        <div class="action-menu" v-if="menuFolderId === f.id" @click.stop>
+          <div class="action-item" @click="startEdit(f)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            编辑
+          </div>
+          <div class="action-item danger" @click="confirmDel(f)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            删除
+          </div>
         </div>
       </div>
-    </div>
+    </template>
+
+    <!-- 已选中文件夹：显示返回栏 + 高亮卡片 + 详情 -->
+    <template v-if="currentFolder && !locked">
+      <div class="back-bar" @click="currentFolder = null">
+        <span class="back-arrow">‹</span>
+        <span>返回全部文件夹</span>
+      </div>
+
+      <div class="folder-card selected">
+        <div class="folder-main" @click="selectFolder(currentFolder)">
+          <span class="folder-name" :class="{ 'unnamed': !currentFolder.name }">{{ currentFolder.name || '无名资料夹' }}</span>
+          <span class="folder-meta">绑定资产 · {{ assetName(currentFolder.assetId) }} · 凭证 {{ locked ? "•••" : fileCount(currentFolder.id) }} 份</span>
+        </div>
+        <div class="folder-actions">
+          <div class="btn-export" @click.stop="onExport(currentFolder)">导出凭证</div>
+          <span class="btn-more" @click.stop="toggleMenu(currentFolder)">···</span>
+        </div>
+        <div class="action-menu" v-if="menuFolderId === currentFolder.id" @click.stop>
+          <div class="action-item" @click="startEdit(currentFolder)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            编辑
+          </div>
+          <div class="action-item danger" @click="confirmDel(currentFolder)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px;vertical-align:-3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            删除
+          </div>
+        </div>
+      </div>
 
     <template v-if="currentFolder && !locked">
-      <div class="checklist-card" ref="checklistRef">
+      <div class="checklist-card">
         <span class="checklist-title">材料完整性检查清单</span>
         <span class="checklist-sub">（当前文件夹: {{ assetName(currentFolder.assetId) }}）</span>
         <div class="check-item" v-for="mt in materialTypes" :key="mt.key">
@@ -149,7 +179,6 @@ const showTypePicker = ref(false)
 const showMethodPicker = ref(false)
 const showManage = ref(false)
 const currentFolder = ref(null)
-const checklistRef = ref(null)
 const pickedType = ref(null)
 const menuFolderId = ref(null)    // 当前展开操作菜单的文件夹ID
 const editFolder = ref(null)      // 正在编辑的文件夹对象
@@ -192,7 +221,7 @@ function navigateBack() {
   }
 }
 function goNewFolder() { if (!guard()) return; router.push('/folder-create') }
-function selectFolder(f) { if (!guard()) return; menuFolderId.value=null; currentFolder.value=f; setTimeout(() => { checklistRef.value?.scrollIntoView({ behavior:'smooth', block:'start' }) }, 100) }
+function selectFolder(f) { if (!guard()) return; menuFolderId.value=null; currentFolder.value=f }
 
 // 资料夹操作菜单
 function toggleMenu(f) { menuFolderId.value = menuFolderId.value === f.id ? null : f.id }
@@ -423,6 +452,15 @@ function removeFiles(ids) { ids.forEach(id => delFile(id)); currentFolder.value=
 }
 .folder-main { cursor: pointer; }
 .folder-name.unnamed { color: #AAA; font-style: italic; }
+
+/* 返回全部文件夹栏 */
+.back-bar {
+  display: flex; align-items: center; gap: 6px;
+  margin: 8px 16px; padding: 10px 14px;
+  background: #F5FAFA; border: 1px solid #48A9A6; border-radius: 8px;
+  font-size: 13px; color: #48A9A6; font-weight: bold; cursor: pointer;
+}
+.back-arrow { font-size: 20px; line-height: 1; }
 
 /* 滑动操作菜单 */
 .action-menu {
