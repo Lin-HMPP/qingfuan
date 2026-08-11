@@ -5,6 +5,10 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   base: '/qingfuan/',
   plugins: [vue()],
+  build: {
+    target: 'es2015',
+    cssTarget: 'chrome61',
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./', import.meta.url))
