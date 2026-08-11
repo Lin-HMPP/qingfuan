@@ -32,16 +32,24 @@
     <div v-if="showGuide" class="install-mask" @click="showGuide = false">
       <div class="install-guide" @click.stop>
         <span class="guide-title">添加到手机桌面</span>
-        <div class="guide-steps" v-if="isIOS">
-          <div class="guide-step"><span class="step-num">1</span>Safari 底部点 <b>分享</b></div>
-          <div class="guide-step"><span class="step-num">2</span>滑动找到 <b>添加到主屏幕</b></div>
-          <div class="guide-step"><span class="step-num">3</span>点右上角 <b>添加</b></div>
+        <!-- 微信 -->
+        <div class="guide-steps" v-if="isWeChat">
+          <div class="guide-step"><span class="step-num">1</span>点右上角 <b>···</b></div>
+          <div class="guide-step"><span class="step-num">2</span>点 <b>在浏览器中打开</b></div>
+          <div class="guide-step"><span class="step-num">3</span>在浏览器中打开后，按下方步骤操作</div>
         </div>
+        <!-- iOS Safari -->
+        <div class="guide-steps" v-else-if="isIOS">
+          <div class="guide-step"><span class="step-num">1</span>底部点 <b>分享</b> 按钮</div>
+          <div class="guide-step"><span class="step-num">2</span>滑动找到 <b>添加到主屏幕</b></div>
+          <div class="guide-step"><span class="step-num">3</span>点 <b>添加</b></div>
+        </div>
+        <!-- 安卓浏览器 -->
         <div class="guide-steps" v-else>
-          <div class="guide-step"><span class="step-num">1</span>点浏览器右上角 <b>⋮</b> 菜单</div>
+          <div class="guide-step"><span class="step-num">1</span>点浏览器菜单 <b>⋮</b></div>
           <div class="guide-step"><span class="step-num">2</span>点 <b>添加到主屏幕</b> / <b>安装应用</b></div>
-          <div class="guide-step"><span class="step-num">3</span>在弹出的安装窗口点 <b>安装</b></div>
-          <div class="guide-tip">如果没有「安装应用」选项，多使用几次后会自动出现</div>
+          <div class="guide-step"><span class="step-num">3</span>点 <b>安装</b></div>
+          <div class="guide-tip">如果没有安装选项，多使用几次后会自动出现</div>
         </div>
         <div class="btn-primary" @click="showGuide = false">知道了</div>
       </div>
@@ -129,6 +137,7 @@ const showGuide = ref(false)
 // ── 添加到桌面 ──
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+const isWeChat = /MicroMessenger/i.test(navigator.userAgent)
 const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent)
 let deferredPrompt = null
 
