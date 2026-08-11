@@ -36,20 +36,31 @@
         <div class="guide-steps" v-if="isWeChat">
           <div class="guide-step"><span class="step-num">1</span>点右上角 <b>···</b></div>
           <div class="guide-step"><span class="step-num">2</span>点 <b>在浏览器中打开</b></div>
-          <div class="guide-step"><span class="step-num">3</span>在浏览器中打开后，按下方步骤操作</div>
+          <div class="guide-step"><span class="step-num">3</span>在浏览器中按提示添加</div>
         </div>
         <!-- iOS Safari -->
         <div class="guide-steps" v-else-if="isIOS">
-          <div class="guide-step"><span class="step-num">1</span>底部点 <b>分享</b> 按钮</div>
-          <div class="guide-step"><span class="step-num">2</span>滑动找到 <b>添加到主屏幕</b></div>
+          <div class="guide-step"><span class="step-num">1</span>点底部 <b>分享</b> 按钮</div>
+          <div class="guide-step"><span class="step-num">2</span>找到 <b>添加到主屏幕</b></div>
+          <div class="guide-step"><span class="step-num">3</span>点右上角 <b>添加</b></div>
+        </div>
+        <!-- 夸克 -->
+        <div class="guide-steps" v-else-if="isQuark">
+          <div class="guide-step"><span class="step-num">1</span>点底部中间 <b>菜单</b> 图标</div>
+          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到桌面</b></div>
+          <div class="guide-step"><span class="step-num">3</span>确认添加</div>
+        </div>
+        <!-- UC -->
+        <div class="guide-steps" v-else-if="isUC">
+          <div class="guide-step"><span class="step-num">1</span>点底部中间 <b>菜单</b></div>
+          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到桌面</b></div>
           <div class="guide-step"><span class="step-num">3</span>点 <b>添加</b></div>
         </div>
-        <!-- 安卓浏览器 -->
+        <!-- 安卓 Chrome / Edge / 其他 -->
         <div class="guide-steps" v-else>
-          <div class="guide-step"><span class="step-num">1</span>点浏览器菜单 <b>⋮</b></div>
-          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到主屏幕</b> / <b>安装应用</b></div>
-          <div class="guide-step"><span class="step-num">3</span>点 <b>安装</b></div>
-          <div class="guide-tip">如果没有安装选项，多使用几次后会自动出现</div>
+          <div class="guide-step"><span class="step-num">1</span>点浏览器菜单 <b>⋮</b>（或底部菜单键）</div>
+          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到主屏幕</b></div>
+          <div class="guide-step"><span class="step-num">3</span>在弹窗中确认</div>
         </div>
         <div class="btn-primary" @click="showGuide = false">知道了</div>
       </div>
@@ -138,6 +149,8 @@ const showGuide = ref(false)
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
 const isWeChat = /MicroMessenger/i.test(navigator.userAgent)
+const isQuark = /Quark/i.test(navigator.userAgent)
+const isUC = /UCBrowser|UCWEB/i.test(navigator.userAgent)
 const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent)
 let deferredPrompt = null
 
@@ -149,9 +162,17 @@ function checkInstall() {
   if (!isMobile) { showInstall.value = false; return }
   showInstall.value = true
   if (deferredPrompt) {
-    installHint.value = '一键添加到桌面，体验更流畅'
+    installHint.value = '点击一键安装'
+  } else if (isWeChat) {
+    installHint.value = '需在浏览器中打开 · 点击查看'
+  } else if (isQuark) {
+    installHint.value = '菜单 → 添加到桌面 · 点击查看'
+  } else if (isUC) {
+    installHint.value = '菜单 → 添加到桌面 · 点击查看'
+  } else if (isIOS) {
+    installHint.value = '分享 → 添加到主屏幕 · 点击查看'
   } else {
-    installHint.value = '点击查看添加步骤'
+    installHint.value = '菜单 → 添加到主屏幕 · 点击查看'
   }
 }
 
