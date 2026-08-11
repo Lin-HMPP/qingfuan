@@ -255,6 +255,8 @@
       @close="showScenePicker = false"
     />
     <scene-custom v-if="showCustomScene" @confirm="onCustomSceneConfirm" @close="showCustomScene = false" />
+
+    <image-editor v-if="editingImage" :src="editingImage" @done="onEditDone" @cancel="editingImage = null; editingEntry = null" />
   </div>
 </template>
 
@@ -266,6 +268,7 @@ import { isPositiveNumber, isPositiveInt } from '@/common/validator.js'
 import { track } from '@/common/analytics.js'
 import ScenePicker from '@/components/scene-picker/index.vue'
 import SceneCustom from '@/components/scene-picker/custom.vue'
+import ImageEditor from '@/components/image-editor/index.vue'
 
 // ── 场景化文案配置 ──
 const SCENE_COPY = {
@@ -610,6 +613,8 @@ function syncRulePickers() {
 }
 
 const images = ref([])
+const editingImage = ref(null)
+const editingEntry = ref(null)
 
 const form = ref({
   totalPrice: '', totalTimes: '', giftTimes: '0',
@@ -827,9 +832,15 @@ function pickAndSave(accept, capture) {
       }
       // 图片和非图片文件都读取 base64，确保后续导出时都能预览/下载
       const reader = new FileReader()
-      reader.onload = () => { entry.dataUrl = reader.result }
+      reader.onload = () => {
+	        entry.dataUrl = reader.result
+	        if (entry.mimeType && entry.mimeType.startsWith('image/')) {
+	          editingEntry.value = entry; editingImage.value = reader.result
+	        } else {
+	          images.value.push(entry)
+	        }
+	      }
       reader.readAsDataURL(f)
-      images.value.push(entry)
     })
     $toast(`已保存 ${files.length} 份材料`)
     cleanup()
@@ -845,6 +856,15 @@ function pickAndSave(accept, capture) {
   window.addEventListener('focus', onFocusCancel)
   document.body.appendChild(inp)
   inp.click()
+}
+
+function onEditDone(dataUrl) {
+  if (editingEntry.value) {
+    editingEntry.value.dataUrl = dataUrl
+    images.value.push(editingEntry.value)
+  }
+  editingImage.value = null
+  editingEntry.value = null
 }
 
 function formatSize(bytes) {

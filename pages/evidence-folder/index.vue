@@ -158,6 +158,9 @@
     </div>
 
     <package-loading v-if="showLoading" @done="showLoading=false" />
+
+    <!-- 图片编辑器（打码/裁剪） -->
+    <image-editor v-if="editingImage" :src="editingImage" @done="onEditDone" @cancel="editingImage = null" />
   </div>
 </template>
 
@@ -168,6 +171,7 @@ import { locked } from '@/store/lock.js'
 import { getFolders, getFiles, getAssets, addFile, deleteFile as delFile, updateFolder, deleteFolder } from '@/common/storage.js'
 import { track } from '@/common/analytics.js'
 import PackageLoading from '@/components/package-loading/index.vue'
+import ImageEditor from '@/components/image-editor/index.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -182,7 +186,9 @@ const pickedType = ref(null)
 const menuFolderId = ref(null)    // 当前展开操作菜单的文件夹ID
 const editFolder = ref(null)      // 正在编辑的文件夹对象
 const editForm = ref({ name: '', assetId: '' })
-const folderRefresh = ref(0)     // 强制刷新 folders 列表
+const folderRefresh = ref(0)
+const editingImage = ref(null)    // 正在编辑的图片 dataUrl
+const editingEntry = ref(null)    // 编辑中的文件对象
 
 // 如果 URL 带了 assetId，自动选中该资产的文件夹
 onMounted(() => {
@@ -322,6 +328,16 @@ function doExport(folder) {
   }, 200)
 }
 
+// 图片编辑完成
+function onEditDone(dataUrl) {
+  if (editingEntry.value) {
+    editingEntry.value.dataUrl = dataUrl
+    addFile(editingEntry.value)
+  }
+  editingImage.value = null
+  editingEntry.value = null
+}
+
 // 上传
 function startUpload() { track('证据夹', '上传凭证'); showTypePicker.value=true }
 function quickUpload(mt) {
@@ -354,7 +370,7 @@ function pickAndSave(accept,capture) {
       const entry={folderId:currentFolder.value?.id||'',name:f.name,type:f.type.startsWith('image/')?'image':(f.name.split('.').pop()||'file'),size:f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(1)+'KB',materialType:pickedType.value?.key||'',dataUrl:'',mimeType:f.type||'application/octet-stream'}
       const isImage = f.type.startsWith('image/')
       const r=new FileReader()
-      r.onload=ev=>{ entry.dataUrl=ev.target.result; addFile(entry); pendingCount--; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
+      r.onload=ev=>{ entry.dataUrl=ev.target.result; pendingCount--; if (entry.type === 'image') { editingEntry.value = entry; editingImage.value = ev.target.result } else { addFile(entry) }; if(pendingCount<=0)currentFolder.value={...currentFolder.value} }
       r.onerror=()=>{ addFile(entry); pendingCount-- }
       r.readAsDataURL(f)
     })
