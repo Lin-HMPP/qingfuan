@@ -92,11 +92,31 @@
         <div class="qd-cancel" @click="showQuickDialog = false">取消</div>
       </div>
     </div>
+
+    <!-- 新用户使用指南弹窗 -->
+    <div v-if="showHelp" class="help-mask" @click="showHelp = false">
+      <div class="help-modal" @click.stop>
+        <svg class="help-title-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span class="help-title">使用指南</span>
+        <div class="help-title-deco" />
+        <div class="help-steps">
+          <div class="help-step" v-for="(step, idx) in helpSteps" :key="idx">
+            <div class="step-num">{{ idx + 1 }}</div>
+            <div class="step-text">
+              <span class="step-title">{{ step.title }}</span>
+              <span class="step-desc">{{ step.desc }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="help-tip">所有数据仅存储在本地手机中，不上传任何服务器。</div>
+        <div class="btn-primary" style="height:44px;width:100%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;font-size:15px;font-weight:bold;background:#48A9A6;color:#fff" @click="dismissHelp">开始使用</div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAssets } from '@/common/storage.js'
 import { locked } from '@/store/lock.js'
@@ -104,6 +124,28 @@ import { track } from '@/common/analytics.js'
 import SceneCustom from '@/components/scene-picker/custom.vue'
 
 const router = useRouter()
+
+// ── 新用户引导 ──
+const showHelp = ref(false)
+const helpSteps = [
+  { title: '两种录入方式', desc: '右上角 ＋ 快速录入（10秒建卡）或首页「购买前先检查」完整录入（含风险评估）。两种方式都会自动创建证据资料夹。' },
+  { title: '查看决策评估', desc: '录入信息后系统自动分析 17 项风险指标，包括单次成本、频率匹配、主体一致性、退款条款、平台团购风险等。' },
+  { title: '管理预付资产', desc: '资产列表查看所有预付卡，支持核销打卡、暂停锁卡、编辑有效期、申请退款参考。充卡不限次模式自动切换打卡。' },
+  { title: '证据资料夹', desc: '上传合同、付款截图、聊天记录等凭证材料，材料检查清单点击「缺失」可直接补充，纠纷时一键打包导出维权报告。' },
+  { title: '安全与隐私', desc: '所有数据仅保存在本机，不上传服务器。支持 PIN 码锁定保护敏感信息，锁定后页面底部显示解锁入口。' },
+]
+function dismissHelp() {
+  showHelp.value = false
+  localStorage.setItem('qf_onboarded', '1')
+}
+onMounted(() => {
+  if (!localStorage.getItem('qf_onboarded')) {
+    const assets = getAssets()
+    if (!assets || !assets.length) {
+      setTimeout(() => { showHelp.value = true }, 600)
+    }
+  }
+})
 const $toast = (msg) => window.__toast?.(msg)
 const showCustomScene = ref(false)
 const showQuickDialog = ref(false)
@@ -205,4 +247,17 @@ function onCustomScene(name) {
 .qd-btn { height: 46px; background: #48A9A6; color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
 .qd-btn:active { opacity: 0.85; }
 .qd-cancel { height: 36px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #638F8D; cursor: pointer; }
+
+/* 新用户引导弹窗 */
+.help-mask { position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; }
+.help-modal { width: 343px; background: #fff; border: 1px solid #48A9A6; border-radius: 16px; padding: 24px; max-height: 80vh; overflow-y: auto; }
+.help-title-icon { display: block; margin: 0 auto 8px; }
+.help-title { display: block; text-align: center; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 16px; }
+.help-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.help-step { display: flex; gap: 12px; align-items: flex-start; }
+.help-step .step-num { width: 24px; height: 24px; border-radius: 12px; background: #48A9A6; color: #fff; font-size: 13px; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-text { flex: 1; }
+.step-title { display: block; font-size: 14px; font-weight: bold; color: #245957; }
+.step-desc { display: block; font-size: 12px; color: #638F8D; margin-top: 2px; line-height: 1.5; }
+.help-tip { padding: 10px 14px; margin: 12px 0; background: #B8E6E1; border-radius: 8px; font-size: 12px; color: #245957; text-align: center; }
 </style>
