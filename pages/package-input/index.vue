@@ -261,7 +261,7 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { getDraft, saveDraft, clearDraft } from '@/common/storage.js'
+import { getDraft, saveDraft, clearDraft, MATERIAL_LABEL_MAP } from '@/common/storage.js'
 import { isPositiveNumber, isPositiveInt } from '@/common/validator.js'
 import { track } from '@/common/analytics.js'
 import ScenePicker from '@/components/scene-picker/index.vue'
