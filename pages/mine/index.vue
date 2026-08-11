@@ -28,14 +28,20 @@
       <span class="install-arrow">›</span>
     </div>
 
-    <!-- iOS 添加指引弹窗 -->
+    <!-- 添加指引弹窗 -->
     <div v-if="showGuide" class="install-mask" @click="showGuide = false">
       <div class="install-guide" @click.stop>
-        <span class="guide-title">添加到桌面</span>
-        <div class="guide-steps">
-          <div class="guide-step"><span class="step-num">1</span>点底部中间 <b>分享</b> 按钮</div>
-          <div class="guide-step"><span class="step-num">2</span>下滑找到 <b>添加到主屏幕</b></div>
-          <div class="guide-step"><span class="step-num">3</span>点右上角<b>添加</b></div>
+        <span class="guide-title">添加到手机桌面</span>
+        <div class="guide-steps" v-if="isIOS">
+          <div class="guide-step"><span class="step-num">1</span>Safari 底部点 <b>分享</b></div>
+          <div class="guide-step"><span class="step-num">2</span>滑动找到 <b>添加到主屏幕</b></div>
+          <div class="guide-step"><span class="step-num">3</span>点右上角 <b>添加</b></div>
+        </div>
+        <div class="guide-steps" v-else>
+          <div class="guide-step"><span class="step-num">1</span>点浏览器右上角 <b>⋮</b> 菜单</div>
+          <div class="guide-step"><span class="step-num">2</span>点 <b>添加到主屏幕</b> / <b>安装应用</b></div>
+          <div class="guide-step"><span class="step-num">3</span>在弹出的安装窗口点 <b>安装</b></div>
+          <div class="guide-tip">如果没有「安装应用」选项，多使用几次后会自动出现</div>
         </div>
         <div class="btn-primary" @click="showGuide = false">知道了</div>
       </div>
@@ -296,4 +302,5 @@ const stats = computed(() => [
 .guide-steps { text-align: left; margin-bottom: 16px; }
 .guide-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #245957; }
 .step-num { width: 24px; height: 24px; background: #48A9A6; color: #fff; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.guide-tip { font-size: 11px; color: #E8686A; margin-top: 8px; text-align: center; }
 </style>

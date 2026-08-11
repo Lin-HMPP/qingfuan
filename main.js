@@ -36,7 +36,9 @@ app.config.globalProperties.$toast = (msg) => {
 
 app.mount('#app')
 
-// 注册 Service Worker — 离线缓存
+// 注册 Service Worker — 离线缓存 + PWA 安装前提
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/qingfuan/sw.js', { scope: '/qingfuan/' }).catch(() => {})
+  navigator.serviceWorker.register('/qingfuan/sw.js', { scope: '/qingfuan/' })
+    .then(reg => console.log('[青付安] SW 已注册，PWA 可安装'))
+    .catch(err => console.log('[青付安] SW 注册失败:', err))
 }
