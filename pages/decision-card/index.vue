@@ -149,8 +149,9 @@
           <svg class="section-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2" stroke-linecap="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
           <span class="section-title">付款前建议你做这些</span>
         </div>
-        <div class="check-item" v-for="(item, i) in checklist" :key="i">
-          <svg class="check-box" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+        <div class="check-item" v-for="(item, i) in checklist" :key="i" :class="{ 'fixed-tip': i === 0 }">
+          <svg class="check-box" v-if="i > 0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#245957" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span class="check-text">{{ item }}</span>
         </div>
       </div>
@@ -209,7 +210,10 @@ const showPassed = ref(false)
 const showDetail = ref(false)
 
 onMounted(() => {
-  const raw = sessionStorage.getItem('qf_package_data')
+  let raw = sessionStorage.getItem('qf_package_data')
+  // 备份到 localStorage，防刷新丢失
+  if (raw) { try { localStorage.setItem('qf_decision_backup', raw) } catch {} }
+  else { raw = localStorage.getItem('qf_decision_backup') }
   if (raw) {
     try { data.value = JSON.parse(raw) } catch (e) { data.value = {} }
   }
@@ -439,6 +443,7 @@ function onAssetConfirm() {
   })
   sessionStorage.removeItem('qf_package_data')
   localStorage.removeItem('qf_package_images')
+  localStorage.removeItem('qf_decision_backup')
   showConfirm.value = false
   window.__toast?.('资产卡已创建')
   router.replace(`/asset-detail?id=${asset.id}`)
@@ -521,6 +526,8 @@ function onAssetConfirm() {
 .check-item { display: flex; gap: 10px; padding: 8px 0; align-items: flex-start; }
 .check-box { flex-shrink: 0; margin-top: 1px; }
 .check-text { font-size: 13px; color: #245957; line-height: 1.5; }
+.fixed-tip { background: #F5FAFA; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+.fixed-tip .check-text { color: #245957; font-weight: 500; }
 
 /* ── 底部 ── */
 .bottom { margin: 20px 16px; display: flex; flex-direction: column; gap: 10px; }

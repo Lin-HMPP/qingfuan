@@ -30,7 +30,7 @@
           {{ r.level === 'high' ? '●' : '○' }} {{ r.title }}: {{ r.layers.fact }}
         </span>
       </div>
-      <span class="block-action">行动建议: {{ dim.rules[0]?.layers.action || '请参考决策卡详情' }}</span>
+      <span class="block-action">行动建议: {{ dim.rules.map(r => r.layers.action).filter(Boolean).join('；') || '请参考决策卡详情' }}</span>
     </div>
 
     <!-- 深度成本测算（普通模式，来自规则引擎） -->

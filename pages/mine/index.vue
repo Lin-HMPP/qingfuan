@@ -204,9 +204,11 @@ function onMenu(m) {
   else if (m === '隐私设置') alert('所有数据仅本地存储，不上传服务器。\n\n支持 PIN 码锁定保护敏感信息。')
   else if (m === '本地凭证管理') alert('所有凭证文件仅保存在本机。\n换设备不会自动同步。')
   else if (m === '重置所有数据') {
-    if (window.confirm('确认重置？\n\n这将清除所有资产、核销记录、PIN码等本地数据。此操作不可恢复！')) {
-      localStorage.clear()
-      location.reload()
+    if (window.confirm('确定要重置所有数据吗？\n\n这将清除所有资产卡、核销记录、PIN 码等全部本地数据。\n此操作不可恢复！')) {
+      if (window.confirm('再次确认：真的要清除所有数据吗？\n\n此操作无法撤销。')) {
+        localStorage.clear()
+        location.reload()
+      }
     }
   }
 }

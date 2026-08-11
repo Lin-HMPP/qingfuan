@@ -38,7 +38,7 @@
       </div>
       <!-- 普通模式：剩余次数 -->
       <div class="data-row" v-if="!isUnlimited">
-        <span class="data-label">课时履约</span>
+        <span class="data-label">{{ scoped.usageLabel }}</span>
         <span class="data-value">剩余 {{ locked ? "•••" : scoped.remainingTimes }} 次 / 总 {{ asset.totalTimes }} 次（已用 {{ scoped.usedPercent }}%）</span>
       </div>
       <!-- 无限次模式：累计到店 -->
@@ -217,6 +217,8 @@ function calcScope() {
     }
   }
 
+  const scene = a.scene || ''
+  scoped.usageLabel = scene === '培训课程' ? '课时履约' : scene === '摄影套餐' ? '拍摄套数履约' : '使用履约'
   if (!isUnlimited.value) {
     scoped.remainingTimes = (a.totalTimes || 0) - (a.usedTimes || 0)
     scoped.usedPercent = a.totalTimes ? Math.round((a.usedTimes || 0) / a.totalTimes * 100) : 0

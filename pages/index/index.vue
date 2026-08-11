@@ -4,7 +4,7 @@
     <div class="nav-bar">
       <span class="logo">青付安</span>
       <div class="nav-icons">
-        <div class="icon-quick" @click="showQuickDialog = true" title="快速录入">
+        <div class="icon-quick" @click="showQuickDialog = true" title="快速录入：10秒极简建卡">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </div>
         <div class="icon-dot" />
@@ -32,7 +32,7 @@
         <span class="arrow-blue" v-if="expiringList.length">查看全部 ›</span>
       </div>
       <div v-if="locked" class="expire-empty">信息已锁定</div>
-      <div v-else-if="!expiringList.length" class="expire-empty">暂无即将到期的预付卡</div>
+      <div v-else-if="!expiringList.length" class="expire-empty">暂无即将到期的预付卡<br><span class="expire-hint" @click="goQuickInput">录入第一张卡 ›</span></div>
       <template v-else>
         <div v-for="a in expiringList" :key="a.id" class="expire-item">
           <span class="expire-info" :class="{ urgent: a.remainingDays <= 7 }">{{ a.storeName }} · 剩余{{ a.remainingDays }}天 ｜ 剩余{{ a.remainingTimes }}次</span>
@@ -209,6 +209,7 @@ function onCustomScene(name) {
 .arrow-blue { font-size: 12px; color: #48A9A6; line-height: 1; }
 .expire-item { display: flex; align-items: center; height: 32px; background: #fff; border: 1px solid #48A9A6; border-radius: 6px; padding: 0 10px; margin-bottom: 6px; }
 .expire-empty { padding: 16px 0; text-align: center; font-size: 13px; color: #638F8D; }
+.expire-hint { color: #48A9A6; font-weight: bold; cursor: pointer; display: inline-block; margin-top: 6px; font-size: 12px; }
 .expire-info { flex: 1; font-size: 13px; color: #245957; }
 .expire-info.urgent { font-weight: bold; }
 .btn-writeoff { width: 44px; height: 22px; background: #48A9A6; color: #fff; font-size: 10px; font-weight: bold; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 4px; }

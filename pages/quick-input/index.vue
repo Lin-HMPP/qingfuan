@@ -45,7 +45,8 @@
     <!-- 有效期快捷选择 -->
     <span class="label">有效期限</span>
     <div class="term-tags">
-      <div class="term-tag" :class="{ active: termPreset === 3 }" @click="setTerm(3)">3 个月</div>
+      <div class="term-tag" :class="{ active: termPreset === 1 }" @click="setTerm(1)">1 个月</div>
+	      <div class="term-tag" :class="{ active: termPreset === 3 }" @click="setTerm(3)">3 个月</div>
       <div class="term-tag" :class="{ active: termPreset === 6 }" @click="setTerm(6)">6 个月</div>
       <div class="term-tag" :class="{ active: termPreset === 12 }" @click="setTerm(12)">12 个月</div>
       <div class="term-tag" :class="{ active: termPreset === 24 }" @click="setTerm(24)">24 个月</div>
@@ -146,7 +147,7 @@ function doCreate() {
     })
     addFolder({ assetId: asset.id, name: form.storeName.trim() + ' · ' + form.scene + ' 凭证', note: '快速录入自动创建' })
     track('快速录入', '创建资产', form.scene, price)
-    router.push('/asset-list')
+    router.push(`/asset-detail?id=${asset.id}`)
   } catch (e) {
     console.error('快速录入失败:', e)
     $toast('创建失败，请重试')

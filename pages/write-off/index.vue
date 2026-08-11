@@ -93,7 +93,7 @@ const $toast = (msg) => window.__toast?.(msg)
 const asset = ref(null)
 const records = ref([])
 const detailRecord = ref(null)
-const form = reactive({ date: new Date().toISOString().slice(0,10), hours: '', note: '' })
+const form = reactive({ date: new Date().toISOString().slice(0,10), hours: '1', note: '' })
 
 const scoped = reactive({ remainingTimes: 0, remainingDays: 0 })
 

@@ -28,6 +28,7 @@
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round" opacity="0.5"><rect x="8" y="14" width="32" height="24" rx="3"/><line x1="8" y1="22" x2="40" y2="22"/><line x1="24" y1="22" x2="24" y2="38"/><line x1="16" y1="28" x2="20" y2="28"/></svg>
       <span class="empty-text">暂无预付资产记录</span>
       <span class="empty-hint">录入第一张预付卡，开始管理你的消费权益</span>
+      <div class="btn-primary" style="width:180px;margin:12px auto 0" @click="router.push('/quick-input')">+ 快速录入</div>
     </div>
 
     <!-- 资产卡片列表 -->
@@ -92,7 +93,14 @@ const $toast = (msg) => window.__toast?.(msg)
 function guard() { if (locked.value) { window.__toast?.('🔒 信息已锁定，请到「我的」页面解锁'); return false } return true }
 // 使用 refreshKey 强制 computed 重新读取 localStorage
 const refreshKey = ref(0)
-const assets = computed(() => { void refreshKey.value; return getAssets() })
+const assets = computed(() => {
+  void refreshKey.value
+  return [...getAssets()].sort((a, b) => {
+    const aEnd = new Date(a.createdAt).getTime() + (a.validityMonths || 12) * 30 * 86400000
+    const bEnd = new Date(b.createdAt).getTime() + (b.validityMonths || 12) * 30 * 86400000
+    return aEnd - bEnd
+  })
+})
 
 // 管理模式
 const manageMode = ref(false)

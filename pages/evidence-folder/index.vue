@@ -307,8 +307,10 @@ function onExportAll() { track('证据夹', '一键打包'); openPreview(current
 
 function openPreview(folder) {
   if (!folder) return
+  const files = getFiles(folder.id)
+  if (!files.length) { window.__toast?.('该文件夹暂无文件，请先上传凭证材料'); return }
   previewFolder.value = folder
-  previewFiles.value = getFiles(folder.id)
+  previewFiles.value = files
   showPreview.value = true
 }
 
