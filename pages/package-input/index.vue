@@ -86,8 +86,17 @@
         <span class="label"><span class="star">*</span><span class="label-text">{{ sceneCopy.budgetLabel || '每月可支配预付预算' }}</span></span>
         <input class="input-blue" v-model="form.monthlyBudget" type="text" inputmode="decimal" :placeholder="sceneCopy.budgetHint" />
 
-        <span class="label"><span class="star">*</span><span class="label-text">{{ sceneCopy.freqLabel || '预计每周到店使用次数' }}</span></span>
-        <input class="input-blue" v-model="form.weeklyFreq" type="text" inputmode="decimal" :placeholder="sceneCopy.freqHint" />
+        <span class="label"><span class="star">*</span><span class="label-text">{{ sceneCopy.freqLabel || '预计到店使用频率' }}</span></span>
+        <div class="freq-row">
+          <span class="freq-prefix">每</span>
+          <div class="unit-tabs freq-unit-tabs">
+            <div class="unit-tab" :class="{ active: form.freqUnit === 'week' }" @click="form.freqUnit = 'week'">周</div>
+            <div class="unit-tab" :class="{ active: form.freqUnit === 'month' }" @click="form.freqUnit = 'month'">月</div>
+            <div class="unit-tab" :class="{ active: form.freqUnit === 'year' }" @click="form.freqUnit = 'year'">年</div>
+          </div>
+          <input class="freq-input" v-model="form.freqValue" type="text" inputmode="decimal" :placeholder="sceneCopy.freqHint" />
+          <span class="freq-suffix">次</span>
+        </div>
 
         <div v-if="freqEstimate.show" class="freq-info" :class="freqEstimate.risk ? 'freq-warn' : 'freq-ok'">
           {{ freqEstimate.msg }}
@@ -619,7 +628,7 @@ const editingEntry = ref(null)
 const form = ref({
   totalPrice: '', totalTimes: '', giftTimes: '0',
   validityValue: '', validityUnit: 'month', noExpiry: false, unlimited: false,
-  monthlyBudget: '', weeklyFreq: '',
+  monthlyBudget: '', freqValue: '', freqUnit: 'week',
   storeName: '', contractName: '', payeeName: '', groupBuyPlatform: '',
   refundRule: '', transferRule: '', pauseRule: '',
   promoNote: ''
@@ -643,6 +652,15 @@ const totalTimes = computed(() => {
   if (form.value.unlimited) return 999  // 无限次模式
   return parseInt(form.value.totalTimes) || 0
 })
+// 归一化：将用户输入的频率统一折算为每周次数
+const weeklyFreq = computed(() => {
+  const v = parseFloat(form.value.freqValue) || 0
+  if (form.value.freqUnit === 'month') return +(v / 4.33).toFixed(1)
+  if (form.value.freqUnit === 'year') return +(v / 52).toFixed(1)
+  return v
+})
+const freqUnitLabel = computed(() => form.value.freqUnit === 'week' ? '每周' : form.value.freqUnit === 'month' ? '每月' : '每年')
+
 const baseUnitCost = computed(() => {
   if (!totalPrice.value) return 0
   if (form.value.unlimited) {
@@ -657,21 +675,22 @@ const baseUnitCost = computed(() => {
   return (totalPrice.value / total).toFixed(1) + '元/次'
 })
 const freqEstimate = computed(() => {
+  const freq = weeklyFreq.value
+  const rawFreq = parseFloat(form.value.freqValue) || 0
+  const unit = freqUnitLabel.value
   if (form.value.unlimited) {
-    const freq = parseFloat(form.value.weeklyFreq) || 0
     const months = validityMonths.value || 12
-    if (!freq || freq <= 0) return { show: false }
+    if (!freq || freq <= 0 || !rawFreq) return { show: false }
     const totalVisits = Math.round(freq * 4.33 * months)
     return {
       show: true,
       risk: false,
-      msg: `✓ 充卡模式 · 按每周 ${freq} 次估算，有效期 ${months} 个月内预计到店约 ${totalVisits} 次`
+      msg: `✓ 充卡模式 · 按${unit} ${rawFreq} 次估算，有效期 ${months} 个月内预计到店约 ${totalVisits} 次`
     }
   }
   const total = parseInt(form.value.totalTimes) || 0
-  const freq = parseFloat(form.value.weeklyFreq) || 0
   const months = validityMonths.value || 12
-  if (!total || !freq) return { show: false }
+  if (!total || !freq || !rawFreq) return { show: false }
 
   const estimatedMonths = Math.round(total / (freq * 4.33))
   const neededPerWeek = (total / (months * 4.33)).toFixed(1)
@@ -680,21 +699,21 @@ const freqEstimate = computed(() => {
     return {
       show: true,
       risk: false,
-      msg: `✓ 按每周 ${freq} 次的频率，预计 ${estimatedMonths} 个月用完，在有效期 ${months} 个月内可以完成`
+      msg: `✓ 按${unit} ${rawFreq} 次的频率，预计 ${estimatedMonths} 个月用完，在有效期 ${months} 个月内可以完成`
     }
   } else {
     const remaining = Math.round(total - freq * 4.33 * months)
     return {
       show: true,
       risk: true,
-      msg: `⚠ 按每周 ${freq} 次的频率，预计 ${estimatedMonths} 个月才能用完，但有效期只有 ${months} 个月，到期时约有 ${remaining} 次用不完。建议提升频率到每周 ≥${neededPerWeek} 次，或选择更短期的套餐`
+      msg: `⚠ 按${unit} ${rawFreq} 次的频率，预计 ${estimatedMonths} 个月才能用完，但有效期只有 ${months} 个月，到期时约有 ${remaining} 次用不完。建议提升频率到每周 ≥${neededPerWeek} 次，或选择更短期的套餐`
     }
   }
 })
 const progress = computed(() => {
   let p = 0
   if (totalPrice.value && (form.value.unlimited || totalTimes.value) && (form.value.validityValue || form.value.noExpiry)) p++
-  if (form.value.monthlyBudget && form.value.weeklyFreq) p++
+  if (form.value.monthlyBudget && form.value.freqValue) p++
   if (form.value.storeName && form.value.contractName && form.value.payeeName) p++
   if (form.value.refundRule || form.value.transferRule || form.value.pauseRule) p++
   if (form.value.promoNote) p++
@@ -716,7 +735,7 @@ onMounted(() => {
         totalPrice: d.totalPrice || '', totalTimes: d.totalTimes || '',
         giftTimes: d.giftTimes || '0', validityValue: d.validityValue || '',
         validityUnit: d.validityUnit || 'month', noExpiry: d.noExpiry || false, unlimited: d.unlimited || false, monthlyBudget: d.monthlyBudget || '',
-        weeklyFreq: d.weeklyFreq || '', storeName: d.storeName || '',
+        freqValue: d.freqValue || d.weeklyFreq || '', freqUnit: d.freqUnit || 'week', storeName: d.storeName || '',
         contractName: d.contractName || '', payeeName: d.payeeName || '', groupBuyPlatform: d.groupBuyPlatform || '',
         refundRule: d.refundRule || '', transferRule: d.transferRule || '',
         pauseRule: d.pauseRule || '', promoNote: d.promoNote || ''
@@ -906,8 +925,8 @@ function onSubmit() {
   if (!form.value.monthlyBudget || !isPositiveNumber(form.value.monthlyBudget)) {
     errors.push('[模块二] 每月预付预算')
   }
-  if (!form.value.weeklyFreq || !isPositiveNumber(form.value.weeklyFreq)) {
-    errors.push('[模块二] 每周使用频率')
+  if (!form.value.freqValue || !isPositiveNumber(form.value.freqValue)) {
+    errors.push('[模块二] 使用频率')
   }
   if (!form.value.storeName) { errors.push('[模块三] 门店名称') }
   if (!form.value.contractName) { errors.push('[模块三] 签约主体') }
@@ -922,6 +941,7 @@ function onSubmit() {
   const materialKeys = images.value.map(img => MATERIAL_LABEL_MAP[img.materialLabel]).filter(Boolean)
   const pkg = {
     ...form.value,
+    weeklyFreq: weeklyFreq.value,  // 归一化为每周次数存入资产
     scene: scene.value,
     validityMonths: validityMonths.value,
     images: images.value,
@@ -1033,6 +1053,13 @@ function onSubmit() {
   background: #B8E6E1; border: 1px solid #48A9A6; border-radius: 6px;
   font-size: 12px; color: #48A9A6;
 }
+
+.freq-row { display: flex; align-items: center; gap: 6px; }
+.freq-prefix { font-size: 14px; color: #245957; flex-shrink: 0; }
+.freq-unit-tabs { gap: 2px; }
+.freq-unit-tabs .unit-tab { height: 36px; padding: 0 10px; font-size: 13px; }
+.freq-input { width: 56px; height: 44px; background: #fff; border: 1.5px solid #48A9A6; border-radius: 12px; text-align: center; font-size: 15px; color: #245957; outline: none; }
+.freq-suffix { font-size: 14px; color: #245957; flex-shrink: 0; }
 
 .freq-info { padding: 10px 14px; margin-top: 8px; border-radius: 6px; font-size: 12px; line-height: 1.6; }
 .freq-ok { background: #B8E6E1; border: 1px solid #48A9A6; color: #48A9A6; }
