@@ -478,22 +478,22 @@ const showModule5 = ref(false)
 const module2Status = computed(() => {
   const parts = []
   if (form.value.monthlyBudget && isPositiveNumber(form.value.monthlyBudget)) parts.push('预算已填')
-  if (form.value.weeklyFreq && isPositiveNumber(form.value.weeklyFreq)) parts.push('频率已填')
-  return parts.length === 2 ? '✓ 已完成' : parts.length ? '已填 ' + parts.length + '/2' : '待填写'
+  if (form.value.freqValue && isPositiveNumber(form.value.freqValue)) parts.push('频率已填')
+  return parts.length === 2 ? '✓' : parts.length ? '已填 ' + parts.length + '/2' : '展开填写 ›'
 })
 const module3Status = computed(() => {
   const parts = []
   if (form.value.storeName) parts.push(1)
   if (form.value.contractName) parts.push(1)
   if (form.value.payeeName) parts.push(1)
-  return parts.length === 3 ? '✓ 已完成' : parts.length ? '已填 ' + parts.length + '/3' : '待填写'
+  return parts.length === 3 ? '✓' : parts.length ? '已填 ' + parts.length + '/3' : '展开填写 ›'
 })
 const module4Status = computed(() => {
   const parts = []
   if (form.value.refundRule) parts.push(1)
   if (form.value.transferRule) parts.push(1)
   if (form.value.pauseRule) parts.push(1)
-  return parts.length === 3 ? '✓ 已完成' : parts.length ? '已设 ' + parts.length + '/3' : '选填'
+  return parts.length === 3 ? '✓' : parts.length ? '已设 ' + parts.length + '/3' : '选填 ›'
 })
 
 // ── 模块四：规则选择器状态 ──

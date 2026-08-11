@@ -184,7 +184,7 @@ function onSave() {
     records.value = getWriteOffs(asset.value.id)
     form.note = ''
     track('打卡', '到店记录', asset.value.storeName)
-    $toast?.('打卡已记录')
+    $toast?.(`已打卡 · 累计到店 ${newUsed} 次`)
     return
   }
 
@@ -201,9 +201,9 @@ function onSave() {
   if (!asset.value) { $toast?.('核销记录已保存'); return }
   scoped.remainingTimes = (asset.value.totalTimes || 0) - (asset.value.usedTimes || 0)
   records.value = getWriteOffs(asset.value.id)
-  form.hours = ''; form.note = ''
+  form.hours = '1'; form.note = ''
   track('核销', '保存记录', asset.value.storeName, h)
-  $toast?.('核销记录已保存')
+  $toast?.(`已核销 ${h} 次 · 剩余 ${scoped.remainingTimes} 次`)
 }
 
 function refreshAsset() {
