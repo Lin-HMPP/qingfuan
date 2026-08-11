@@ -110,7 +110,7 @@
         <input class="input-blue" v-model="form.contractName" :placeholder="sceneCopy.contractHint" />
 
         <span class="label"><span class="star">*</span><span class="label-text">收款账户/商家收款名</span></span>
-        <input class="input-blue" v-model="form.payeeName" :placeholder="sceneCopy.payeeHint" :readonly="form.groupBuyPlatform && form.groupBuyPlatform !== 'other' && form.groupBuyPlatform !== ''" :class="{ readonly: form.groupBuyPlatform && form.groupBuyPlatform !== 'other' && form.groupBuyPlatform !== '' }" />
+        <input class="input-blue" v-model="form.payeeName" :placeholder="sceneCopy.payeeHint" :readonly="isPayeeReadonly" :class="{ readonly: isPayeeReadonly }" />
         <!-- 团购平台模式 -->
         <span class="label"><span class="label-text">支付渠道</span></span>
         <div class="groupbuy-tags">
@@ -741,6 +741,12 @@ onMounted(() => {
     if (hasContent) saveDraft({ form: form.value, scene: scene.value, images: images.value })
   }, 10000)
   onBeforeUnmount(() => clearInterval(autoSaveTimer))
+})
+
+// 收款账户只读状态：美团/大众/抖音自动填充并锁定，直接付商家/其他团购可手动输入
+const isPayeeReadonly = computed(() => {
+  const p = form.value.groupBuyPlatform
+  return p !== '' && p !== 'other'
 })
 
 const platformPayeeMap = { meituan: '美团商家平台', dianping: '大众点评商家平台', douyin: '抖音团购商家平台' }
