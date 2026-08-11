@@ -35,3 +35,8 @@ app.config.globalProperties.$toast = (msg) => {
 }
 
 app.mount('#app')
+
+// 自毁旧 Service Worker（如果之前安装过）
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()))
+}
