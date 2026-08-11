@@ -16,6 +16,31 @@
       </div>
     </div>
 
+    <!-- 添加到桌面（未安装时显示） -->
+    <div v-if="showInstall" class="card-blue install-card" @click="doInstall">
+      <div class="install-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#48A9A6" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><polyline points="9 13 12 16 15 13"/></svg>
+      </div>
+      <div class="install-text">
+        <span class="install-title">添加到手机桌面</span>
+        <span class="install-desc">{{ installHint }}</span>
+      </div>
+      <span class="install-arrow">›</span>
+    </div>
+
+    <!-- iOS 添加指引弹窗 -->
+    <div v-if="showGuide" class="install-mask" @click="showGuide = false">
+      <div class="install-guide" @click.stop>
+        <span class="guide-title">添加到桌面</span>
+        <div class="guide-steps">
+          <div class="guide-step"><span class="step-num">1</span>点底部中间 <b>分享</b> 按钮</div>
+          <div class="guide-step"><span class="step-num">2</span>下滑找到 <b>添加到主屏幕</b></div>
+          <div class="guide-step"><span class="step-num">3</span>点右上角<b>添加</b></div>
+        </div>
+        <div class="btn-primary" @click="showGuide = false">知道了</div>
+      </div>
+    </div>
+
     <!-- 三栏统计卡片 -->
     <div class="card-blue stats-card">
       <div class="stat-col" v-for="(s, i) in stats" :key="i">
@@ -93,6 +118,50 @@ function toggleLock() {
 const menus = ['使用指南', '规则说明', '隐私设置', '本地凭证管理', '重置所有数据']
 const showHelp = ref(false)
 const showRules = ref(false)
+const showGuide = ref(false)
+
+// ── 添加到桌面 ──
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+let deferredPrompt = null
+
+const showInstall = ref(false)
+const installHint = ref('')
+
+function checkInstall() {
+  // 已安装的 PWA 不显示
+  if (isStandalone) { showInstall.value = false; return }
+  if (isIOS) {
+    showInstall.value = true
+    installHint.value = '点击查看添加步骤'
+  } else if (deferredPrompt) {
+    showInstall.value = true
+    installHint.value = '一键添加到桌面，体验更流畅'
+  } else {
+    showInstall.value = false
+  }
+}
+
+function doInstall() {
+  if (isIOS) {
+    showGuide.value = true
+  } else if (deferredPrompt) {
+    deferredPrompt.prompt()
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; showInstall.value = false })
+  }
+}
+
+onMounted(() => {
+  // 捕获 Chrome 安装事件
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault()
+    deferredPrompt = e
+    checkInstall()
+  })
+  // 已安装后隐藏
+  window.addEventListener('appinstalled', () => { showInstall.value = false })
+  checkInstall()
+})
 
 const ruleList = [
   { code: 'R1',  title: '单次实际成本核算', desc: '根据总价和次数计算单次均价，与你的月度预算对比，判断是否超支', stage: '购前决策' },
@@ -216,4 +285,19 @@ const stats = computed(() => [
 .rule-info { flex: 1; min-width: 0; }
 .rule-name { display: block; font-size: 13px; font-weight: bold; color: #245957; }
 .rule-desc { display: block; font-size: 11px; color: #638F8D; line-height: 1.4; margin-top: 1px; }
+
+/* 添加到桌面 */
+.install-card { margin: 12px 16px 0; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.install-card:active { background: #F5FAFA; }
+.install-icon { flex-shrink: 0; }
+.install-text { flex: 1; min-width: 0; }
+.install-title { display: block; font-size: 15px; font-weight: bold; color: #245957; }
+.install-desc { display: block; font-size: 11px; color: #638F8D; margin-top: 2px; }
+.install-arrow { font-size: 20px; color: #48A9A6; }
+.install-mask { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; }
+.install-guide { width: 300px; background: #fff; border-radius: 16px; padding: 24px; text-align: center; }
+.guide-title { display: block; font-size: 18px; font-weight: bold; color: #245957; margin-bottom: 16px; }
+.guide-steps { text-align: left; margin-bottom: 16px; }
+.guide-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #245957; }
+.step-num { width: 24px; height: 24px; background: #48A9A6; color: #fff; font-size: 12px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 </style>
