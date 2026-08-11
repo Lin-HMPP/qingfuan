@@ -40,9 +40,15 @@
           <div class="btn-voucher" @click="goEvidence(a)">凭证</div>
         </div>
       </template>
-      <div class="expire-calendar" v-if="expiringList.length" @click="addToCalendar">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        添加到手机日历 · 到期前自动提醒
+      <div class="expire-calendar" v-if="expiringList.length" :class="{ synced: allSynced }" @click="addToCalendar">
+        <template v-if="allSynced">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>
+          到期自动提醒
+        </template>
+        <template v-else>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          添加到手机日历 · 到期前自动提醒
+        </template>
       </div>
     </div>
 
@@ -141,43 +147,53 @@ function goAssets() { if (!guard()) return; router.push('/asset-list'); track('�
 function goEvidenceFolder() { if (!guard()) return; router.push('/evidence-folder'); track('首页', '打开证据夹') }
 function goNewFolder() { if (!guard()) return; router.push('/folder-create'); track('首页', '新建资料夹') }
 
+// 日历同步状态（记录已添加到日历的资产ID）
+const CAL_KEY = 'qf_calendar_synced'
+function getCalSynced() { try { return JSON.parse(localStorage.getItem(CAL_KEY) || '[]') } catch { return [] } }
+function markCalSynced(ids) { localStorage.setItem(CAL_KEY, JSON.stringify([...new Set([...getCalSynced(), ...ids])])) }
+const allSynced = computed(() => {
+  const synced = getCalSynced()
+  return expiringList.value.length > 0 && expiringList.value.every(a => synced.includes(a.id))
+})
+
 function addToCalendar() {
-  if (locked.value) return
+  if (locked.value || allSynced.value) return
   const pad = n => String(n).padStart(2, '0')
-  const dt = ts => { const d = new Date(ts); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}` }
-  let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//青付安//预付到期日历//ZH\r\nCALSCALE:GREGORIAN\r\n'
+  const fmt = ts => { const d = new Date(ts); return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T090000Z` }
+  const now = new Date()
+  let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//QingFuAn//CN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n'
+  const ids = []
   expiringList.value.forEach(a => {
+    ids.push(a.id)
     const end = new Date(a.createdAt)
     end.setMonth(end.getMonth() + (a.validityMonths || 12))
-    ics += `BEGIN:VEVENT\r\nUID:${a.id}@qingfuan\r\nDTSTART;VALUE=DATE:${dt(end.getTime())}\r\nDTEND;VALUE=DATE:${dt(end.getTime() + 86400000)}\r\nSUMMARY:${a.storeName} 到期\r\nBEGIN:VALARM\r\nTRIGGER:-P3D\r\nACTION:DISPLAY\r\nDESCRIPTION:${a.storeName} 3天后到期\r\nEND:VALARM\r\nEND:VEVENT\r\n`
+    ics += 'BEGIN:VEVENT\n'
+    ics += `UID:${a.id}@qingfuan\n`
+    ics += `DTSTAMP:${fmt(now.getTime())}\n`
+    ics += `DTSTART;VALUE=DATE:${fmt(end.getTime()).slice(0, 8)}\n`
+    ics += `SUMMARY:${a.storeName} 即将到期\n`
+    ics += `DESCRIPTION:门店：${a.storeName}\\n剩余：${(a.totalTimes||0)-(a.usedTimes||0)}次\\n由青付安生成\n`
+    ics += 'BEGIN:VALARM\nTRIGGER:-P3D\nACTION:DISPLAY\nDESCRIPTION:即将到期提醒\nEND:VALARM\n'
+    ics += 'END:VEVENT\n'
   })
   ics += 'END:VCALENDAR'
 
   try {
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+
     if (isIOS) {
-      // iOS: data URI 直接唤起日历 App（Safari 和微信都可用）
-      const uri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics)
-      const a = document.createElement('a')
-      a.setAttribute('href', uri)
-      a.setAttribute('target', '_blank')
-      a.style.display = 'none'
-      document.body.appendChild(a)
-      a.click()
-      setTimeout(() => document.body.removeChild(a), 100)
+      // iOS: location.href 跳转 data URI 唤起日历（Safari/微信均可用）
+      window.location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics)
     } else {
-      // Android / 桌面：Blob URL 触发系统处理
-      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = '青付安_到期提醒.ics'
-      a.style.display = 'none'
-      document.body.appendChild(a)
-      a.click()
-      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url) }, 5000)
+      // Android: location.href 跳转 blob URL，系统自动识别为日历文件
+      window.location.href = url
     }
-    window.__toast?.('已唤起日历，按提示添加即可')
+
+    // 标记已同步
+    markCalSynced(ids)
+    setTimeout(() => { try { URL.revokeObjectURL(url) } catch {} }, 3000)
   } catch (e) {
     window.__toast?.('操作失败，请重试')
   }
@@ -217,7 +233,11 @@ function onCustomScene(name) {
   background: #F5FAFA; border: 1px dashed #48A9A6; border-radius: 8px;
   font-size: 12px; color: #48A9A6; font-weight: bold;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
+  cursor: pointer; transition: all .2s;
+}
+.expire-calendar.synced {
+  background: #B8E6E1; border-style: solid; border-color: #48A9A6;
+  color: #245957; cursor: default; pointer-events: none;
 }
 .expire-item { display: flex; align-items: center; height: 32px; background: #fff; border: 1px solid #48A9A6; border-radius: 6px; padding: 0 10px; margin-bottom: 6px; }
 .expire-empty { padding: 16px 0; text-align: center; font-size: 13px; color: #638F8D; }
