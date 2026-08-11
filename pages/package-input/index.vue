@@ -897,13 +897,6 @@ function onEditDone(dataUrl) {
   editingImage.value = null
   editingEntry.value = null
 }
-  if (editingEntry.value) {
-    editingEntry.value.dataUrl = dataUrl
-    images.value.push(editingEntry.value)
-  }
-  editingImage.value = null
-  editingEntry.value = null
-}
 
 function formatSize(bytes) {
   if (!bytes) return ''
